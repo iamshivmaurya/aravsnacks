@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import { CartProvider } from "../components/CartContext"
 import { Toaster } from 'react-hot-toast';
 
@@ -22,6 +23,7 @@ export default function RootLayout({
           <Toaster position="top-right" />
           <main className="p-4 max-w-7xl mx-auto">{children}</main>
         </CartProvider>
+        <Footer />
       </body>
     </html>
   );
