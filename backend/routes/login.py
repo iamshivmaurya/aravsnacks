@@ -1,38 +1,135 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import FastAPI, HTTPException, Depends, APIRouter
+from sqlalchemy.orm import Session
 import random
-from schema import PhoneNumber,OTPVerify
-
-
+from datetime import datetime, timedelta
+from typing import Optional
+from pydantic import BaseModel
+from model import Customer, OTP
+from database import get_db, Base, engine
+from schema import SignupRequest
 router = APIRouter()
 
-otp_storage = {}
 
 def generate_otp():
     return str(random.randint(1000, 9999))
 
-@router.post("/signup/")
-async def signup(phone_data: PhoneNumber):
-    if len(phone_data.phone) != 10 or not phone_data.phone.isdigit():
-        raise HTTPException(status_code=400, detail="Phone number must be 10 digits")
 
+@router.post("/signup")
+async def signup(request: SignupRequest, db: Session = Depends(get_db)):
+    # Validate phone number
+    if not request.phone or len(request.phone) != 10 or not request.phone.isdigit():
+        raise HTTPException(status_code=400, detail="Valid 10-digit phone number required")
+
+    # Check if customer already exists
+    existing_customer = db.query(Customer).filter(Customer.phone == request.phone).first()
+
+    if existing_customer:
+        raise HTTPException(
+            status_code=400,
+            detail="Phone number already registered. Please request OTP to login."
+        )
+
+    # Create new customer record
+    new_customer = Customer(
+        phone=request.phone,
+        is_verified=False
+    )
+    db.add(new_customer)
+
+    # Generate and store OTP
     otp = generate_otp()
-    otp_storage[phone_data.phone] = otp  # Store OTP (in memory)
+    otp_record = OTP(
+        otp=otp,
+        phone=request.phone,
+        created_at=datetime.now()
+    )
+    db.add(otp_record)
 
-    # In a real app, send OTP via SMS (e.g., Twilio)
-    print(f"OTP for {phone_data.phone}: {otp}")  # For testing
+    db.commit()
 
-    return {"message": "OTP sent successfully", "otp": otp}  # Return OTP for testing
+    return {
+        "message": "OTP sent successfully",
+        "otp": otp  # In production, send via SMS instead
+    }
 
-@router.post("/verify-otp/")
-async def verify_otp(otp_data: OTPVerify):
-    stored_otp = otp_storage.get(otp_data.phone)
 
-    if not stored_otp:
-        raise HTTPException(status_code=400, detail="Phone number not found")
-    if stored_otp != otp_data.otp:
+@router.post("/request-otp")
+async def request_otp(request: LoginRequest, db: Session = Depends(get_db)):
+    # Validate phone number
+    if not request.phone or len(request.phone) != 10 or not request.phone.isdigit():
+        raise HTTPException(status_code=400, detail="Valid 10-digit phone number required")
+
+    # Check if customer exists
+    customer = db.query(Customer).filter(Customer.phone == request.phone).first()
+
+    if not customer:
+        raise HTTPException(
+            status_code=404,
+            detail="Phone number not registered. Please sign up first."
+        )
+
+    # Generate and store OTP
+    otp = generate_otp()
+    otp_record = OTP(
+        otp=otp,
+        phone=request.phone,
+        created_at=datetime.now()
+    )
+    db.add(otp_record)
+    db.commit()
+
+    return {
+        "message": "OTP sent successfully",
+        "otp": otp  # In production, send via SMS instead
+    }
+
+
+@router.post("/verify-otp")
+async def verify_otp(request: OTPVerifyRequest, db: Session = Depends(get_db)):
+    # Validate input
+    if not request.phone or len(request.phone) != 10 or not request.phone.isdigit():
+        raise HTTPException(status_code=400, detail="Valid 10-digit phone number required")
+    if not request.otp or len(request.otp) != 4 or not request.otp.isdigit():
+        raise HTTPException(status_code=400, detail="Valid 4-digit OTP required")
+
+    # Find the most recent OTP for this phone
+    otp_record = db.query(OTP).filter(
+        OTP.phone == request.phone,
+        OTP.created_at >= datetime.now() - timedelta(minutes=5)
+    ).order_by(OTP.created_at.desc()).first()
+
+    if not otp_record:
+        raise HTTPException(status_code=400, detail="OTP expired or not found")
+
+    if otp_record.otp != request.otp:
         raise HTTPException(status_code=400, detail="Invalid OTP")
 
+    # Mark customer as verified
+    customer = db.query(Customer).filter(Customer.phone == request.phone).first()
+    if customer:
+        customer.is_verified = True
+        db.commit()
 
-    del otp_storage[otp_data.phone]
+    return {"message": "OTP verified successfully"}
 
-    return {"message": "Login successful!"}
+
+@router.post("/login")
+async def login(request: LoginRequest, db: Session = Depends(get_db)):
+    # Validate phone number
+    if not request.phone or len(request.phone) != 10 or not request.phone.isdigit():
+        raise HTTPException(status_code=400, detail="Valid 10-digit phone number required")
+
+    # Check if customer exists and is verified
+    customer = db.query(Customer).filter(Customer.phone == request.phone).first()
+
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    if not customer.is_verified:
+        raise HTTPException(status_code=400, detail="Please verify OTP first")
+
+    return {"message": "Login successful"}
+
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
