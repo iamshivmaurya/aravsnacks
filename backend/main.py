@@ -1,8 +1,7 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from routes import login
+from fastapi import FastAPI
+from routes import login                       # From routes folder
 
 app = FastAPI()
 
-app.include_router(login.router, tags=["Login Route"])
+app.include_router(login.router, tags=["Login Route"])  #include_router
 
