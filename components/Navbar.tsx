@@ -7,7 +7,6 @@ export default function Navbar() {
       <h1 className="font-bold text-xl">🛒 Arav Snacks</h1>
       <div className="space-x-4">
         <Link href="/">Home</Link>
-        <Link href="/signup">Sign Up</Link>
         <Link href="/products">Products</Link>
         <Link href="/cart">Cart</Link>
       </div>

@@ -1,8 +1,8 @@
- 
 import Banner from "@/components/Banner";
 import ProductCard from "@/components/ProductCard";
 import Image from "next/image";
 import { dummyProducts } from "@/components/DummyProducts";
+
 
 
 // const dummyProducts = [
@@ -23,22 +23,19 @@ import { dummyProducts } from "@/components/DummyProducts";
 // ];
 
 
-
-
-
 export default function Home() {
   return (
     <div>
       <Banner />
-        <section className="text-center mt-10">
-            <h1 className="text-4xl font-bold">Welcome to Arav Snacks</h1>
-            <p className="mt-4 text-gray-600">Fresh snacks delivered to your doorstep.</p>
-          </section>
-          <section className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {dummyProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-        </section>
+      <section className="text-center mt-10">
+        <h1 className="text-4xl font-bold">Welcome to Arav Snacks</h1>
+        <p className="mt-4 text-gray-600">Fresh snacks delivered to your doorstep.</p>
+      </section>
+        <section className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {dummyProducts.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </section>
     </div>
   );
 }
