@@ -96,6 +96,11 @@ const removeFromCart = (id: number) => {
     <CartContext.Provider value={{ cartItems, addToCart, increaseQty, decreaseQty, removeFromCart , clearCart }}>
       {children}
     </CartContext.Provider>
+
+
+
+
+
   );
 }
 

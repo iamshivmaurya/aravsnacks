@@ -12,7 +12,8 @@ export default function CartPage() {
   const router = useRouter();
 
   const [shippingAddress, setShippingAddress] = useState<ShippingAddressData | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // ✅ track login state
 
   const totalPrice = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -23,6 +24,20 @@ export default function CartPage() {
     router.push('/checkout');
   };
 
+  // const handleCheckout = () => {
+  //   if (!shippingAddress) {
+  //     setError("Please fill your shipping address before checkout");
+  //     return;
+  //   }
+  //   setError(null); // clear error
+  //   router.push('/checkout');
+  // };
+
+  // const handleLoginSuccess = () => {
+  //   setIsLoggedIn(true);
+  //   setError(null);
+  // };
+
   const handleLoginSuccess = (data: LoginData) => {
     console.log("User logged in with:", data.phone);
     setIsLoggedIn(true);
@@ -30,24 +45,24 @@ export default function CartPage() {
   
   const handleAddressSubmit = (address: ShippingAddressData) => {
     console.log("Saved shipping address:", address);
-    setShippingAddress(address);
+    // You can store in context or send to backend before checkout
   };
 
   return (
+   
     <section className="mt-6 px-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-      
-      {/* LEFT COLUMN: Login + Shipping */}
-      <div className="space-y-6">
-        <div className="bg-white p-4 rounded shadow">
-          <LoginForm onSubmit={handleLoginSuccess} />
-        </div>
-
-        <div className="bg-white p-4 rounded shadow">
-          <ShippingAddressForm onSubmit={handleAddressSubmit} />
-        </div>
+ 
+    <div className="bg-white p-4 rounded shadow">
+        <LoginForm onSubmit={handleLoginSuccess} />
       </div>
 
-      {/* RIGHT COLUMN: Cart Items */}
+    
+      {/* Shipping Form */}
+      <div className="bg-white p-4 rounded shadow">
+        <ShippingAddressForm onSubmit={handleAddressSubmit} />
+      </div>
+
+      {/* RIGHT: Cart Items */}
       <div>
         <h1 className="text-2xl font-bold mb-4">Your Cart</h1>
 
