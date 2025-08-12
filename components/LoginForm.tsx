@@ -1,5 +1,5 @@
 "use client";
-
+import axios from 'axios';
 import { useState } from "react";
 
 export type LoginData = {
@@ -29,21 +29,30 @@ export default function LoginForm({ onSubmit }: LoginProps) {
       return;
     }
 
-    // Generate dummy OTP
-    const dummyOtp = "1234";
-    setGeneratedOtp(dummyOtp);
-    alert(`Your OTP is: ${dummyOtp}`); // ✅ In real app, send via SMS
+    axios.post('http://127.0.0.1:8000/signup', {
+      phone: form.phone 
+    }).then(response => {
+        setGeneratedOtp(response.data.otp);
+        console.log(response.data.message); // all posts by userId=1
+    });
+
+    alert(`Your OTP is: ${generatedOtp}`); // ✅ In real app, send via SMS
     setStep("otp");
   };
 
   // Step 2: Verify OTP
   const handleVerifyOtp = (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp === generatedOtp) {
-      onSubmit(form);
-    } else {
-      alert("Invalid OTP, please try again");
-    }
+
+    axios.post('http://127.0.0.1:8000/verify-otp',{
+        phone: form.phone, 
+        otp: "9390"
+      } 
+    ).then(response => {
+        console.log(response.data.access_token); // all posts by userId=1
+        
+        localStorage.setItem("access_token",response.data.access_token);
+    });
   };
 
   return (

@@ -78,8 +78,8 @@ async def verify_otp(request: OTPVerifyRequest, db: Session = Depends(get_db)):
 
     # Find the most recent OTP for this phone
     otp_record = db.query(OTP).filter(
-        OTP.phone == request.phone,
-        OTP.created_at >= datetime.now() - timedelta(minutes=5)
+        OTP.phone == request.phone
+        # OTP.created_at >= datetime.now() - timedelta(minutes=5)
     ).order_by(OTP.created_at.desc()).first()
 
     if not otp_record:
