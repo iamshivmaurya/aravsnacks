@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from routes import login 
-from fastapi.middleware.cors import CORSMiddleware                      # From routes folder
+from routes import login, categoryroute, productroute, customerroute, quoteroute, orderroute
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
@@ -10,11 +10,19 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,          # URLs that can call the API
-    allow_credentials=True,         # Allow cookies/auth headers
-    allow_methods=["*"],             # Allow all HTTP methods
-    allow_headers=["*"],             # Allow all HTTP headers
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-app.include_router(login.router, tags=["Login Route"])  #include_router
+app.include_router(login.router, tags=["Login Route"])
+app.include_router(categoryroute.router, tags=["Category Route"])
+app.include_router(productroute.router, tags=["Product Route"])
+app.include_router(customerroute.router, tags=["Customer Route"])
+app.include_router(quoteroute.router, tags=["Quote Route"])
+app.include_router(orderroute.router, tags=["Order Route"])
 
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to AravSnacks API"}

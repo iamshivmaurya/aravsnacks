@@ -1,13 +1,11 @@
-from sqlalchemy import create_engine                 # Column, Integer, String
+from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-
-
 import os
-from dotenv import load_dotenv  #pip install python-dotenv
+from dotenv import load_dotenv
+
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
@@ -20,29 +18,3 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Database type: mysql
-# Driver: mysqlconnector
-# Username: root
-# Password: (khaali hai, aap chahein to daal sakte hain)
-# Host: localhost (yaani aapke computer par)
-# Database: schooldb

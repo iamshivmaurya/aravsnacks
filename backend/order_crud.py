@@ -1,0 +1,118 @@
+from sqlalchemy.orm import Session
+from model import Order, OrderItem, OrderAddress, Quote, QuoteItem
+from schema import OrderCreate, OrderItemCreate, OrderAddressCreate
+from typing import List
+from datetime import datetime
+
+
+def create_order(db: Session, order: OrderCreate):
+    new_order = Order(**order.dict())
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+    return new_order
+
+
+def get_order(db: Session, order_id: int):
+    return db.query(Order).filter(Order.order_id == order_id).first()
+
+
+def get_orders(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(Order).offset(skip).limit(limit).all()
+
+
+def update_order(db: Session, order_id: int, order_data: dict):
+    db_order = db.query(Order).filter(Order.order_id == order_id).first()
+    if db_order:
+        for key, value in order_data.items():
+            setattr(db_order, key, value)
+        db.commit()
+        db.refresh(db_order)
+    return db_order
+
+
+def delete_order(db: Session, order_id: int):
+    db_order = db.query(Order).filter(Order.order_id == order_id).first()
+    if db_order:
+        db.delete(db_order)
+        db.commit()
+        return True
+    return False
+
+
+def convert_quote_to_order(db: Session, quote_id: int):
+    # Get the quote
+    quote = db.query(Quote).filter(Quote.quote_id == quote_id).first()
+    if not quote:
+        raise ValueError("Quote not found")
+
+    # Create a new order
+    new_order = Order(
+        customer_id=quote.customer_id,
+        customer_email=quote.email_id,
+        sub_total=quote.total_price,
+        discount_amount=quote.discount,
+        total_tax_amount=quote.total_tax,
+        grand_total=quote.total_price - quote.discount + quote.total_tax,
+        order_date=datetime.now(),
+        payment_method="Unknown",  # Default value
+        shipping_method="Standard"  # Default value
+    )
+
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+
+    # Add order items from quote items
+    quote_items = db.query(QuoteItem).filter(QuoteItem.quote_id == quote_id).all()
+    for quote_item in quote_items:
+        order_item = OrderItem(
+            order_id=new_order.order_id,
+            product_id=quote_item.product_id,
+            sku=quote_item.sku,
+            quantity=quote_item.item_qty,
+            unit_price=quote_item.item_price / quote_item.item_qty,
+            discount_amount=quote_item.item_discount,
+            total_price=quote_item.item_price,
+            tax_percentage=quote_item.tax_percentage,
+            tax_amount=quote_item.item_tax
+        )
+        db.add(order_item)
+
+    # Add order addresses from quote addresses
+    quote_addresses = db.query(QuoteAddress).filter(QuoteAddress.quote_id == quote_id).all()
+    for quote_address in quote_addresses:
+        order_address = OrderAddress(
+            order_id=new_order.order_id,
+            address_type=quote_address.address_type,
+            street_address=quote_address.street_address,
+            postal_code=quote_address.postal_code,
+            city=quote_address.city,
+            state=quote_address.state,
+            phone_no=quote_address.phone_no,
+            fast_name=quote_address.fast_name,
+            last_name=quote_address.last_name
+        )
+        db.add(order_address)
+
+    # Deactivate the quote
+    quote.is_active = False
+
+    db.commit()
+    return new_order
+
+
+def add_order_item(db: Session, order_id: int, item: OrderItemCreate):
+    new_item = OrderItem(order_id=order_id, **item.dict())
+    db.add(new_item)
+    db.commit()
+    db.refresh(new_item)
+    return new_item
+
+
+def add_order_address(db: Session, order_id: int, address: OrderAddressCreate):
+    new_address = OrderAddress(order_id=order_id, **address.dict())
+    db.add(new_address)
+    db.commit()
+    db.refresh(new_address)
+    return new_address

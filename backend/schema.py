@@ -1,19 +1,236 @@
+from datetime import datetime
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 
+# Login Schemas
 class SignupRequest(BaseModel):
     phone: Optional[str] = None
-    #email: Optional[EmailStr] = None
 
 class OTPVerifyRequest(BaseModel):
     otp: str
     phone: Optional[str] = None
-    #email: Optional[str] = None
 
 class LoginRequest(BaseModel):
-
-    #first_name: Optional[str] = None  # Required only for new users
-    #last_name: Optional[str] = None   # Required only for new users
-    #password: str
     phone: Optional[str] = None
-    #email: Optional[str] = None
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+
+# Customer Schemas
+class CustomerCreate(BaseModel):
+    customer_name: str
+    email: EmailStr
+    password: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+
+class CustomerUpdate(BaseModel):
+    customer_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class CustomerResponse(BaseModel):
+    customer_id: int
+    customer_name: str
+    email: EmailStr
+    first_name: Optional[str]
+    last_name: Optional[str]
+    phone: Optional[str]
+    registor_on: datetime
+    last_login: Optional[datetime]
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+# Customer Address Schemas
+class CustomerAddressCreate(BaseModel):
+    address_type: str
+    street_address: str
+    postal_code: str
+    city: str
+    state: str
+    fast_name: str
+    last_name: str
+    phone_no: str
+
+class CustomerAddressResponse(BaseModel):
+    address_id: int
+    customer_id: int
+    address_type: str
+    street_address: str
+    postal_code: str
+    city: str
+    state: str
+    fast_name: str
+    last_name: str
+    phone_no: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# Category Schemas
+class CreateCategories(BaseModel):
+    category_name: str
+    description: str
+    is_active: bool = True
+    parent_id: Optional[int] = 0
+    sort_order: Optional[float] = 0.0
+    url_key: Optional[str] = None
+    image_name: Optional[str] = None
+    meta_keyword: Optional[str] = None
+    meta_title: Optional[str] = None
+    meta_description: Optional[str] = None
+    category_path: Optional[str] = None
+    level: Optional[str] = None
+
+class CategoryResponse(BaseModel):
+    category_id: int
+    category_name: str
+    description: str
+    is_active: bool
+    parent_id: int
+    sort_order: float
+    category_created: datetime
+    url_key: Optional[str]
+    image_name: Optional[str]
+    meta_keyword: Optional[str]
+    meta_title: Optional[str]
+    meta_description: Optional[str]
+    category_path: Optional[str]
+    level: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+# Product Schemas
+class CreateProduct(BaseModel):
+    product_name: str
+    category_id: int
+    description: str
+    is_active: Optional[bool] = True
+    products_discount: Optional[int] = 0
+    percentage_discount: Optional[float] = 0.0
+    discount_start_date: Optional[datetime] = None
+    discount_end_date: Optional[datetime] = None
+    product_left: Optional[int] = None
+    weight_grams: Optional[float] = None
+    product_price: Optional[float] = None
+    country_origen: Optional[str] = None
+    product_exp: Optional[datetime] = None
+    sort_order: Optional[float] = 0.0
+    meta_keyword: Optional[str] = None
+    meta_title: Optional[str] = None
+    meta_description: Optional[str] = None
+    tax_percentage: Optional[int] = 0
+    sku: Optional[str] = None
+    image_url: Optional[str] = None
+
+class ProductResponse(BaseModel):
+    id: int
+    product_name: str
+    category_id: int
+    description: str
+    is_active: bool
+    product_created: datetime
+    products_discount: Optional[int]
+    percentage_discount: Optional[float]
+    discount_start_date: Optional[datetime]
+    discount_end_date: Optional[datetime]
+    product_left: Optional[int]
+    weight_grams: Optional[float]
+    product_price: Optional[float]
+    country_origen: Optional[str]
+    product_exp: Optional[datetime]
+    sort_order: Optional[float]
+    meta_keyword: Optional[str]
+    meta_title: Optional[str]
+    meta_description: Optional[str]
+    tax_percentage: Optional[int]
+    sku: Optional[str]
+    image_url: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+# Quote Schemas
+class QuoteCreate(BaseModel):
+    customer_id: Optional[int] = None
+    email_id: Optional[str] = None
+    phone_no: Optional[str] = None
+
+class QuoteItemCreate(BaseModel):
+    product_id: int
+    item_qty: int = 1
+
+class QuoteAddressCreate(BaseModel):
+    address_type: str
+    street_address: str
+    postal_code: str
+    city: str
+    state: str
+    phone_no: str
+    fast_name: str
+    last_name: str
+
+class QuoteResponse(BaseModel):
+    quote_id: int
+    customer_id: Optional[int]
+    email_id: Optional[str]
+    phone_no: Optional[str]
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+    total_price: float
+    discount: float
+    total_tax: int
+    items_count: int
+    items_quantity: int
+
+    class Config:
+        from_attributes = True
+
+# Order Schemas
+class OrderCreate(BaseModel):
+    customer_id: Optional[int] = None
+    customer_email: Optional[str] = None
+    payment_method: str
+    shipping_method: str
+
+class OrderItemCreate(BaseModel):
+    product_id: int
+    quantity: int
+    unit_price: float
+
+class OrderAddressCreate(BaseModel):
+    address_type: str
+    street_address: str
+    postal_code: str
+    city: str
+    state: str
+    phone_no: str
+    fast_name: str
+    last_name: str
+
+class OrderResponse(BaseModel):
+    order_id: int
+    customer_id: Optional[int]
+    customer_email: Optional[str]
+    order_date: datetime
+    sub_total: float
+    shipping_amount: float
+    total_tax_amount: float
+    discount_amount: float
+    grand_total: float
+    payment_method: str
+    shipping_method: str
+
+    class Config:
+        from_attributes = True
