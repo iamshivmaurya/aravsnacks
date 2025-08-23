@@ -95,7 +95,8 @@ async def verify_otp(request: OTPVerifyRequest, db: Session = Depends(get_db)):
         return {
             "message": "Login successful",
             "access_token": access_token,
-            "token_type": "bearer"
+            "token_type": "bearer",
+            "customer_id": customer.customer_id  
         }
 
     raise HTTPException(status_code=400, detail="Verification failed")

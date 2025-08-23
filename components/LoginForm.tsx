@@ -1,9 +1,11 @@
 "use client";
-import axios from 'axios';
+import axios from "axios";
 import { useState } from "react";
 
 export type LoginData = {
   phone: string;
+  customer_id: string; // <-- Add this
+  access_token: string; // <-- Add this
 };
 
 type LoginProps = {
@@ -11,7 +13,7 @@ type LoginProps = {
 };
 
 export default function LoginForm({ onSubmit }: LoginProps) {
-  const [form, setForm] = useState<LoginData>({ phone: "" });
+  const [form, setForm] = useState<LoginData>({ phone: "", customer_id: "" ,access_token:""});
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [otp, setOtp] = useState("");
   const [generatedOtp, setGeneratedOtp] = useState("");
@@ -22,37 +24,66 @@ export default function LoginForm({ onSubmit }: LoginProps) {
   };
 
   // Step 1: Send OTP
-  const handleSendOtp = (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.phone) {
       alert("Please enter your phone number");
       return;
     }
 
-    axios.post('http://127.0.0.1:8000/signup', {
-      phone: form.phone 
-    }).then(response => {
-        setGeneratedOtp(response.data.otp);
-        console.log(response.data.message); // all posts by userId=1
-    });
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/signup", {
+        phone: form.phone,
+      });
 
-    alert(`Your OTP is: ${generatedOtp}`); // ✅ In real app, send via SMS
-    setStep("otp");
+      setGeneratedOtp(response.data.otp);
+
+      // ✅ Show OTP after it's received
+      alert(`Your OTP is: ${response.data.otp}`); // In production, send via SMS
+
+      setStep("otp");
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      alert("Failed to send OTP. Please try again.");
+    }
   };
 
   // Step 2: Verify OTP
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    axios.post('http://127.0.0.1:8000/verify-otp',{
-        phone: form.phone, 
-        otp: "9390"
-      } 
-    ).then(response => {
-        console.log(response.data.access_token); // all posts by userId=1
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/verify-otp", {
+        phone: form.phone,
+        otp: otp,
+      });
+
+      console.log("Backend response:", response.data); // ✅ check what comes from backend
+
+      // Example response check
+      if (response.data.customer_id) {
+        console.log("Customer ID:", response.data.customer_id);
+      } else {
+        console.warn("Customer ID missing in response!");
+      }
+
+
+
+      console.log("Access Token:", response.data.access_token);
+
+      localStorage.setItem("access_token", response.data.access_token);
+
+      alert("OTP verified successfully!");
+      onSubmit({
+        phone: form.phone,
+        customer_id: response.data.customer_id, // <-- Send customer_id
+        access_token: response.data.access_token, // <-- Send customer_id
         
-        localStorage.setItem("access_token",response.data.access_token);
-    });
+      });
+    } catch (error) {
+      console.error("Error verifying OTP:", error);
+      alert("Invalid OTP. Please try again.");
+    }
   };
 
   return (
