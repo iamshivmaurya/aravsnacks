@@ -113,7 +113,6 @@ class CategoryResponse(BaseModel):
 # Product Schemas
 class CreateProduct(BaseModel):
     product_name: str
-    category_id: Optional[int] = None
     description: str
     is_active: Optional[bool] = True
     products_discount: Optional[int] = 0

@@ -10,7 +10,6 @@ def create_product(db: Session, product: CreateProduct):
     """
     new_product = Product(
         product_name=product.product_name,
-       # category_id=product.category_id,
         description=product.description,
         is_active=product.is_active,
         products_discount=product.products_discount,
