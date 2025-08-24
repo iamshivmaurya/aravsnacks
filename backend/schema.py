@@ -19,12 +19,12 @@ class TokenResponse(BaseModel):
 
 # Customer Schemas
 class CustomerCreate(BaseModel):
-    customer_name: str
-    email: EmailStr
-    password: str
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
-    phone: Optional[str] = None
+    customer_name: str  # Required
+    email: EmailStr  # Required
+    password: str  # Required
+    first_name: str  # Required
+    last_name: str  # Required
+    phone: str  # Required
 
 class CustomerUpdate(BaseModel):
     customer_name: Optional[str] = None
@@ -113,6 +113,7 @@ class CategoryResponse(BaseModel):
 # Product Schemas
 class CreateProduct(BaseModel):
     product_name: str
+    category_id: Optional[int] = None
     description: str
     is_active: Optional[bool] = True
     products_discount: Optional[int] = 0

@@ -8,7 +8,7 @@ class Customer(Base):
     __tablename__ = "customers"
 
     customer_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    customer_name = Column(String(50), nullable=False)
+    customer_name = Column(String(50), nullable=True)
     email = Column(String(100), unique=True, nullable=True)
     password_hash = Column(String(255), nullable=True)
     first_name = Column(String(50), nullable=True)
@@ -71,7 +71,7 @@ class Category(Base):
     category_path = Column(String(50),nullable=True)
     level = Column(String(50),nullable=True)
 
-    products = relationship("Product", back_populates="category")
+
 
 
 class Product(Base):
