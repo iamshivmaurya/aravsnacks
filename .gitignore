@@ -42,3 +42,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+-e "\n# Ignore Python cache files\n__pycache__/\n*.pyc" 
