@@ -201,12 +201,20 @@ class OrderCreate(BaseModel):
     customer_email: Optional[str] = None
     payment_method: str
     shipping_method: str
+"""
+class OrderItemCreate(BaseModel):   ##############
+    product_id: int
+    quantity: int
+    unit_price: float"""
 
 class OrderItemCreate(BaseModel):
     product_id: int
+    sku: str  # ← ADD THIS REQUIRED FIELD
     quantity: int
     unit_price: float
-
+    discount_amount: Optional[float] = 0.0
+    tax_percentage: Optional[float] = 0.0
+    
 class OrderAddressCreate(BaseModel):
     address_type: str
     street_address: str
