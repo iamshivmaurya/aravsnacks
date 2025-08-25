@@ -44,11 +44,11 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
     # Create new customer record with ONLY phone number and empty strings for required fields
     new_customer = Customer(
         phone=request.phone,
-        customer_name="",  # Empty string instead of None
-        email="",          # Empty string instead of None
-        password_hash="",  # Empty string instead of None
-        first_name="",     # Empty string instead of None
-        last_name="",      # Empty string instead of None
+        customer_name=None,  # Empty string instead of None
+        email=None,          # Empty string instead of None
+        password_hash=None,  # Empty string instead of None
+        first_name=None,     # Empty string instead of None
+        last_name=None,      # Empty string instead of None
         is_verified=False,
         is_active=True
     )
