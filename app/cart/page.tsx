@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect,useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../components/CartContext';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import ShippingAddressForm, { ShippingAddressData } from '../../components/ShippingAddressForm';
 import LoginForm, { LoginData } from "../../components/LoginForm";
-import EditSignupForm from "../../components/EditSignupForm"; // <-- Import it
- 
+import EditSignupForm from "../../components/EditSignupForm"; // <-- new component
 
 export default function CartPage() {
   const { cartItems, increaseQty, decreaseQty, removeFromCart } = useCart();
@@ -15,25 +14,20 @@ export default function CartPage() {
 
   const [shippingAddress, setShippingAddress] = useState<ShippingAddressData | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [phone, setPhone] = useState(""); // store phone after login
+  const [phone, setPhone] = useState("");
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
 
   const totalPrice = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
 
-  const handleCheckout = () => {
-    router.push('/checkout');
-  };
-
-
   useEffect(() => {
-    // Page load hone par localStorage check
     const token = localStorage.getItem("access_token");
     const storedPhone = localStorage.getItem("phone");
     const storedCustomerId = localStorage.getItem("customer_id");
- 
+
     if (token && storedPhone && storedCustomerId) {
       setIsLoggedIn(true);
       setPhone(storedPhone);
@@ -41,49 +35,54 @@ export default function CartPage() {
     }
   }, []);
 
-
-
-    // When login/OTP verified successfully
-    const handleLoginSuccess = (data: LoginData) => {
-
-    // Login hone par localStorage me save karna
+  const handleLoginSuccess = (data: LoginData) => {
     localStorage.setItem("access_token", data.access_token);
     localStorage.setItem("phone", data.phone);
     localStorage.setItem("customer_id", data.customer_id);
 
-      console.log("User logged in with:", data.phone);
-      setPhone(data.phone); // store verified phone
-      setCustomerId(data.customer_id); // store customer ID too
-      setIsLoggedIn(true); // show edit form now
-    };
+    setPhone(data.phone);
+    setCustomerId(data.customer_id);
+    setIsLoggedIn(true);
+  };
 
-  // const handleLoginSuccess = (data: LoginData) => {
-  //   console.log("User logged in with:", data.phone);
-  //   setIsLoggedIn(true);
-  // };
-  
   const handleAddressSubmit = (address: ShippingAddressData) => {
-    console.log("Saved shipping address:", address);
     setShippingAddress(address);
   };
 
   return (
     <section className="mt-6 px-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-      
-      {/* LEFT COLUMN: Login + Shipping */}
+      {/* LEFT COLUMN: Login + Phone Section + Shipping */}
       <div className="space-y-6">
-      <div className="bg-white p-4 rounded shadow">
-      {isLoggedIn ? (
-          <EditSignupForm
-            phone={phone}
-            customer_id={customerId || ""} // now this will have the proper value
-            onSubmit={(data) => {
-              console.log("Signup details updated:", data);
-            }}
-          />
-        ) : (
-          <LoginForm onSubmit={handleLoginSuccess} />
-        )}
+        <div className="bg-white p-4 rounded shadow">
+          {isLoggedIn ? (
+            !isEditingPhone ? (
+              <div className="flex items-center justify-between">
+                <input
+                  type="text"
+                  value={phone}
+                  disabled
+                  className="border p-2 w-full bg-gray-100 cursor-not-allowed"
+                />
+                <button
+                  className="ml-4 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                  onClick={() => setIsEditingPhone(true)}
+                >
+                  Edit
+                </button>
+              </div>
+            ) : (
+              <EditSignupForm
+                phone={phone}
+                customer_id={customerId || ""}
+                onPhoneUpdated={(newPhone) => {
+                  setPhone(newPhone);
+                  setIsEditingPhone(false);
+                }}
+              />
+            )
+          ) : (
+            <LoginForm onSubmit={handleLoginSuccess} />
+          )}
         </div>
 
         <div className="bg-white p-4 rounded shadow">
@@ -141,7 +140,7 @@ export default function CartPage() {
 
             <div className="text-right mt-6">
               <button
-                onClick={handleCheckout}
+                onClick={() => router.push('/checkout')}
                 className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
               >
                 Checkout

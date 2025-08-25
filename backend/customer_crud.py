@@ -22,6 +22,8 @@ def create_customer(db: Session, customer: CustomerCreate):
         first_name=customer.first_name,
         last_name=customer.last_name,
         phone=customer.phone
+
+
     )
 
     db.add(new_customer)

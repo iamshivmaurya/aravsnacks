@@ -6,7 +6,7 @@ from typing import Optional
 from pydantic import BaseModel
 from model import Customer, OTP
 from database import get_db, Base, engine
-from schema import SignupRequest, LoginRequest, OTPVerifyRequest
+from schema import SignupRequest, LoginRequest, OTPVerifyRequest, CustomerUpdate
 from jose import jwt
 
 router = APIRouter()
@@ -15,13 +15,16 @@ router = APIRouter()
 SECRET_KEY = "ABC123"  # secret key
 ALGORITHM = "HS256"
 
+
 def create_access_token(data: dict):
     to_encode = data.copy()
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+
 def generate_otp():
     return str(random.randint(1000, 9999))
+
 
 @router.post("/signup")
 async def signup(request: SignupRequest, db: Session = Depends(get_db)):
@@ -38,10 +41,16 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
             detail="Phone number already registered. Please login to get OTP."
         )
 
-    # Create new customer record
+    # Create new customer record with ONLY phone number and empty strings for required fields
     new_customer = Customer(
         phone=request.phone,
-        is_verified=False
+        customer_name="",  # Empty string instead of None
+        email="",          # Empty string instead of None
+        password_hash="",  # Empty string instead of None
+        first_name="",     # Empty string instead of None
+        last_name="",      # Empty string instead of None
+        is_verified=False,
+        is_active=True
     )
     db.add(new_customer)
 
@@ -58,15 +67,17 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
 
     return {
         "message": "OTP sent successfully",
-        "otp": otp  # In production, send via SMS instead
+        "otp": otp,
+        "customer_id": new_customer.customer_id
     }
+
 
 @router.post("/verify-otp")
 async def verify_otp(request: OTPVerifyRequest, db: Session = Depends(get_db)):
     # Validate input
-    if not request.phone or len(request.phone) != 10 or not request.phone:
+    if not request.phone or len(request.phone) != 10 or not request.phone.isdigit():
         raise HTTPException(status_code=400, detail="Valid 10-digit phone number required")
-    if not request.otp or len(request.otp) != 4 or not request.otp:
+    if not request.otp or len(request.otp) != 4 or not request.otp.isdigit():
         raise HTTPException(status_code=400, detail="Valid 4-digit OTP required")
 
     # Find the most recent OTP for this phone
@@ -89,17 +100,19 @@ async def verify_otp(request: OTPVerifyRequest, db: Session = Depends(get_db)):
         db.commit()
 
         # Create JWT token
-        token_data = {"sub": request.phone}
+        token_data = {"sub": request.phone, "customer_id": customer.customer_id}
         access_token = create_access_token(token_data)
 
         return {
             "message": "Login successful",
             "access_token": access_token,
             "token_type": "bearer",
-            "customer_id": customer.customer_id  
+            "customer_id": customer.customer_id,
+            "is_profile_complete": bool(customer.customer_name and customer.email)  # Check if profile complete
         }
 
     raise HTTPException(status_code=400, detail="Verification failed")
+
 
 @router.post("/login")
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
@@ -125,8 +138,11 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
 
     return {
         "message": "OTP sent successfully",
-        "otp": otp  # In production, send via SMS instead
+        "otp": otp,  # In production, send via SMS instead
+        "customer_id": customer.customer_id
     }
+
+
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
