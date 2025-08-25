@@ -36,13 +36,13 @@ class CustomerUpdate(BaseModel):
 
 class CustomerResponse(BaseModel):
     customer_id: int
-    customer_name: str
-    email: EmailStr
-    first_name: Optional[str]
-    last_name: Optional[str]
-    phone: Optional[str]
+    customer_name: Optional[str] = None  # ✅ Make optional
+    email: Optional[EmailStr] = None     # ✅ Make optional
+    first_name: Optional[str] = None     # ✅ Make optional
+    last_name: Optional[str] = None      # ✅ Make optional
+    phone: Optional[str] = None          # ✅ Make optional
     registor_on: datetime
-    last_login: Optional[datetime]
+    last_login: Optional[datetime] = None
     is_active: bool
 
     class Config:
@@ -113,7 +113,6 @@ class CategoryResponse(BaseModel):
 # Product Schemas
 class CreateProduct(BaseModel):
     product_name: str
-    category_id: Optional[int] = None
     description: str
     is_active: Optional[bool] = True
     products_discount: Optional[int] = 0
@@ -136,7 +135,6 @@ class CreateProduct(BaseModel):
 class ProductResponse(BaseModel):
     id: int
     product_name: str
-    category_id: int
     description: str
     is_active: bool
     product_created: datetime
@@ -163,8 +161,8 @@ class ProductResponse(BaseModel):
 # Quote Schemas
 class QuoteCreate(BaseModel):
     customer_id: Optional[int] = None
-    email_id: Optional[str] = None
-    phone_no: Optional[str] = None
+    #email_id: Optional[str] = None
+    #phone_no: Optional[str] = None
 
 class QuoteItemCreate(BaseModel):
     product_id: int
