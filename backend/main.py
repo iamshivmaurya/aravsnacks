@@ -6,11 +6,13 @@ app = FastAPI()
 
 origins = [
     "http://localhost:3000",   # React/Next.js local
+    "http://127.0.0.1:8000",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    #allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,3 +28,6 @@ app.include_router(orderroute.router, tags=["Order Route"])
 @app.get("/")
 def read_root():
     return {"message": "Welcome to AravSnacks API"}
+
+
+

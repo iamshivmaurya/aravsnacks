@@ -2,6 +2,10 @@
 import axios from "axios";
 import { useState } from "react";
 
+import { SINGUP_API } from '../constants';
+import { VERIFY_OTP_API } from '../constants';
+
+
 export type LoginData = {
   phone: string;
   customer_id: string; // <-- Add this
@@ -32,7 +36,7 @@ export default function LoginForm({ onSubmit }: LoginProps) {
     }
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/signup", {
+      const response = await axios.post(SINGUP_API, {
         phone: form.phone,
       });
 
@@ -53,7 +57,7 @@ export default function LoginForm({ onSubmit }: LoginProps) {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/verify-otp", {
+      const response = await axios.post(VERIFY_OTP_API, {
         phone: form.phone,
         otp: otp,
       });
