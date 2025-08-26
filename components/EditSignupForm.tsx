@@ -1,6 +1,10 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
+import { GET_CUSTOMERS_API } from '../constants';
+import { SEND_OTP_API } from '../constants';
+
+
 
 type EditPhoneFormProps = {
   phone: string;
@@ -16,13 +20,12 @@ export default function EditPhoneForm({ phone, customer_id, onPhoneUpdated }: Ed
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
       if (!customer_id) throw new Error("Customer ID is missing!");
 
       // 1) Update phone number
-      await axios.put(
-        `http://127.0.0.1:8000/customers/${customer_id}`,
+      await axios.put(`${GET_CUSTOMERS_API}/${customer_id}`, 
         { phone: newPhone },
         {
           headers: {
@@ -32,7 +35,7 @@ export default function EditPhoneForm({ phone, customer_id, onPhoneUpdated }: Ed
       );
 
       // 2) Trigger OTP send
-      await axios.post("http://127.0.0.1:8000/send-otp", { phone: newPhone });
+      await axios.post(SEND_OTP_API, { phone: newPhone });
 
       alert("Phone number updated. OTP sent!");
       onPhoneUpdated(newPhone);

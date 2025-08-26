@@ -12,10 +12,10 @@ import {
 
 export type Product = {
   id: number;
-  name: string;
+  product_name: string;
   description: string;
-  price: number;
-  image: string;
+  product_price: number;
+  image_url: string;
 };
 
 export type CartItem = Product & { quantity: number };

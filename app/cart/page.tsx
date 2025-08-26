@@ -7,7 +7,7 @@ import { Minus, Plus, Trash2 } from 'lucide-react';
 import ShippingAddressForm, { ShippingAddressData } from '../../components/ShippingAddressForm';
 import LoginForm, { LoginData } from "../../components/LoginForm";
 import EditSignupForm from "../../components/EditSignupForm"; // <-- new component
-
+import axios from 'axios';
 export default function CartPage() {
   const { cartItems, increaseQty, decreaseQty, removeFromCart } = useCart();
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function CartPage() {
   const [isEditingPhone, setIsEditingPhone] = useState(false);
 
   const totalPrice = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
+    (total, item) => total + item.product_price * item.quantity,
     0
   );
 
@@ -104,8 +104,8 @@ export default function CartPage() {
                 className="bg-white p-4 rounded shadow flex justify-between items-center"
               >
                 <div>
-                  <h2 className="font-semibold">{item.name}</h2>
-                  <p>₹{item.price} × {item.quantity}</p>
+                  <h2 className="font-semibold">{item.product_name}</h2>
+                  <p>₹{item.product_price} × {item.quantity}</p>
                   <div className="flex items-center gap-2 mt-2">
                     <button
                       onClick={() => decreaseQty(item.id)}
@@ -129,7 +129,7 @@ export default function CartPage() {
                   </div>
                 </div>
                 <p className="font-bold text-right">
-                  ₹{item.price * item.quantity}
+                  ₹{item.product_price * item.quantity}
                 </p>
               </div>
             ))}
@@ -145,6 +145,44 @@ export default function CartPage() {
               >
                 Checkout
               </button>
+ 
+              {/* <button
+              onClick={async () => {
+                if (!customerId) {
+                  alert("Please login before checkout!");
+                  return;
+                }
+
+                try {
+                  const payload = {
+                    customer_id: customerId,
+                    items: cartItems.map(item => ({
+                      product_id: item.id,
+                      quantity: item.quantity
+                    })),
+                    total_price: totalPrice
+                  };
+
+                 const response = await axios.post("http://127.0.0.1:8000/quotes", payload);
+
+              if (response.status === 200 || response.status === 201) {
+                alert("Quote successfully created!");
+                router.push("/checkout");
+              } else {
+                alert("Failed to create quote!");
+              }
+            } catch (error) {
+              console.error("Error creating quote:", error);
+              alert("Something went wrong while creating the quote!");
+            }
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Checkout
+              </button> */}
+
+
+
             </div>
           </div>
         )}
