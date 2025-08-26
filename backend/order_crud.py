@@ -101,14 +101,37 @@ def convert_quote_to_order(db: Session, quote_id: int):
     db.commit()
     return new_order
 
-
-def add_order_item(db: Session, order_id: int, item: OrderItemCreate):
+#####
+"""def add_order_item(db: Session, order_id: int, item: OrderItemCreate):  ##############
     new_item = OrderItem(order_id=order_id, **item.dict())
     db.add(new_item)
     db.commit()
     db.refresh(new_item)
     return new_item
+"""
 
+
+def add_order_item(db: Session, order_id: int, item: OrderItemCreate):
+    # Calculate total price
+    total_price = (item.unit_price * item.quantity) - item.discount_amount
+    tax_amount = total_price * (item.tax_percentage / 100)
+    final_total = total_price + tax_amount
+
+    new_item = OrderItem(
+        order_id=order_id,
+        product_id=item.product_id,
+        sku=item.sku,  # ← ADD THIS
+        quantity=item.quantity,
+        unit_price=item.unit_price,
+        discount_amount=item.discount_amount,
+        total_price=final_total,  # ← CALCULATED
+        tax_percentage=item.tax_percentage,
+        tax_amount=tax_amount  # ← CALCULATED
+    )
+    db.add(new_item)
+    db.commit()
+    db.refresh(new_item)
+    return new_item
 
 def add_order_address(db: Session, order_id: int, address: OrderAddressCreate):
     new_address = OrderAddress(order_id=order_id, **address.dict())

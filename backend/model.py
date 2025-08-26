@@ -182,7 +182,7 @@ class Order(Base):
     addresses = relationship("OrderAddress", back_populates="order")
 
 
-class OrderItem(Base):
+class OrderItem(Base):   #############
     __tablename__ = "order_items"
 
     order_item_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
