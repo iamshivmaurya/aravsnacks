@@ -101,12 +101,12 @@ export default function LoginForm({ onSubmit }: LoginProps) {
             placeholder="Phone Number"
             value={form.phone}
             onChange={handleChange}
-            className="border p-2 w-full"
+            className="border-2 border-blue-500 p-2 w-full rounded "
             required
           />
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-black"
           >
             Send OTP
           </button>
@@ -119,7 +119,7 @@ export default function LoginForm({ onSubmit }: LoginProps) {
             placeholder="Enter OTP"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
-            className="border p-2 w-full"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-black"
             required
           />
           <button
