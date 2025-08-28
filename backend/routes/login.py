@@ -8,12 +8,16 @@ from model import Customer, OTP
 from database import get_db, Base, engine
 from schema import SignupRequest, LoginRequest, OTPVerifyRequest, CustomerUpdate
 from jose import jwt
+import os
+from dotenv import load_dotenv
 
 router = APIRouter()
 
+load_dotenv()
+
 # JWT
-SECRET_KEY = "ABC123"  # secret key
-ALGORITHM = "HS256"
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 
 
 def create_access_token(data: dict):
