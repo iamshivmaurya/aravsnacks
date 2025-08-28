@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import LoginForm from './LoginForm';
+import SignInForm, { LoginData } from '../components/SignInForm'; // ✅ named import
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -47,6 +48,7 @@ export default function Navbar() {
 
         {isLoggedIn ? (
           <>
+          <span className="mr-2">Welcome To : {phone}</span>
             <button
               onClick={handleLogout}
               className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
@@ -62,7 +64,7 @@ export default function Navbar() {
             >
               Signup
             </button>
-            <Link href="/login">Login</Link>
+               <Link href="/login">Login</Link>
           </>
         )}
       </div>
