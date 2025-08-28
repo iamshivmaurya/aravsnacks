@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../components/CartContext';
-import { Minus, Plus, Trash2 } from 'lucide-react';
 import ShippingAddressForm, { ShippingAddressData } from '../../components/ShippingAddressForm';
 import LoginForm, { LoginData } from "../../components/LoginForm";
-import EditSignupForm from "../../components/EditSignupForm"; // <-- new component
-import axios from 'axios';
+import EditSignupForm from "../../components/EditSignupForm";
+import CartItemsList from '../../components/CartItemsList';
+
 export default function CartPage() {
-  const { cartItems, increaseQty, decreaseQty, removeFromCart } = useCart();
+  const { cartItems } = useCart();
   const router = useRouter();
 
   const [shippingAddress, setShippingAddress] = useState<ShippingAddressData | null>(null);
@@ -17,11 +17,6 @@ export default function CartPage() {
   const [phone, setPhone] = useState("");
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
-
-  const totalPrice = cartItems.reduce(
-    (total, item) => total + item.product_price * item.quantity,
-    0
-  );
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -47,6 +42,14 @@ export default function CartPage() {
 
   const handleAddressSubmit = (address: ShippingAddressData) => {
     setShippingAddress(address);
+  };
+
+  const handleCheckout = () => {
+    if (!isLoggedIn) {
+      alert("Please login before checkout!");
+      return;
+    }
+    router.push('/checkout');
   };
 
   return (
@@ -93,99 +96,7 @@ export default function CartPage() {
       {/* RIGHT COLUMN: Cart Items */}
       <div>
         <h1 className="text-2xl font-bold mb-4">Your Cart</h1>
-
-        {cartItems.length === 0 ? (
-          <p className="text-gray-600">Your cart is empty.</p>
-        ) : (
-          <div className="space-y-4">
-            {cartItems.map(item => (
-              <div
-                key={item.id}
-                className="bg-white p-4 rounded shadow flex justify-between items-center"
-              >
-                <div>
-                  <h2 className="font-semibold">{item.product_name}</h2>
-                  <p>₹{item.product_price} × {item.quantity}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <button
-                      onClick={() => decreaseQty(item.id)}
-                      className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <span className="px-2">{item.quantity}</span>
-                    <button
-                      onClick={() => increaseQty(item.id)}
-                      className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-                    >
-                      <Plus size={16} />
-                    </button>
-                    <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="ml-4 p-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-                <p className="font-bold text-right">
-                  ₹{item.product_price * item.quantity}
-                </p>
-              </div>
-            ))}
-
-            <div className="text-right font-bold text-xl mt-4">
-              Total: ₹{totalPrice}
-            </div>
-
-            <div className="text-right mt-6">
-              <button
-                onClick={() => router.push('/checkout')}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                Checkout
-              </button>
- 
-              {/* <button
-              onClick={async () => {
-                if (!customerId) {
-                  alert("Please login before checkout!");
-                  return;
-                }
-
-                try {
-                  const payload = {
-                    customer_id: customerId,
-                    items: cartItems.map(item => ({
-                      product_id: item.id,
-                      quantity: item.quantity
-                    })),
-                    total_price: totalPrice
-                  };
-
-                 const response = await axios.post("http://127.0.0.1:8000/quotes", payload);
-
-              if (response.status === 200 || response.status === 201) {
-                alert("Quote successfully created!");
-                router.push("/checkout");
-              } else {
-                alert("Failed to create quote!");
-              }
-            } catch (error) {
-              console.error("Error creating quote:", error);
-              alert("Something went wrong while creating the quote!");
-            }
-          }}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Checkout
-              </button> */}
-
-
-
-            </div>
-          </div>
-        )}
+        <CartItemsList onCheckout={handleCheckout} />
       </div>
     </section>
   );

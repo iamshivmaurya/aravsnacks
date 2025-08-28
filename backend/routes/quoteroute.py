@@ -8,7 +8,7 @@ from typing import List
 router = APIRouter()
 
 # Quote CRUD Operations
-@router.post("/create_quotes1", response_model=QuoteCreateResponse)
+@router.post("/create_quotes", response_model=QuoteCreateResponse)
 def create_quote_route(db: Session = Depends(get_db)):
     try:
         db_quote = create_quote(db)
@@ -18,7 +18,7 @@ def create_quote_route(db: Session = Depends(get_db)):
             #"created_at": db_quote.created_at
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail= f"Internal server error -> {e}" )
 
 """@router.post("/create_quotes", response_model=QuoteResponse)
 def create_quote_route(quote: QuoteCreate, db: Session = Depends(get_db)):
@@ -82,12 +82,16 @@ def delete_quote_route(quote_id: int, db: Session = Depends(get_db)):
 @router.post("/quotes/{quote_id}/add_items")
 def add_quote_item_route(quote_id: int, item: QuoteItemCreate, db: Session = Depends(get_db)):
     try:
+        print("=========item============")
+        print(quote_id)
+        print(item.product_id)
         db_item = add_quote_item(db, quote_id, item)
+        print("=========item============")
         return {"message": "Item added to quote successfully", "item_id": db_item.item_id}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail= f"Internal server error -> {str(e)}")
 
 @router.delete("/quotes/{quote_id}/items/{item_id}")
 def remove_quote_item_route(quote_id: int, item_id: int, db: Session = Depends(get_db)):

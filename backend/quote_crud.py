@@ -51,6 +51,8 @@ def delete_quote(db: Session, quote_id: int):
 
 def add_quote_item(db: Session, quote_id: int, item: QuoteItemCreate):
     # Check if product exists
+    print("quote_id ============ >>>>>>>>>>>>>")
+    print(quote_id)
     product = db.query(Product).filter(Product.id == item.product_id).first()
     if not product:
         raise ValueError("Product not found")
@@ -63,19 +65,19 @@ def add_quote_item(db: Session, quote_id: int, item: QuoteItemCreate):
         item_price = item_price - product.products_discount
 
     # Calculate item tax
-    item_tax = item_price * (product.tax_percentage / 100) * item.item_qty
+    item_tax = 0 #item_price * (product.tax_percentage / 100) * item.item_qty
 
     # Create quote item
     new_item = QuoteItem(
-        quote_id=quote_id,
-        product_id=item.product_id,
+        quote_id = int(quote_id),
+        product_id = int(item.product_id),
         item_name=product.product_name,
-        item_qty=item.item_qty,
+        item_qty= 1, #item.item_qty,
         sku=product.sku,
         item_price=item_price,
-        item_discount=product.products_discount if product.products_discount else product.percentage_discount,
-        item_tax=item_tax,
-        tax_percentage=product.tax_percentage
+        #item_discount=product.products_discount if product.products_discount else product.percentage_discount,
+        #item_tax=item_tax,
+        #tax_percentage=product.tax_percentage
     )
 
     db.add(new_item)

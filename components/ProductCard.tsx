@@ -4,8 +4,7 @@ import { useCart } from '../components/CartContext';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 import axios from 'axios';
-import { GET_QUOTES_API } from '../constants';
-
+import { GET_QUOTES_API, CREATE_QUOTES_API } from '../constants';
 type Product = {
   id: number;
   product_name: string;
@@ -19,54 +18,48 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const handleAddToCart = async () => {
     try {
-      // 1️⃣ Local cart me add kare
+      // Pehle local cart me add kare
       addToCart(product);
-      toast.success(`${product.product_name} added to cart!`);
+      // toast.success(`${product.product_name} added to cart!`);
 
-      const customerId = localStorage.getItem('customer_id');
-      if (!customerId) {
-        toast.error('Please login first!');
-        return;
+      // // Phir API ke through database me bheje
+      // const customerId = localStorage.getItem('customer_id'); // ensure user logged in
+      // if (!customerId) {
+      //   toast.error('Please login first!');
+      //   return;
+      // }
+      
+
+      let quoteId = localStorage.getItem('quote_id');
+      
+      console.log("quoteId ==> ", quoteId);
+
+      if(quoteId == '' || quoteId == 'undefined' ||quoteId == null ){
+        const response = await axios.post(CREATE_QUOTES_API);
+        console.log("=======create quote = ",response.data)
+        localStorage.setItem('quote_id',response.data.quote_id);
+        quoteId = response.data.quote_id;
       }
 
-      // 2️⃣ Pehle existing quote fetch kare customer ke liye
-      const quoteResponse = await axios.get(`${GET_QUOTES_API}?customer_id=${customerId}`);
-      let quote = quoteResponse.data[0]; // pehla quote
-      const quoteId = quote?.quote_id || null;
-
+      /* request param */
       const payload = {
-        customer_id: customerId,
-        quote_id: quoteId,
-        items: [
-          {
-            product_id: product.id,
-            quantity: 1,
-          },
-        ],
-        total_price: (quote?.total_price || 0) + product.product_price,
-        items_count: (quote?.items_count || 0) + 1,
-        items_quantity: (quote?.items_quantity || 0) + 1,
+          "product_id": product.id,
+          "item_qty": 1,
+          "item_id" : null
       };
 
-      // 3️⃣ POST or PUT kare existing quote ko update karne ke liye
-      const response = quoteId
-        ? await axios.put(`${GET_QUOTES_API}/${quoteId}`, payload) // update
-        : await axios.post(GET_QUOTES_API, payload);             // create new
+      const addItem = GET_QUOTES_API + "/" + quoteId + "/add_items";
+      console.log(addItem);
+
+      const response = await axios.post(addItem, payload);
 
       if (response.status === 200 || response.status === 201) {
-        toast.success('Quote updated successfully!');
+        toast.success('Product added to database successfully!');
       } else {
-        toast.error('Failed to update quote!');
+        toast.error('Failed to add product to database!');
       }
-
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        console.error('Error adding to quote:', error.response?.data || error.message);
-      } else if (error instanceof Error) {
-        console.error('Error adding to quote:', error.message);
-      } else {
-        console.error('Unknown error adding to quote:', error);
-      }
+    } catch (error) {
+      console.error('Error adding to database:', error);
       toast.error('Something went wrong!');
     }
   };
