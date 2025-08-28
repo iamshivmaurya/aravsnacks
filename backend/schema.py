@@ -158,11 +158,11 @@ class ProductResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# Quote Schemas
+"""# Quote Schemas
 class QuoteCreate(BaseModel):
     customer_id: Optional[int] = None
     #email_id: Optional[str] = None
-    #phone_no: Optional[str] = None
+    #phone_no: Optional[str] = None"""
 
 class QuoteItemCreate(BaseModel):
     product_id: int
@@ -177,6 +177,14 @@ class QuoteAddressCreate(BaseModel):
     phone_no: str
     fast_name: str
     last_name: str
+
+class QuoteCreateResponse(BaseModel):
+    quote_id: int
+    message: str = "Quote created successfully"
+    #created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 class QuoteResponse(BaseModel):
     quote_id: int
@@ -214,7 +222,7 @@ class OrderItemCreate(BaseModel):
     unit_price: float
     discount_amount: Optional[float] = 0.0
     tax_percentage: Optional[float] = 0.0
-    
+
 class OrderAddressCreate(BaseModel):
     address_type: str
     street_address: str

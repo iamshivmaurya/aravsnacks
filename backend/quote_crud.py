@@ -1,18 +1,27 @@
 from sqlalchemy.orm import Session
 from model import Quote, QuoteItem, QuoteAddress, Product
-from schema import QuoteCreate, QuoteItemCreate, QuoteAddressCreate
+from schema import  QuoteItemCreate, QuoteAddressCreate ###QuoteCreate,
 from typing import List
 import math
 
 
+def create_quote(db: Session):
+    # Create a new quote instance
+    new_quote = Quote()
+    db.add(new_quote)
+    db.commit()
+    db.refresh(new_quote)  # This gets the auto-incremented ID
+    return new_quote
+
+"""
 def create_quote(db: Session, quote: QuoteCreate):
-    new_quote = Quote(**quote.dict())
+    new_quote = Quote(**quote.dict())        #Quote from model.py  
     db.add(new_quote)
     db.commit()
     db.refresh(new_quote)
     return new_quote
-
-
+"""
+   
 def get_quote(db: Session, quote_id: int):
     return db.query(Quote).filter(Quote.quote_id == quote_id).first()
 
