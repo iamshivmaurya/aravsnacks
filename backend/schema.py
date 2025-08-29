@@ -186,22 +186,6 @@ class QuoteCreateResponse(BaseModel):
     class Config:
         from_attributes = True
 
-
-class QuoteItemResponse(BaseModel):   ###this response add
-    item_id: int
-    quote_id: int
-    item_name: Optional[str] = None
-    item_qty: int = 1
-    product_id: int
-    sku: str
-    item_price: float = 0.0
-    item_discount: float = 0.0
-    item_tax: float = 0.0
-    tax_percentage: float = 0.0
-
-    class Config:
-        from_attributes = True  # Allows ORM mode (formerly orm_mode)
-
 class QuoteResponse(BaseModel):
     quote_id: int
     customer_id: Optional[int]
@@ -215,11 +199,9 @@ class QuoteResponse(BaseModel):
     total_tax: int
     items_count: int
     items_quantity: int
-    items: List[QuoteItemResponse] = []  # Add this line to item detail response
-                                        #along with quote detail
+
     class Config:
         from_attributes = True
-
 
 # Order Schemas
 class OrderCreate(BaseModel):
