@@ -23,8 +23,8 @@ export type CartItem = Product & { quantity: number };
 type CartContextType = {
   cartItems: CartItem[];
   addToCart: (product: Product) => void;
-  increaseQty: (id: number) => void;
-  decreaseQty: (id: number) => void;
+  increaseQty: (id: number ,qty: number) => void;
+  decreaseQty: (id: number,qty: number) => void;
   removeFromCart: (id: number) => void;
   clearCart: () => void;
 };
@@ -35,7 +35,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => setCartItems([]);
 
-  const increaseQty = (id: number) => {
+  const increaseQty = (id: number ,qty: number) => {
+    console.log("Item Id= :",id)
+    console.log("Item Qty= :",qty)
   setCartItems(prev =>
     prev.map(item =>
       item.id === id ? { ...item, quantity: item.quantity + 1 } : item
@@ -43,7 +45,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 };
 
-const decreaseQty = (id: number) => {
+const decreaseQty = (id: number ,qty: number) => {
+  console.log("Item Id :",id)
+  console.log("Item Qty :",qty)
   setCartItems(prev =>
     prev
       .map(item =>

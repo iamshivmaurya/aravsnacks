@@ -4,7 +4,7 @@ import { useCart } from '../components/CartContext';
 import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 import axios from 'axios';
-import { GET_QUOTES_API } from '../constants';
+import { GET_QUOTES_API, CREATE_QUOTES_API } from '../constants';
 type Product = {
   id: number;
   product_name: string;
@@ -20,30 +20,38 @@ export default function ProductCard({ product }: { product: Product }) {
     try {
       // Pehle local cart me add kare
       addToCart(product);
-      toast.success(`${product.product_name} added to cart!`);
+      // toast.success(`${product.product_name} added to cart!`);
 
-      // Phir API ke through database me bheje
-      const customerId = localStorage.getItem('customer_id'); // ensure user logged in
-      
+      // // Phir API ke through database me bheje
+      // const customerId = localStorage.getItem('customer_id'); // ensure user logged in
       // if (!customerId) {
       //   toast.error('Please login first!');
       //   return;
       // }
- 
+      
 
+      let quoteId = localStorage.getItem('quote_id');
+      
+      console.log("quoteId ==> ", quoteId);
+
+      if(quoteId == '' || quoteId == 'undefined' ||quoteId == null ){
+        const response = await axios.post(CREATE_QUOTES_API);
+        console.log("=======create quote = ",response.data)
+        localStorage.setItem('quote_id',response.data.quote_id);
+        quoteId = response.data.quote_id;
+      }
+
+      /* request param */
       const payload = {
-        customer_id: customerId,
-        items: [
-          {
-            product_id: product.id,
-            quantity: 1,
-            quote_id : 1,
-          },
-        ],
-        total_price: product.product_price,
+          "product_id": product.id,
+          "item_qty": 1,
+          "item_id" : null
       };
 
-      const response = await axios.post(GET_QUOTES_API, payload);
+      const addItem = GET_QUOTES_API + "/" + quoteId + "/add_items";
+      console.log(addItem);
+
+      const response = await axios.post(addItem, payload);
 
       if (response.status === 200 || response.status === 201) {
         toast.success('Product added to database successfully!');

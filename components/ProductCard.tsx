@@ -2,9 +2,11 @@
 
 import { useCart } from '../components/CartContext';
 import { toast } from 'react-hot-toast';
+import { Minus, Plus } from 'lucide-react';
 import Image from 'next/image';
 import axios from 'axios';
 import { GET_QUOTES_API, CREATE_QUOTES_API } from '../constants';
+
 type Product = {
   id: number;
   product_name: string;
@@ -14,44 +16,30 @@ type Product = {
 };
 
 export default function ProductCard({ product }: { product: Product }) {
-  const { addToCart } = useCart();
+  const { addToCart, cartItems, increaseQty, decreaseQty } = useCart();
+
+  const item = cartItems.find((ci) => ci.id === product.id);
 
   const handleAddToCart = async () => {
     try {
-      // Pehle local cart me add kare
+      // Add to local cart
       addToCart(product);
-      // toast.success(`${product.product_name} added to cart!`);
-
-      // // Phir API ke through database me bheje
-      // const customerId = localStorage.getItem('customer_id'); // ensure user logged in
-      // if (!customerId) {
-      //   toast.error('Please login first!');
-      //   return;
-      // }
-      
 
       let quoteId = localStorage.getItem('quote_id');
-      
-      console.log("quoteId ==> ", quoteId);
-
-      if(quoteId == '' || quoteId == 'undefined' ||quoteId == null ){
+      if (!quoteId || quoteId === 'undefined') {
         const response = await axios.post(CREATE_QUOTES_API);
-        console.log("=======create quote = ",response.data)
-        localStorage.setItem('quote_id',response.data.quote_id);
         quoteId = response.data.quote_id;
+        localStorage.setItem('quote_id', quoteId);
       }
 
-      /* request param */
       const payload = {
-          "product_id": product.id,
-          "item_qty": 1,
-          "item_id" : null
+        product_id: product.id,
+        item_qty: 1,
+        item_id: null,
       };
 
-      const addItem = GET_QUOTES_API + "/" + quoteId + "/add_items";
-      console.log(addItem);
-
-      const response = await axios.post(addItem, payload);
+      const addItemUrl = `${GET_QUOTES_API}/${quoteId}/add_items`;
+      const response = await axios.post(addItemUrl, payload);
 
       if (response.status === 200 || response.status === 201) {
         toast.success('Product added to database successfully!');
@@ -64,7 +52,6 @@ export default function ProductCard({ product }: { product: Product }) {
     }
   };
 
-  // Fix image URL for Next.js public folder
   const imageSrc = product.image_url.startsWith('/')
     ? product.image_url
     : '/' + product.image_url;
@@ -82,12 +69,31 @@ export default function ProductCard({ product }: { product: Product }) {
       <h2 className="text-lg font-bold mt-2">{product.product_name}</h2>
       <p className="text-sm text-gray-600">{product.description}</p>
       <p className="font-semibold mt-1">₹{product.product_price}</p>
-      <button
-        onClick={handleAddToCart}
-        className="bg-green-600 text-white px-4 py-1 rounded mt-2 hover:bg-green-700"
-      >
-        Add to Cart
-      </button>
+
+      {!item ? (
+        <button
+          onClick={handleAddToCart}
+          className="bg-green-600 text-white px-4 py-1 rounded mt-2 hover:bg-green-700"
+        >
+          Add to Cart
+        </button>
+      ) : (
+        <div className="flex items-center gap-2 mt-2">
+          <button
+            onClick={() => decreaseQty(item.id, item.quantity - 1)}
+            className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            <Minus size={16} />
+          </button>
+          <span className="px-2">{item.quantity}</span>
+          <button
+            onClick={() => increaseQty(item.id, item.quantity + 1)}
+            className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
