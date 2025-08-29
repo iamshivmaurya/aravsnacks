@@ -3,7 +3,7 @@ from model import Quote, QuoteItem, QuoteAddress, Product
 from schema import  QuoteItemCreate, QuoteAddressCreate ###QuoteCreate,
 from typing import List
 import math
-
+from sqlalchemy.orm import joinedload
 
 def create_quote(db: Session):
     # Create a new quote instance
@@ -26,9 +26,17 @@ def get_quote(db: Session, quote_id: int):
     return db.query(Quote).filter(Quote.quote_id == quote_id).first()
 
 
-def get_quotes(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Quote).offset(skip).limit(limit).all()
+# Update your get_quote function to eager load items  ### is code add for return item datail along with quote detal
+def get_quotes(db: Session, quote_id: int):
+    return db.query(Quote).options(joinedload(Quote.items)).filter(Quote.quote_id == quote_id).first()
 
+# Or create a new function if you want to keep the original
+def get_quote_with_items(db: Session, quote_id: int):
+    return db.query(Quote).options(joinedload(Quote.items)).filter(Quote.quote_id == quote_id).first()
+
+"""def get_quotes(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(Quote).offset(skip).limit(limit).all()
+"""
 
 def update_quote(db: Session, quote_id: int, quote_data: dict):
     db_quote = db.query(Quote).filter(Quote.quote_id == quote_id).first()

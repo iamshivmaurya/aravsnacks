@@ -4,6 +4,7 @@ from database import get_db
 from schema import QuoteCreateResponse, QuoteItemCreate, QuoteAddressCreate, QuoteResponse   #QuoteCreate,
 from quote_crud import create_quote, get_quote, get_quotes, delete_quote, add_quote_item, remove_quote_item, add_quote_address, get_quote_addresses
 from typing import List
+from sqlalchemy.orm import joinedload
 
 router = APIRouter()
 
@@ -57,14 +58,21 @@ class QuoteCreate(BaseModel):                   ###  From schema
             
 """
 
+# Update your get_quote_route
+@router.get("/quotes/{quote_id}", response_model=QuoteResponse)   ####rute change for item detail response
+def quotes(quote_id: int, db: Session = Depends(get_db)):    ##along with qute detail
+    # Use the function that eager loads items
+    db_quote = get_quote(db, quote_id)  # This will now include items
+    if not db_quote:
+        raise HTTPException(status_code=404, detail="Quote not found")
+    return db_quote
 
-
-@router.get("/quotes/{quote_id}", response_model=QuoteResponse)
+"""@router.get("/quotes/{quote_id}", response_model=QuoteResponse,)
 def get_quote_route(quote_id: int, db: Session = Depends(get_db)):
     db_quote = get_quote(db, quote_id)
     if not db_quote:
         raise HTTPException(status_code=404, detail="Quote not found")
-    return db_quote
+    return db_quote"""
 
 @router.get("/quotes", response_model=List[QuoteResponse])
 def get_quotes_route(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
