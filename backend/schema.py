@@ -187,6 +187,13 @@ class QuoteCreateResponse(BaseModel):
         from_attributes = True
 
 
+class QuoteItemQuantityUpdate(BaseModel):
+    item_qty: int
+
+    class Config:
+        from_attributes = True
+
+
 class QuoteItemResponse(BaseModel):   ###this response add
     item_id: int
     quote_id: int
