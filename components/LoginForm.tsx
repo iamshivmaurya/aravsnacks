@@ -1,9 +1,7 @@
 "use client";
 import axios from "axios";
 import { useState } from "react";
-
-import { SINGUP_API } from '../constants';
-import { VERIFY_OTP_API } from '../constants';
+import { VERIFY_OTP_API, LOGIN_API, SINGUP_API } from '../constants';
 
 
 export type LoginData = {
@@ -36,7 +34,7 @@ export default function LoginForm({ onSubmit }: LoginProps) {
     }
 
     try {
-      const response = await axios.post(SINGUP_API, {
+      const response = await axios.post(LOGIN_API, {
         phone: form.phone,
       });
 
@@ -91,45 +89,47 @@ export default function LoginForm({ onSubmit }: LoginProps) {
   };
 
   return (
-    <div className="space-y-4 p-4 bg-white shadow rounded">
-      <h2 className="text-lg font-semibold">Login</h2>
+    <div className="bg-white p-5 rounded-2xl shadow-md border">
+      <div className="space-y-4 p-4 bg-white shadow rounded">
+        <h2 className="text-lg font-semibold">Login</h2>
 
-      {step === "phone" && (
-        <form onSubmit={handleSendOtp} className="space-y-4">
-          <input
-            name="phone"
-            placeholder="Phone Number"
-            value={form.phone}
-            onChange={handleChange}
-            className="border-2 border-blue-500 p-2 w-full rounded "
-            required
-          />
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-black"
-          >
-            Send OTP
-          </button>
-        </form>
-      )}
+        {step === "phone" && (
+          <form onSubmit={handleSendOtp} className="space-y-4">
+            <input
+              name="phone"
+              placeholder="Phone Number"
+              value={form.phone}
+              onChange={handleChange}
+              className="border-2 border-blue-500 p-2 w-full rounded "
+              required
+            />
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-black"
+            >
+              Send OTP
+            </button>
+          </form>
+        )}
 
-      {step === "otp" && (
-        <form onSubmit={handleVerifyOtp} className="space-y-4">
-          <input
-            placeholder="Enter OTP"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-black"
-            required
-          />
-          <button
-            type="submit"
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          >
-            Verify OTP
-          </button>
-        </form>
-      )}
+        {step === "otp" && (
+          <form onSubmit={handleVerifyOtp} className="space-y-4">
+            <input
+              placeholder="Enter OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-black"
+              required
+            />
+            <button
+              type="submit"
+              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            >
+              Verify OTP
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

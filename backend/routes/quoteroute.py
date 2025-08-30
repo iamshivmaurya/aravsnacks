@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from schema import QuoteCreateResponse, QuoteItemCreate, QuoteAddressCreate, QuoteResponse   #QuoteCreate,
-from quote_crud import create_quote, get_quote, get_quotes, delete_quote, add_quote_item, remove_quote_item, add_quote_address, get_quote_addresses
+from quote_crud import create_quote, update_quote_item_quantity,get_quote, get_quotes, delete_quote, add_quote_item, remove_quote_item, add_quote_address, get_quote_addresses
 from typing import List
+from sqlalchemy.orm import joinedload
+from schema import QuoteItemQuantityUpdate,QuoteItemResponse # Make sure this import exists
 
 router = APIRouter()
 
@@ -20,42 +22,6 @@ def create_quote_route(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail= f"Internal server error -> {e}" )
 
-"""@router.post("/create_quotes", response_model=QuoteResponse)
-def create_quote_route(quote: QuoteCreate, db: Session = Depends(get_db)):
-    try:
-        db_quote = create_quote(db, quote)        #  function in crud "create_quote"
-        return db_quote
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")"""
-
-""" class QuoteResponse(BaseModel):  ###         From schema   
-        quote_id: int
-        customer_id: Optional[int] 
-        email_id: Optional[str]
-        phone_no: Optional[str]
-        is_active: bool
-        created_at: datetime
-        updated_at: datetime
-        total_price: float
-        discount: float
-        total_tax: int
-        items_count: int
-        items_quantity: int
-
-        class Config:
-            from_attributes = True
-                    
-#####################
-
-class QuoteCreate(BaseModel):                   ###  From schema 
-    customer_id: Optional[int] = None
-    #email_id: Optional[str] = None
-    #phone_no: Optional[str] = None
-            
-            
-            
-            
-"""
 
 
 
@@ -113,3 +79,29 @@ def add_quote_address_route(quote_id: int, address: QuoteAddressCreate, db: Sess
 def get_quote_addresses_route(quote_id: int, db: Session = Depends(get_db)):
     addresses = get_quote_addresses(db, quote_id)
     return addresses
+
+
+@router.put("/quotes/{quote_id}/items/{item_id}/quantity", response_model=QuoteItemResponse)
+def update_item_quantity_route(
+        quote_id: int,
+        item_id: int,
+        quantity_data: QuoteItemQuantityUpdate,  # Use the specific schema
+        db: Session = Depends(get_db)
+):
+    try:
+        # Now you can directly access the quantity
+        new_qty = quantity_data.item_qty
+
+        if new_qty < 1:
+            raise HTTPException(status_code=400, detail="Quantity must be at least 1")
+
+        # Your update logic here
+        db_item = update_quote_item_quantity(db, quote_id, item_id, new_qty)
+
+        if not db_item:
+            raise HTTPException(status_code=404, detail="Quote item not found")
+
+        return db_item
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

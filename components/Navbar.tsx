@@ -3,13 +3,16 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import LoginForm from './LoginForm';
-import SignInForm, { LoginData } from '../components/SignInForm'; // ✅ named import
+import { useCart } from '../components/CartContext';
+import { ShoppingCart, User, LogOut, LogIn, List } from 'lucide-react';
 
 export default function Navbar() {
+  const { cartItems } = useCart();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [phone, setPhone] = useState<string | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -32,62 +35,102 @@ export default function Navbar() {
     router.push('/');
   };
 
-  const handlePhoneUpdated = (newPhone: string) => {
-    setPhone(newPhone);
-    localStorage.setItem('phone', newPhone);
-    setShowLoginForm(false);
-  };
-
   return (
-    <nav className="bg-green-600 text-white px-4 py-3 flex justify-between items-center">
-      <h1 className="font-bold text-xl">🛒 Arav Snacks</h1>
-      <div className="space-x-4 flex items-center">
-        <Link href="/">Home</Link>
-        <Link href="/products">Products</Link>
-        <Link href="/cart">Cart</Link>
+    <nav className="bg-green-600 text-white px-6 py-3 flex justify-between items-center shadow-md">
+      {/* Brand Logo */}
+      <Link href="/" className="font-bold text-xl flex items-center gap-2">
+        🛒 <span>Arav Snacks</span>
+      </Link>
 
-        {isLoggedIn ? (
-          <>
-          <span className="mr-2">Welcome To : {phone}</span>
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
-            >
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              onClick={() => setShowLoginForm(true)}
-              className="bg-blue-500 px-3 py-1 rounded hover:bg-blue-600"
-            >
-              Signup
-            </button>
-               <Link href="/login">Login</Link>
-          </>
-        )}
+      {/* Navigation Links */}
+      <div className="flex items-center space-x-6">
+        <Link href="/" className="hover:underline">Home</Link>
+        <Link href="/products" className="hover:underline">Products</Link>
+
+        {/* Cart with Badge */}
+        <Link href="/cart" className="relative flex items-center">
+          <ShoppingCart size={20} />
+          <span className="ml-1">Cart</span>
+          {cartItems.length > 0 && (
+            <span className="absolute -top-2 -right-3 bg-red-600 text-xs px-2 py-0.5 rounded-full">
+              {cartItems.reduce((sum, i) => sum + i.item_qty, 0)}
+            </span>
+          )}
+        </Link>
+
+        {/* User Section */}
+        <div className="relative">
+          <button
+            onClick={() => setShowProfile(!showProfile)}
+            className="flex items-center gap-2 bg-green-700 px-3 py-1 rounded hover:bg-green-800"
+          >
+            <User size={18} /> {isLoggedIn ? phone : "Account"}
+          </button>
+
+          {/* Dropdown */}
+          {showProfile && (
+            <div className="absolute right-0 mt-2 w-44 bg-white text-black rounded shadow-lg z-50">
+              {isLoggedIn ? (
+                <>
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full"
+                  >
+                    <User size={16} /> My Profile
+                  </Link>
+                  <Link
+                    href="/orders"
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full"
+                  >
+                    <List size={16} /> My Orders
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full text-left"
+                  >
+                    <LogOut size={16} /> Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full"
+                  >
+                    <LogIn size={16} /> Login
+                  </Link>
+                  <button
+                    onClick={() => setShowLoginForm(true)}
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full text-left"
+                  >
+                    <LogIn size={16} /> Signup
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
+      {/* Modal for Signup */}
       {showLoginForm && (
-  <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-    <div className="bg-white p-6 rounded-lg shadow-lg relative z-50 pointer-events-auto">
-      <LoginForm
-        onSubmit={(formData) => {
-          console.log("Login form submitted:", formData);
-          // yahan aap login API call kar sakte ho
-        }}
-      />
-      <button
-        onClick={() => setShowLoginForm(false)}
-        className="mt-4 bg-gray-500 text-white px-4 py-2 rounded"
-      >
-        Close
-      </button>
-    </div>
-  </div>
-)}
-
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
+          <div className="bg-white p-6 rounded-lg shadow-lg relative w-96">
+            <LoginForm
+              onSubmit={(formData) => {
+                console.log("Login form submitted:", formData);
+                // TODO: login API call
+              }}
+            />
+            <button
+              onClick={() => setShowLoginForm(false)}
+              className="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 w-full"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

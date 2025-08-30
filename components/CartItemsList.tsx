@@ -1,50 +1,132 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from './CartContext';
+import axios from 'axios';
+
+interface QuoteItem {
+  item_id: number;
+  item_name: string;
+  item_price: number;
+  item_qty: number;
+}
 
 interface CartItemsListProps {
   onCheckout: () => void;
 }
 
-export default function CartItemsList({ onCheckout }: CartItemsListProps) {
+export default function CartItemsList() {
   const { cartItems, increaseQty, decreaseQty, removeFromCart } = useCart();
 
-  const totalPrice = cartItems.reduce(
-    (total, item) => total + item.product_price * item.quantity,
-    0
-  );
+  const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [quoteId, setQuoteId] = useState<string | null>(null);
+  const [totalPrice, setTotalPrice] = useState<number>(0);
 
-  if (cartItems.length === 0) {
+  useEffect(() => {
+    const storedQuoteId = localStorage.getItem('quote_id');
+    setQuoteId(storedQuoteId);
+
+    if (!storedQuoteId) {
+      setLoading(false);
+      return;
+    }
+
+    async function fetchQuote() {
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/quotes/${storedQuoteId}`);
+        setQuoteItems(response.data.items || []);
+        setTotalPrice(response.data.total_price || 0);
+      } catch (error) {
+        console.error("Failed to fetch quote items:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchQuote();
+  }, [cartItems]);
+
+  // Delete handler for quote items
+  const handleDeleteQuoteItem = async (itemId: number) => {
+    if (!quoteId) return;
+
+    try {
+      await axios.delete(`http://127.0.0.1:8000/quotes/${quoteId}/items/${itemId}`);
+      setQuoteItems(prev => prev.filter(item => item.item_id !== itemId));
+    } catch (error) {
+      console.error("Failed to delete quote item:", error);
+      alert("Failed to delete item from quote!");
+    }
+  };
+
+  // Select which items to display
+  const isQuoteMode = quoteItems.length > 0;
+  const itemsToShow = isQuoteMode
+    ? quoteItems.map(item => ({
+        id: item.item_id,
+        name: item.item_name,
+        price: item.item_price,
+        quantity: item.item_qty,
+        isQuote: true,
+      }))
+    : cartItems.map(item => ({
+        id: item.id,
+        name: item.product_name,
+        price: item.product_price,
+        quantity: item.quantity,
+        isQuote: false,
+      }));
+
+  const calculatedTotal = isQuoteMode
+    ? totalPrice
+    : cartItems.reduce(
+        (total, item) => total + item.product_price * item.quantity,
+        0
+      );
+
+  if (loading) {
+    return <p className="text-gray-600">Loading your quote items...</p>;
+  }
+
+  if (itemsToShow.length === 0) {
     return <p className="text-gray-600">Your cart is empty.</p>;
   }
 
   return (
     <div className="space-y-4">
-      {cartItems.map(item => (
+      {itemsToShow.map(item => (
         <div
           key={item.id}
           className="bg-white p-4 rounded shadow flex justify-between items-center"
         >
           <div>
-            <h2 className="font-semibold">{item.product_name}</h2>
-            <p>₹{item.product_price} × {item.quantity}</p>
+            <h2 className="font-semibold">{item.name}</h2>
+            {/* <p>₹{item.price} × {item.quantity}</p> */}
+
             <div className="flex items-center gap-2 mt-2">
+             
+                <>
+                  <button
+                    onClick={() => decreaseQty(item.id,item.quantity-1)}
+                    className="p-1 bg-gray-200 rounded hover:bg-gray-300">
+                    <Minus size={16} />
+                  </button>
+                  <span className="px-2">{item.quantity}</span>
+                  <button
+                    onClick={() => increaseQty(item.id,item.quantity+1)}
+                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </>
+               
               <button
-                onClick={() => decreaseQty(item.id)}
-                className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-              >
-                <Minus size={16} />
-              </button>
-              <span className="px-2">{item.quantity}</span>
-              <button
-                onClick={() => increaseQty(item.id)}
-                className="p-1 bg-gray-200 rounded hover:bg-gray-300"
-              >
-                <Plus size={16} />
-              </button>
-              <button
-                onClick={() => removeFromCart(item.id)}
+                onClick={() =>
+                  item.isQuote
+                    ? handleDeleteQuoteItem(item.id)
+                    : removeFromCart(item.id)
+                }
                 className="ml-4 p-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
               >
                 <Trash2 size={16} />
@@ -52,22 +134,13 @@ export default function CartItemsList({ onCheckout }: CartItemsListProps) {
             </div>
           </div>
           <p className="font-bold text-right">
-            ₹{item.product_price * item.quantity}
+            ₹{item.price * item.quantity}
           </p>
         </div>
       ))}
 
       <div className="text-right font-bold text-xl mt-4">
-        Total: ₹{totalPrice}
-      </div>
-
-      <div className="text-right mt-6">
-        <button
-          onClick={onCheckout}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Checkout
-        </button>
+        Subtotal: ₹{calculatedTotal}
       </div>
     </div>
   );

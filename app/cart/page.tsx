@@ -1,102 +1,72 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../components/CartContext';
-import ShippingAddressForm, { ShippingAddressData } from '../../components/ShippingAddressForm';
-import LoginForm, { LoginData } from "../../components/LoginForm";
-import EditSignupForm from "../../components/EditSignupForm";
 import CartItemsList from '../../components/CartItemsList';
 
 export default function CartPage() {
-  const { cartItems } = useCart();
   const router = useRouter();
-
-  const [shippingAddress, setShippingAddress] = useState<ShippingAddressData | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [phone, setPhone] = useState("");
-  const [customerId, setCustomerId] = useState<string | null>(null);
-  const [isEditingPhone, setIsEditingPhone] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const storedPhone = localStorage.getItem("phone");
-    const storedCustomerId = localStorage.getItem("customer_id");
-
-    if (token && storedPhone && storedCustomerId) {
-      setIsLoggedIn(true);
-      setPhone(storedPhone);
-      setCustomerId(storedCustomerId);
-    }
-  }, []);
-
-  const handleLoginSuccess = (data: LoginData) => {
-    localStorage.setItem("access_token", data.access_token);
-    localStorage.setItem("phone", data.phone);
-    localStorage.setItem("customer_id", data.customer_id);
-
-    setPhone(data.phone);
-    setCustomerId(data.customer_id);
-    setIsLoggedIn(true);
-  };
-
-  const handleAddressSubmit = (address: ShippingAddressData) => {
-    setShippingAddress(address);
-  };
+  const { cartItems, cartTotal } = useCart();
 
   const handleCheckout = () => {
-    if (!isLoggedIn) {
-      alert("Please login before checkout!");
+    if (cartItems.length === 0) {
+      alert("Your cart is empty!");
       return;
     }
     router.push('/checkout');
   };
 
   return (
-    <section className="mt-6 px-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* LEFT COLUMN: Login + Phone Section + Shipping */}
-      <div className="space-y-6">
-        <div className="bg-white p-4 rounded shadow">
-          {isLoggedIn ? (
-            !isEditingPhone ? (
-              <div className="flex items-center justify-between">
-                <input
-                  type="text"
-                  value={phone}
-                  disabled
-                  className="border p-2 w-full bg-gray-100 cursor-not-allowed"
-                />
-                <button
-                  className="ml-4 bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
-                  onClick={() => setIsEditingPhone(true)}
-                >
-                  Edit
-                </button>
+    <section className="mt-8 px-4 md:px-12">
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-10">
+        {/* Header */}
+        <h1 className="text-3xl font-extrabold text-gray-800 mb-6 border-b pb-4">
+        My Cart
+        </h1>
+
+        {cartItems.length > 0 ? (
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Cart Items */}
+            <div className="md:col-span-2 space-y-4">
+              <CartItemsList />
+            </div>
+
+            {/* Summary Section */}
+            <div className="bg-gray-50 p-6 rounded-xl shadow-inner">
+              <h2 className="text-xl font-semibold text-gray-700 mb-4">Order Summary</h2>
+              <div className="flex justify-between text-gray-600 mb-2">
+                <span>Subtotal</span>
+                <span>₹{cartTotal}</span>
               </div>
-            ) : (
-              <EditSignupForm
-                phone={phone}
-                customer_id={customerId || ""}
-                onPhoneUpdated={(newPhone) => {
-                  setPhone(newPhone);
-                  setIsEditingPhone(false);
-                }}
-              />
-            )
-          ) : (
-            <LoginForm onSubmit={handleLoginSuccess} />
-          )}
-        </div>
+              <div className="flex justify-between text-gray-600 mb-2">
+                <span>Shipping</span>
+                <span className="text-green-600 font-medium">FREE</span>
+              </div>
+              <hr className="my-3" />
+              <div className="flex justify-between text-lg font-bold text-gray-800">
+                <span>Total</span>
+                <span>₹{cartTotal}</span>
+              </div>
 
-        <div className="bg-white p-4 rounded shadow">
-          <ShippingAddressForm onSubmit={handleAddressSubmit} />
-        </div>
-      </div>
-
-      {/* RIGHT COLUMN: Cart Items */}
-      <div>
-        <h1 className="text-2xl font-bold mb-4">Your Cart</h1>
-        <CartItemsList onCheckout={handleCheckout} />
+              <button
+                onClick={handleCheckout}
+                className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all"
+              >
+                Proceed to Checkout →
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">Your cart is empty 🛍️</p>
+            <button
+              onClick={() => router.push('/')}
+              className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition-all"
+            >
+              Continue Shopping
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
