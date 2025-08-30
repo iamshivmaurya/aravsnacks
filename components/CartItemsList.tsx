@@ -16,7 +16,7 @@ interface CartItemsListProps {
   onCheckout: () => void;
 }
 
-export default function CartItemsList({ onCheckout }: CartItemsListProps) {
+export default function CartItemsList() {
   const { cartItems, increaseQty, decreaseQty, removeFromCart } = useCart();
 
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
@@ -44,9 +44,8 @@ export default function CartItemsList({ onCheckout }: CartItemsListProps) {
         setLoading(false);
       }
     }
-
     fetchQuote();
-  }, []);
+  }, [cartItems]);
 
   // Delete handler for quote items
   const handleDeleteQuoteItem = async (itemId: number) => {
@@ -141,16 +140,7 @@ export default function CartItemsList({ onCheckout }: CartItemsListProps) {
       ))}
 
       <div className="text-right font-bold text-xl mt-4">
-        Total: ₹{calculatedTotal}
-      </div>
-
-      <div className="text-right mt-6">
-        <button
-          onClick={onCheckout}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Checkout
-        </button>
+        Subtotal: ₹{calculatedTotal}
       </div>
     </div>
   );

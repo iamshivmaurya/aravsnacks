@@ -2,7 +2,7 @@
 
 import { useCart } from '../components/CartContext';
 import { toast } from 'react-hot-toast';
-import { Minus, Plus } from 'lucide-react';
+import { Minus, Plus, ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import axios from 'axios';
 import { GET_QUOTES_API, CREATE_QUOTES_API } from '../constants';
@@ -18,11 +18,14 @@ type Product = {
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart, cartItems, increaseQty, decreaseQty } = useCart();
 
-  const item = cartItems.find((ci) => ci.id === product.id);
+  console.log("cartItems", cartItems);
+  // find the item from cart (if exists)
+  const item = cartItems.find((ci) => ci.product_id === product.id);
+
+  console.log("item ==> ", item);
 
   const handleAddToCart = async () => {
     try {
-      // Add to local cart
       addToCart(product);
 
       let quoteId = localStorage.getItem('quote_id');
@@ -31,7 +34,6 @@ export default function ProductCard({ product }: { product: Product }) {
         quoteId = response.data.quote_id;
         localStorage.setItem('quote_id', quoteId);
       }
-
       const payload = {
         product_id: product.id,
         item_qty: 1,
@@ -66,10 +68,12 @@ export default function ProductCard({ product }: { product: Product }) {
           className="object-cover rounded"
         />
       </div>
+
       <h2 className="text-lg font-bold mt-2">{product.product_name}</h2>
       <p className="text-sm text-gray-600">{product.description}</p>
       <p className="font-semibold mt-1">₹{product.product_price}</p>
 
+      {/* ✅ If item is already in cart, show qty inline */}
       {!item ? (
         <button
           onClick={handleAddToCart}
@@ -78,16 +82,16 @@ export default function ProductCard({ product }: { product: Product }) {
           Add to Cart
         </button>
       ) : (
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-center justify-between mt-2 border rounded px-2 py-1">
           <button
-            onClick={() => decreaseQty(item.id, item.quantity - 1)}
+            onClick={() => decreaseQty(item.item_id, item.item_qty - 1)}
             className="p-1 bg-gray-200 rounded hover:bg-gray-300"
           >
             <Minus size={16} />
           </button>
-          <span className="px-2">{item.quantity}</span>
+          <span className="px-3 font-medium">{item.item_qty}</span>
           <button
-            onClick={() => increaseQty(item.id, item.quantity + 1)}
+            onClick={() => increaseQty(item.item_id, item.item_qty + 1)}
             className="p-1 bg-gray-200 rounded hover:bg-gray-300"
           >
             <Plus size={16} />
