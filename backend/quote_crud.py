@@ -3,7 +3,7 @@ from model import Quote, QuoteItem, QuoteAddress, Product
 from schema import  QuoteItemCreate, QuoteAddressCreate ###QuoteCreate,
 from typing import List
 import math
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload   ## use in response of a table along with other table
 
 def create_quote(db: Session):
     # Create a new quote instance
@@ -13,14 +13,6 @@ def create_quote(db: Session):
     db.refresh(new_quote)  # This gets the auto-incremented ID
     return new_quote
 
-"""
-def create_quote(db: Session, quote: QuoteCreate):
-    new_quote = Quote(**quote.dict())        #Quote from model.py  
-    db.add(new_quote)
-    db.commit()
-    db.refresh(new_quote)
-    return new_quote
-"""
    
 def get_quote(db: Session, quote_id: int):
     return db.query(Quote).filter(Quote.quote_id == quote_id).first()
@@ -33,10 +25,6 @@ def get_quotes(db: Session, quote_id: int):
 # Or create a new function if you want to keep the original
 def get_quote_with_items(db: Session, quote_id: int):
     return db.query(Quote).options(joinedload(Quote.items)).filter(Quote.quote_id == quote_id).first()
-
-"""def get_quotes(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Quote).offset(skip).limit(limit).all()
-"""
 
 
 def calculate_item_totals(product: Product, item_qty: int) -> dict:
@@ -128,53 +116,7 @@ def add_quote_item(db: Session, quote_id: int, item: QuoteItemCreate):
 
     return new_item
 
-"""def add_quote_item(db: Session, quote_id: int, item: QuoteItemCreate):
-    # Check if product exists
-    print("quote_id ============ >>>>>>>>>>>>>")
-    print(quote_id)
-    product = db.query(Product).filter(Product.id == item.product_id).first()
-    if not product:
-        raise ValueError("Product not found")
 
-    # Calculate item price with discount
-    item_price = product.product_price
-    if product.percentage_discount > 0:
-        item_price = item_price * (1 - product.percentage_discount / 100)
-    elif product.products_discount > 0:
-        item_price = item_price - product.products_discount
-
-    # Calculate item tax
-    item_tax = 0 #item_price * (product.tax_percentage / 100) * item.item_qty
-
-    # Create quote item
-    new_item = QuoteItem(
-        quote_id = int(quote_id),
-        product_id = int(item.product_id),
-        item_name=product.product_name,
-        item_qty= 1, #item.item_qty,
-        sku=product.sku,
-        item_price=item_price,
-        #item_discount=product.products_discount if product.products_discount else product.percentage_discount,
-        #item_tax=item_tax,
-        #tax_percentage=product.tax_percentage
-    )
-
-    db.add(new_item)
-
-    # Update quote totals
-    quote = db.query(Quote).filter(Quote.quote_id == quote_id).first()
-    if quote:
-        quote.total_price += item_price * item.item_qty
-        quote.discount += (product.products_discount if product.products_discount else 0) * item.item_qty
-        quote.total_tax += item_tax
-        quote.items_count += 1
-        quote.items_quantity += item.item_qty
-
-        db.commit()
-        db.refresh(new_item)
-
-    return new_item
-"""
 
 def remove_quote_item(db: Session, quote_id: int, item_id: int):
     item = db.query(QuoteItem).filter(QuoteItem.item_id == item_id, QuoteItem.quote_id == quote_id).first()
@@ -197,23 +139,6 @@ def remove_quote_item(db: Session, quote_id: int, item_id: int):
         return True
     return False
 
-"""
-def remove_quote_item(db: Session, quote_id: int, item_id: int):
-    item = db.query(QuoteItem).filter(QuoteItem.item_id == item_id, QuoteItem.quote_id == quote_id).first()
-    if item:
-        # Update quote totals
-        quote = db.query(Quote).filter(Quote.quote_id == quote_id).first()
-        if quote:
-            quote.total_price -= item.item_price * item.item_qty
-            quote.discount -= item.item_discount * item.item_qty
-            quote.total_tax -= item.item_tax
-            quote.items_count -= 1
-            quote.items_quantity -= item.item_qty
-
-        db.delete(item)
-        db.commit()
-        return True
-    return False"""
 
 
 def add_quote_address(db: Session, quote_id: int, address: QuoteAddressCreate):
