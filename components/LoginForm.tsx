@@ -1,9 +1,7 @@
 "use client";
 import axios from "axios";
 import { useState } from "react";
-
-import { SINGUP_API } from '../constants';
-import { VERIFY_OTP_API } from '../constants';
+import { VERIFY_OTP_API, LOGIN_API, SINGUP_API } from '../constants';
 
 
 export type LoginData = {
@@ -36,7 +34,7 @@ export default function LoginForm({ onSubmit }: LoginProps) {
     }
 
     try {
-      const response = await axios.post(SINGUP_API, {
+      const response = await axios.post(LOGIN_API, {
         phone: form.phone,
       });
 

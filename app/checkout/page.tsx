@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCart } from '../../components/CartContext';
 import ShippingAddressForm, { ShippingAddressData } from '../../components/ShippingAddressForm';
 import LoginForm, { LoginData } from "../../components/LoginForm";
-import EditSignupForm from "../../components/EditSignupForm";
 import CartItemsList from '../../components/CartItemsList';
 
 export default function CartPage() {
