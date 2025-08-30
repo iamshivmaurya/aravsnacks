@@ -8,6 +8,7 @@ export const CREATE_QUOTES_API = `${API_BASE_URL}/create_quotes`;
 export const GET_CUSTOMERS_API = `${API_BASE_URL}/customers`;
 export const SEND_OTP_API = `${API_BASE_URL}/send-otp`;
 export const SINGUP_API = `${API_BASE_URL}/signup`;
+export const LOGIN_API = `${API_BASE_URL}/login`;
 export const VERIFY_OTP_API = `${API_BASE_URL}/verify-otp`;
  
 

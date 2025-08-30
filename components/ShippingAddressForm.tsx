@@ -39,8 +39,6 @@ export default function ShippingAddressForm({ onSubmit }: ShippingAddressProps) 
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white shadow rounded">
-      <h2 className="text-lg font-semibold">Shipping Address</h2>
-
       <input
         name="fullName"
         placeholder="Full Name"
