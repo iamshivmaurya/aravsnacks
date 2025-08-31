@@ -2,6 +2,16 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 
+
+class OrderFromQuoteCreate(BaseModel):
+    customer_id: int
+    quote_id: int
+
+
+
+
+
+
 # Login Schemas
 class SignupRequest(BaseModel):
     phone: Optional[str] = None
@@ -259,7 +269,9 @@ class OrderAddressCreate(BaseModel):
     last_name: str
 
 class OrderResponse(BaseModel):
+    
     order_id: int
+    quote_id:int
     customer_id: Optional[int]
     customer_email: Optional[str]
     order_date: datetime

@@ -1,9 +1,12 @@
 from sqlalchemy.orm import Session
 from model import Order, OrderItem, OrderAddress, Quote, QuoteItem
-from schema import OrderCreate, OrderItemCreate, OrderAddressCreate
+from schema import OrderCreate, OrderItemCreate, OrderAddressCreate,OrderResponse
 from typing import List
 from datetime import datetime
 
+
+
+#############################
 
 def create_order(db: Session, order: OrderCreate):
     new_order = Order(**order.dict())
@@ -12,7 +15,12 @@ def create_order(db: Session, order: OrderCreate):
     db.refresh(new_order)
     return new_order
 
-
+def get_order_by_customer_and_quote(db: Session, customer_id: int, quote_id: int):  ###31-09-25
+    return db.query(Order).filter(
+        Order.customer_id == customer_id,
+        Order.order_id == order_id
+    ).first()
+#############################################
 def get_order(db: Session, order_id: int):
     return db.query(Order).filter(Order.order_id == order_id).first()
 
