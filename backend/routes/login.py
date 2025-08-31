@@ -16,8 +16,8 @@ router = APIRouter()
 load_dotenv()
 
 # JWT
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
+SECRET_KEY = "ABC123"
+ALGORITHM = "HS256"
 
 
 def create_access_token(data: dict):

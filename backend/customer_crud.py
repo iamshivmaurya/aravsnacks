@@ -5,7 +5,42 @@ from typing import List, Optional
 
 
 # Customer CRUD Operations
-def create_customer(db: Session, customer: CustomerCreate):
+def create_or_update_customer(db: Session, customer_data: CustomerCreate):
+    """
+    Create or update customer based on customer_id or phone number
+    """
+    # If customer_id is provided, check if it exists and phone matches
+    if customer_data.customer_id:
+        existing_customer = db.query(Customer).filter(
+            Customer.customer_id == customer_data.customer_id
+        ).first()
+
+        if not existing_customer:
+            raise ValueError("Customer ID not found")
+
+        # Verify phone number matches
+        if existing_customer.phone != customer_data.phone:
+            raise ValueError("Phone number does not match existing customer record")
+
+        # Update existing customer
+        return update_existing_customer(db, existing_customer, customer_data)
+
+    else:
+        # Check if customer exists with this phone number
+        existing_customer = db.query(Customer).filter(
+            Customer.phone == customer_data.phone
+        ).first()
+
+        if existing_customer:
+            # Update existing customer with new details
+            return update_existing_customer(db, existing_customer, customer_data)
+        else:
+            # Create completely new customer
+            return create_new_customer(db, customer_data)
+
+
+def create_new_customer(db: Session, customer: CustomerCreate):
+    """Create a completely new customer"""
     # Check if customer already exists
     existing_customer = db.query(Customer).filter(
         (Customer.email == customer.email) | (Customer.phone == customer.phone)
@@ -22,14 +57,25 @@ def create_customer(db: Session, customer: CustomerCreate):
         first_name=customer.first_name,
         last_name=customer.last_name,
         phone=customer.phone
-
-
     )
 
     db.add(new_customer)
     db.commit()
     db.refresh(new_customer)
     return new_customer
+
+
+def update_existing_customer(db: Session, customer: Customer, customer_data: CustomerCreate):
+    """Update existing customer with new details"""
+    update_data = customer_data.dict(exclude_unset=True, exclude={'customer_id'})
+
+    for key, value in update_data.items():
+        if key != 'password':  # Handle password separately if needed
+            setattr(customer, key, value)
+
+    db.commit()
+    db.refresh(customer)
+    return customer
 
 
 def get_customer(db: Session, customer_id: int):

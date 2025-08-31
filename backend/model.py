@@ -137,9 +137,12 @@ class QuoteItem(Base):
     item_discount = Column(Float, default=0.0)
     item_tax = Column(Float, default=0.0)
     tax_percentage = Column(Float, default=0.0)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     quote = relationship("Quote", back_populates="items")
     product = relationship("Product", back_populates="quote_items")
+
 
 
 class QuoteAddress(Base):
