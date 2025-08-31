@@ -77,16 +77,17 @@ export default function CartPage() {
           <h1 className="text-2xl font-bold mb-4">Your Cart</h1>
           <CartItemsList />
         </div>
-        {/* Sticky Checkout Button for Mobile */}
-        <div className="mt-6 md:mt-10 flex justify-end">
+     
+      </div>
+         {/* Sticky Checkout Button for Mobile */}
+         <div className="mt-6 md:mt-10 flex justify-end">
           <button
             onClick={handleCheckout}
             className="w-full md:w-auto bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 shadow-md transition"
           >
-            Proceed to Checkout
+            Place Order
           </button>
         </div>
-      </div>
     </section>
   );
 }

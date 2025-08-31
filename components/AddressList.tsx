@@ -16,8 +16,13 @@ interface Address {
   last_name: string;
 }
 
-export default function AddressList() {
+interface AddressListProps {
+  onSelectAddress: (address: Address) => void; // Parent ko selected address bhejne ke liye
+}
+
+export default function AddressList({ onSelectAddress }: AddressListProps) {
   const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,19 +56,24 @@ export default function AddressList() {
     try {
       await axios.delete(`http://127.0.0.1:8000/quotes/${quoteId}/addresses/${addressId}`);
       setAddresses(addresses.filter(addr => addr.id !== addressId));
+
+      if (selectedId === addressId) {
+        setSelectedId(null);
+        onSelectAddress(null as any);
+      }
     } catch (error) {
       console.error("Failed to delete address:", error);
       alert("Failed to delete address.");
     }
   };
 
-  if (loading) {
-    return <p className="text-gray-600">Loading addresses...</p>;
-  }
+  const handleSelect = (address: Address) => {
+    setSelectedId(address.id);
+    onSelectAddress(address);
+  };
 
-  if (addresses.length === 0) {
-    return <p className="text-gray-600">No addresses found.</p>;
-  }
+  if (loading) return <p className="text-gray-600">Loading addresses...</p>;
+  if (addresses.length === 0) return <p className="text-gray-600">No addresses found.</p>;
 
   return (
     <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
@@ -72,13 +82,23 @@ export default function AddressList() {
           key={address.id}
           className="bg-white p-4 rounded shadow flex justify-between items-start"
         >
-          <div>
-            <h5 className="font-semibold">
-              {address.fast_name} {address.last_name} , {address.postal_code} <span className="p-2 bg-red-100  rounded">{address.address_type}</span> 
-            </h5>
-            <p className="text-sm text-gray-600">{address.street_address}, {address.city}, {address.state} , {address.phone_no}</p>
- 
-           
+          <div className="flex items-start gap-2">
+            <input
+              type="radio"
+              name="selectedAddress"
+              checked={selectedId === address.id}
+              onChange={() => handleSelect(address)}
+              className="mt-1"
+            />
+            <div>
+              <h5 className="font-semibold">
+                {address.fast_name} {address.last_name} , {address.postal_code}{" "}
+                <span className="p-2 bg-red-100 rounded">{address.address_type}</span>
+              </h5>
+              <p className="text-sm text-gray-600">
+                {address.street_address}, {address.city}, {address.state} , {address.phone_no}
+              </p>
+            </div>
           </div>
 
           <div className="flex gap-2">
