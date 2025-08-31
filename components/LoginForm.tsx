@@ -91,7 +91,7 @@ export default function LoginForm({ onSubmit }: LoginProps) {
   return (
     <div className="bg-white p-5 rounded-2xl shadow-md border">
       <div className="space-y-4 p-4 bg-white shadow rounded">
-        <h2 className="text-lg font-semibold">Login</h2>
+        <h2 className="text-lg font-semibold">Sign Up</h2>
 
         {step === "phone" && (
           <form onSubmit={handleSendOtp} className="space-y-4">

@@ -61,7 +61,7 @@ export default function SignInForm({ onSubmit }: SignInFormProps) {
         {step === 'phone' ? (
           <form onSubmit={handlePhoneSubmit} className="space-y-5">
             <h2 className="text-2xl font-bold text-center text-gray-800">
-              Login / Signup
+              Login 
             </h2>
             <input
               type="text"

@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ShippingAddressForm, { ShippingAddressData } from '../../components/ShippingAddressForm';
-import LoginForm, { LoginData } from "../../components/LoginForm";
+import SignInForm, { LoginData } from "../../components/SignInForm";
 import CartItemsList from '../../components/CartItemsList';
+import AddressList from '@/components/AddressList';
 
 export default function CartPage() {
   const router = useRouter();
@@ -54,8 +55,15 @@ export default function CartPage() {
       <div className="space-y-6">
         {/* Login / Phone */}
 
-        {!isLoggedIn && <LoginForm onSubmit={handleLoginSuccess} />}
-        
+        {!isLoggedIn && <SignInForm onSubmit={handleLoginSuccess} />}
+
+
+        {/* Address List*/}
+        <div className="">
+        <p className="text-md">Choose a Delivery Address</p>
+          <AddressList  />
+      </div>
+
         {/* Shipping Address */}
         <div className="bg-white p-5 rounded-2xl shadow-md border">
           <h2 className="text-lg font-semibold mb-3">Shipping Address</h2>
