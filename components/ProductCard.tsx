@@ -1,11 +1,9 @@
 'use client';
 
 import { useCart } from '../components/CartContext';
-import { toast } from 'react-hot-toast';
-import { Minus, Plus, ShoppingCart } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 import Image from 'next/image';
-import axios from 'axios';
-import { GET_QUOTES_API, CREATE_QUOTES_API } from '../constants';
+
 
 type Product = {
   id: number;
@@ -18,41 +16,10 @@ type Product = {
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart, cartItems, increaseQty, decreaseQty } = useCart();
 
-  console.log("cartItems", cartItems);
-  // find the item from cart (if exists)
   const item = cartItems.find((ci) => ci.product_id === product.id);
 
   console.log("item ==> ", item);
 
-  const handleAddToCart = async () => {
-    try {
-      addToCart(product);
-
-      let quoteId = localStorage.getItem('quote_id');
-      if (!quoteId || quoteId === 'undefined') {
-        const response = await axios.post(CREATE_QUOTES_API);
-        quoteId = response.data.quote_id;
-        localStorage.setItem('quote_id', quoteId);
-      }
-      const payload = {
-        product_id: product.id,
-        item_qty: 1,
-        item_id: null,
-      };
-
-      const addItemUrl = `${GET_QUOTES_API}/${quoteId}/add_items`;
-      const response = await axios.post(addItemUrl, payload);
-
-      if (response.status === 200 || response.status === 201) {
-        toast.success('Product added to database successfully!');
-      } else {
-        toast.error('Failed to add product to database!');
-      }
-    } catch (error) {
-      console.error('Error adding to database:', error);
-      toast.error('Something went wrong!');
-    }
-  };
 
   const imageSrc = product.image_url.startsWith('/')
     ? product.image_url
@@ -76,7 +43,7 @@ export default function ProductCard({ product }: { product: Product }) {
       {/* ✅ If item is already in cart, show qty inline */}
       {!item ? (
         <button
-          onClick={handleAddToCart}
+           onClick={() => addToCart(product) }
           className="bg-green-600 text-white px-4 py-1 rounded mt-2 hover:bg-green-700"
         >
           Add to Cart

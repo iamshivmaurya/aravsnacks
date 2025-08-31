@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from schema import CustomerCreate, CustomerResponse, CustomerUpdate, CustomerAddressCreate, CustomerAddressResponse
-from customer_crud import create_customer, get_customer, get_customers, update_customer, delete_customer, create_customer_address, get_customer_addresses, get_address, update_address, delete_address
+from customer_crud import create_or_update_customer, get_customer, get_customers, update_customer, delete_customer, create_customer_address, get_customer_addresses, get_address, update_address, delete_address
 from typing import List
 
 router = APIRouter()
@@ -11,13 +11,14 @@ router = APIRouter()
 @router.post("/customers", response_model=CustomerResponse)
 def create_customer_route(customer: CustomerCreate, db: Session = Depends(get_db)):
     try:
-        db_customer = create_customer(db, customer)
+        db_customer = create_or_update_customer(db, customer)
         return db_customer
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
+# ... keep the rest of your routes exactly the same ...
 @router.get("/customers/{customer_id}", response_model=CustomerResponse)
 def get_customer_route(customer_id: int, db: Session = Depends(get_db)):
     db_customer = get_customer(db, customer_id)

@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import ProductCard from '../../components/ProductCard';
 import { GET_PRODUCTS_API } from '../../constants';
+import { useCart } from '../../components/CartContext';
+
 
 type Product = {
   id: number;
@@ -16,6 +18,7 @@ type Product = {
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const { cartItems, cartTotal } = useCart();
 
   useEffect(() => {
     const fetchProducts = async () => {

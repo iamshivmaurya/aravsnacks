@@ -18,13 +18,22 @@ class TokenResponse(BaseModel):
     token_type: str
 
 # Customer Schemas
-class CustomerCreate(BaseModel):
+"""class CustomerCreate(BaseModel):
     customer_name: str  # Required
     email: EmailStr  # Required
     password: str  # Required
     first_name: str  # Required
     last_name: str  # Required
-    phone: str  # Required
+    phone: str  # Required"""
+
+class CustomerCreate(BaseModel):
+    customer_id: Optional[int] = None  # Make customer_id optional
+    customer_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: str  # Phone is required
 
 class CustomerUpdate(BaseModel):
     customer_name: Optional[str] = None
@@ -158,11 +167,7 @@ class ProductResponse(BaseModel):
     class Config:
         from_attributes = True
 
-"""# Quote Schemas
-class QuoteCreate(BaseModel):
-    customer_id: Optional[int] = None
-    #email_id: Optional[str] = None
-    #phone_no: Optional[str] = None"""
+
 
 class QuoteItemCreate(BaseModel):
     product_id: int
@@ -205,6 +210,8 @@ class QuoteItemResponse(BaseModel):   ###this response add
     item_discount: float = 0.0
     item_tax: float = 0.0
     tax_percentage: float = 0.0
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True  # Allows ORM mode (formerly orm_mode)
@@ -234,11 +241,7 @@ class OrderCreate(BaseModel):
     customer_email: Optional[str] = None
     payment_method: str
     shipping_method: str
-"""
-class OrderItemCreate(BaseModel):   ##############
-    product_id: int
-    quantity: int
-    unit_price: float"""
+
 
 class OrderItemCreate(BaseModel):
     product_id: int
@@ -270,6 +273,25 @@ class OrderResponse(BaseModel):
     grand_total: float
     payment_method: str
     shipping_method: str
+
+    class Config:
+        from_attributes = True
+
+class PlaceOrderRequest(BaseModel):
+    customer_id: int
+    quote_id: int
+    payment_method: str
+    shipping_method: str
+    shipping_address: OrderAddressCreate
+    billing_address: Optional[OrderAddressCreate] = None
+
+class PlaceOrderResponse(BaseModel):
+    order_id: int
+    message: str = "Order placed successfully"
+    grand_total: float
+    addresses_transferred: bool
+    addresses_count: int
+    additional_message: Optional[str] = None
 
     class Config:
         from_attributes = True
