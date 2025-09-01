@@ -5,7 +5,7 @@ import axios from "axios";
 import { Trash2, Edit } from "lucide-react";
 
 interface Address {
-  id: number;
+  quote_address_id: number;
   address_type: string;
   street_address: string;
   postal_code: string;
@@ -55,7 +55,7 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
 
     try {
       await axios.delete(`http://127.0.0.1:8000/quotes/${quoteId}/addresses/${addressId}`);
-      setAddresses(addresses.filter(addr => addr.id !== addressId));
+      setAddresses(addresses.filter(addr => addr.quote_address_id !== addressId));
 
       if (selectedId === addressId) {
         setSelectedId(null);
@@ -68,7 +68,7 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
   };
 
   const handleSelect = (address: Address) => {
-    setSelectedId(address.id);
+    setSelectedId(address.quote_address_id);
     onSelectAddress(address);
   };
 
@@ -79,14 +79,14 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
     <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
       {addresses.map(address => (
         <div
-          key={address.id}
+          key={address.quote_address_id}
           className="bg-white p-4 rounded shadow flex justify-between items-start"
         >
           <div className="flex items-start gap-2">
             <input
               type="radio"
               name="selectedAddress"
-              checked={selectedId === address.id}
+              checked={selectedId === address.quote_address_id}
               onChange={() => handleSelect(address)}
               className="mt-1"
             />
@@ -103,7 +103,7 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
 
           <div className="flex gap-2">
             <button
-              onClick={() => deleteAddress(address.id)}
+              onClick={() => deleteAddress(address.quote_address_id)}
               className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
             >
               <Trash2 size={16} />
