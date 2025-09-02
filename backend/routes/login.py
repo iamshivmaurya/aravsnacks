@@ -2,7 +2,6 @@ from fastapi import FastAPI, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
 import random
 from datetime import datetime, timedelta
-from typing import Optional
 from pydantic import BaseModel
 from model import Customer, OTP
 from database import get_db, Base, engine

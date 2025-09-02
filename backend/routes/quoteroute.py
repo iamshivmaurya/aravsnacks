@@ -32,12 +32,6 @@ def quotes(quote_id: int, db: Session = Depends(get_db)):    ##along with qute d
         raise HTTPException(status_code=404, detail="Quote not found")
     return db_quote
 
-"""@router.get("/quotes/{quote_id}", response_model=QuoteResponse,)
-def get_quote_route(quote_id: int, db: Session = Depends(get_db)):
-    db_quote = get_quote(db, quote_id)
-    if not db_quote:
-        raise HTTPException(status_code=404, detail="Quote not found")
-    return db_quote"""
 
 @router.get("/quotes", response_model=List[QuoteResponse])
 def get_quotes_route(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
