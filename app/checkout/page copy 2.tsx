@@ -15,8 +15,6 @@ export default function CartPage() {
   const [phone, setPhone] = useState("");
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [hasAddresses, setHasAddresses] = useState(false); // naya state
-  const [showAddAddressForm, setShowAddAddressForm] = useState(false); // toggle state
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -42,8 +40,6 @@ export default function CartPage() {
 
   const handleAddressSubmit = (address: ShippingAddressData) => {
     setShippingAddress(address);
-    setShowAddAddressForm(false);
-    setHasAddresses(true);
   };
 
   const handlePlaceOrder = async () => {
@@ -51,27 +47,52 @@ export default function CartPage() {
       alert("Please login before placing order!");
       return;
     }
-
+  
     if (!selectedAddress) {
       alert("Please select a delivery address!");
       return;
     }
-
+  
     const quoteId = localStorage.getItem("quote_id");
     if (!quoteId) {
       alert("Quote not found!");
       return;
     }
-
+  
+    // const cartItemsRaw = JSON.parse(localStorage.getItem("cartItems") || "[]");
+    // if (cartItemsRaw.length === 0) {
+    //   alert("Cart is empty!");
+    //   return;
+    // }
+  
     const payload = {
       customer_id: customerId || 0,
       quote_id: Number(quoteId),
-      payment_method: "cod",
-      shipping_method: "standard",
-      shipping_address: selectedAddress,
-      billing_address: selectedAddress
+      payment_method: "cod",  // ya jo payment method chahiye
+      shipping_method: "standard", // ya fast / express
+      shipping_address: {
+        address_type: selectedAddress.address_type,
+        street_address: selectedAddress.street_address,
+        postal_code: selectedAddress.postal_code,
+        city: selectedAddress.city,
+        state: selectedAddress.state,
+        phone_no: selectedAddress.phone_no,
+        fast_name: selectedAddress.fast_name,
+        last_name: selectedAddress.last_name
+      },
+      billing_address: {
+        address_type: selectedAddress.address_type,
+        street_address: selectedAddress.street_address,
+        postal_code: selectedAddress.postal_code,
+        city: selectedAddress.city,
+        state: selectedAddress.state,
+        phone_no: selectedAddress.phone_no,
+        fast_name: selectedAddress.fast_name,
+        last_name: selectedAddress.last_name
+      },
+     
     };
-
+  
     try {
       const response = await axios.post('http://localhost:8000/place-order', payload);
       if (response.status === 200 || response.status === 201) {
@@ -85,7 +106,7 @@ export default function CartPage() {
       alert("Something went wrong while placing the order!");
     }
   };
-
+  
   return (
     <section className="mt-6 px-4 grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* LEFT COLUMN */}
@@ -94,25 +115,12 @@ export default function CartPage() {
 
         <div>
           <p className="text-md font-semibold mb-2">Choose a Delivery Address</p>
+          <AddressList onSelectAddress={(address) => setSelectedAddress(address)} />
+        </div>
 
-          {!showAddAddressForm ? (
-            <>
-              <AddressList
-                onSelectAddress={(address) => {
-                  setSelectedAddress(address);
-                  setHasAddresses(true);
-                }}
-              />
-              <button
-                onClick={() => setShowAddAddressForm(true)}
-                className="mt-3 bg-green-600 text-white px-4 py-2 rounded-lg"
-              >
-                Add New Address
-              </button>
-            </>
-          ) : (
-            <ShippingAddressForm onSuccess={() => setShowAddAddressForm(false)} />
-          )}
+        <div className="bg-white p-5 rounded-2xl shadow-md border">
+          <h2 className="text-lg font-semibold mb-3">Shipping Address</h2>
+          <ShippingAddressForm onSubmit={handleAddressSubmit} />
         </div>
       </div>
 

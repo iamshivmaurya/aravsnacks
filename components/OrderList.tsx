@@ -58,6 +58,7 @@ export default function OrderList() {
               <th className="border p-2">Payment</th>
               <th className="border p-2">Shipping</th>
               <th className="border p-2">Order Date</th>
+              <th className="border p-2">View</th>
             </tr>
           </thead>
           <tbody>
@@ -72,6 +73,8 @@ export default function OrderList() {
                 <td className="border p-2">{order.payment_method}</td>
                 <td className="border p-2">{order.shipping_method}</td>
                 <td className="border p-2">{new Date(order.order_date).toLocaleString()}</td>
+                <td className="border p-2"><a className="text-blue-700" href="/order-details">View Order</a></td>
+
               </tr>
             ))}
           </tbody>
