@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import axios from "axios";
 
 interface Order {
@@ -73,8 +74,14 @@ export default function OrderList() {
                 <td className="border p-2">{order.payment_method}</td>
                 <td className="border p-2">{order.shipping_method}</td>
                 <td className="border p-2">{new Date(order.order_date).toLocaleString()}</td>
-                <td className="border p-2"><a className="text-blue-700" href="/order-details">View Order</a></td>
-
+                <td className="border p-2">
+                  <Link
+                    href={`/order-details?orderId=${order.order_id}`}
+                    className="text-blue-700 hover:underline"
+                  >
+                    View Order
+                  </Link>
+                </td>
               </tr>
             ))}
           </tbody>

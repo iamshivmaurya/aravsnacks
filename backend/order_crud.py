@@ -71,6 +71,10 @@ def place_order(db: Session, order_data: PlaceOrderRequest):
     # Calculate grand total
     grand_total = quote.total_price - quote.discount + (quote.total_tax or 0)
 
+
+    last_order = db.query(Order).order_by(Order.order_id.desc()).first()
+    next_order_num = f"AS000{(last_order.order_id + 1)}"
+
     # Create a new order
     new_order = Order(
         customer_id=order_data.customer_id,
@@ -81,7 +85,8 @@ def place_order(db: Session, order_data: PlaceOrderRequest):
         grand_total=grand_total,
         order_date=datetime.now(),
         payment_method=order_data.payment_method,
-        shipping_method=order_data.shipping_method
+        shipping_method=order_data.shipping_method,
+        cust_order_num=next_order_num
     )
 
     db.add(new_order)

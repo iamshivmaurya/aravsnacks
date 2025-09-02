@@ -6,11 +6,16 @@ import { CheckCircle } from "lucide-react";
 
 export default function OrderSuccessPage() {
   const [deliveryDate, setDeliveryDate] = useState<string>("");
+  const [orderNumber, setOrderNumber] = useState<string>("");
 
   useEffect(() => {
-    // Yahan se order_date le sakte ho (localStorage ya API)
-    // Example: LocalStorage me store kiya hoga jab order place hua
+    // LocalStorage se data lo (order place hone ke baad set kiya hoga)
     const orderDate = localStorage.getItem("order_date");
+    const custOrderNum = localStorage.getItem("cust_order_num");
+
+    if (custOrderNum) {
+      setOrderNumber(custOrderNum);
+    }
 
     const date = orderDate ? new Date(orderDate) : new Date();
     date.setDate(date.getDate() + 3); // 3 din add karo
@@ -35,12 +40,20 @@ export default function OrderSuccessPage() {
         <h3 className="text-lg text-gray-600 mb-4">
           Your order has been successfully placed.
         </h3>
+
+        {orderNumber && (
+          <p className="text-gray-700 font-medium mb-2">
+            Order Number: <span className="font-semibold">{orderNumber}</span>
+          </p>
+        )}
+
         <p className="text-gray-500 text-sm mb-2">
           Estimated Delivery Date:
         </p>
         <p className="text-lg font-semibold text-gray-800 mb-6">
           {deliveryDate || "Calculating..."}
         </p>
+
         <Link
           href="/orders"
           className="inline-block bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition shadow-md"
