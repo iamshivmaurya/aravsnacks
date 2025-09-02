@@ -3,6 +3,7 @@ from model import Order, OrderItem, OrderAddress, Quote, QuoteItem, Customer,Quo
 from schema import OrderCreate, OrderItemCreate, OrderAddressCreate, PlaceOrderRequest
 from typing import List
 from datetime import datetime
+from sqlalchemy.orm import joinedload
 
 
 def create_order(db: Session, order: OrderCreate):
@@ -14,7 +15,13 @@ def create_order(db: Session, order: OrderCreate):
 
 
 def get_order(db: Session, order_id: int):
-    return db.query(Order).filter(Order.order_id == order_id).first()
+    return db.query(Order).options(
+        joinedload(Order.items),  # Eager load order items
+        joinedload(Order.addresses)  # Eager load order addresses
+    ).filter(Order.order_id == order_id).first()
+
+"""def get_quote(db: Session, quote_id: int):
+    return db.query(Quote).filter(Quote.quote_id == quote_id).first()"""
 
 
 def get_orders(db: Session, skip: int = 0, limit: int = 100):
