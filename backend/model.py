@@ -179,10 +179,12 @@ class Order(Base):
     grand_total = Column(Float, default=0.0)
     payment_method = Column(String(50),nullable=True)
     shipping_method = Column(String(50),nullable=True)
+    cust_order_num = Column(String(50),nullable=True)
 
     customer = relationship("Customer", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
     addresses = relationship("OrderAddress", back_populates="order")
+
 
 
 class OrderItem(Base):   #############
@@ -201,6 +203,7 @@ class OrderItem(Base):   #############
 
     order = relationship("Order", back_populates="items")
     product = relationship("Product", back_populates="order_items")
+
 
 
 class OrderAddress(Base):

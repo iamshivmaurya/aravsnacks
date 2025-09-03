@@ -13,14 +13,6 @@ def create_quote(db: Session):
     db.refresh(new_quote)  # This gets the auto-incremented ID
     return new_quote
 
-"""
-def create_quote(db: Session, quote: QuoteCreate):
-    new_quote = Quote(**quote.dict())        #Quote from model.py  
-    db.add(new_quote)
-    db.commit()
-    db.refresh(new_quote)
-    return new_quote
-"""
 
 def get_quote(db: Session, quote_id: int):
     return db.query(Quote).filter(Quote.quote_id == quote_id).first()
@@ -30,13 +22,6 @@ def get_quote(db: Session, quote_id: int):
 def get_quotes(db: Session, quote_id: int):
     return db.query(Quote).options(joinedload(Quote.items)).filter(Quote.quote_id == quote_id).first()
 
-# Or create a new function if you want to keep the original
-def get_quote_with_items(db: Session, quote_id: int):
-    return db.query(Quote).options(joinedload(Quote.items)).filter(Quote.quote_id == quote_id).first()
-
-"""def get_quotes(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Quote).offset(skip).limit(limit).all()
-"""
 
 
 def calculate_item_totals(product: Product, item_qty: int) -> dict:

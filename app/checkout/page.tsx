@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 import ShippingAddressForm, { ShippingAddressData } from '../../components/ShippingAddressForm';
 import SignInForm, { LoginData } from "../../components/SignInForm";
 import CartItemsList from '../../components/CartItemsList';
@@ -13,7 +14,9 @@ export default function CartPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [phone, setPhone] = useState("");
   const [customerId, setCustomerId] = useState<string | null>(null);
-  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [hasAddresses, setHasAddresses] = useState(false); // naya state
+  const [showAddAddressForm, setShowAddAddressForm] = useState(false); // toggle state
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -39,35 +42,94 @@ export default function CartPage() {
 
   const handleAddressSubmit = (address: ShippingAddressData) => {
     setShippingAddress(address);
+    setShowAddAddressForm(false);
+    setHasAddresses(true);
   };
 
-  const handleCheckout = () => {
+  const handlePlaceOrder = async () => {
     if (!isLoggedIn) {
-      alert("Please login before checkout!");
+      alert("Please login before placing order!");
       return;
     }
-    router.push('/checkout');
+
+    if (!selectedAddress) {
+      alert("Please select a delivery address!");
+      return;
+    }
+
+    const quoteId = localStorage.getItem("quote_id");
+    if (!quoteId) {
+      alert("Quote not found!");
+      return;
+    }
+
+    const payload = {
+      customer_id: customerId || 0,
+      quote_id: Number(quoteId),
+      payment_method: "cod",
+      shipping_method: "standard",
+      shipping_address: selectedAddress,
+      billing_address: selectedAddress
+    };
+
+    try {
+      const response = await axios.post('http://localhost:8000/place-order', payload);
+
+      // console.log("Full API Response:", response);
+      // console.log("Response Data Only:", response.data);
+
+      if (response.status === 200 || response.status === 201) {
+
+
+
+     // API response se cust_order_num aur order_date save kar lo
+      const orderData = response.data;
+      if (orderData?.cust_order_num) {
+        sessionStorage.setItem("cust_order_num", orderData.cust_order_num);
+        
+      }
+      if (orderData?.order_date) {
+        sessionStorage.setItem("order_date", orderData.order_date);
+      }
+
+        alert("Order placed successfully!");
+        router.push('/order-success');
+      } else {
+        alert("Failed to place order.");
+      }
+    } catch (error: any) {
+      console.error("Error placing order:", error.response || error.message);
+      alert("Something went wrong while placing the order!");
+    }
   };
 
   return (
     <section className="mt-6 px-4 grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* LEFT COLUMN */}
       <div className="space-y-6">
-        {/* Login / Phone */}
-
         {!isLoggedIn && <SignInForm onSubmit={handleLoginSuccess} />}
 
+        <div>
+          <p className="text-md font-semibold mb-2">Choose a Delivery Address</p>
 
-        {/* Address List*/}
-        <div className="">
-        <p className="text-md">Choose a Delivery Address</p>
-          <AddressList  />
-      </div>
-
-        {/* Shipping Address */}
-        <div className="bg-white p-5 rounded-2xl shadow-md border">
-          <h2 className="text-lg font-semibold mb-3">Shipping Address</h2>
-          <ShippingAddressForm onSubmit={handleAddressSubmit} />
+          {!showAddAddressForm ? (
+            <>
+              <AddressList
+                onSelectAddress={(address) => {
+                  setSelectedAddress(address);
+                  setHasAddresses(true);
+                }}
+              />
+              <button
+                onClick={() => setShowAddAddressForm(true)}
+                className="mt-3 bg-green-600 text-white px-4 py-2 rounded-lg"
+              >
+                Add New Address
+              </button>
+            </>
+          ) : (
+            <ShippingAddressForm onSuccess={() => setShowAddAddressForm(false)} />
+          )}
         </div>
       </div>
 
@@ -77,15 +139,16 @@ export default function CartPage() {
           <h1 className="text-2xl font-bold mb-4">Your Cart</h1>
           <CartItemsList />
         </div>
-        {/* Sticky Checkout Button for Mobile */}
-        <div className="mt-6 md:mt-10 flex justify-end">
-          <button
-            onClick={handleCheckout}
-            className="w-full md:w-auto bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 shadow-md transition"
-          >
-            Proceed to Checkout
-          </button>
-        </div>
+      </div>
+
+      {/* Place Order Button */}
+      <div className="mt-6 md:mt-10 flex justify-end">
+        <button
+          onClick={handlePlaceOrder}
+          className="w-full md:w-auto bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 shadow-md transition"
+        >
+          Place Order
+        </button>
       </div>
     </section>
   );

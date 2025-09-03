@@ -98,6 +98,7 @@ def place_order_route(
 
         return {
             "order_id": db_order.order_id,
+            "cust_order_num": db_order.cust_order_num,
             "message": response_message,
             "grand_total": db_order.grand_total,
             "addresses_transferred": addresses_transferred,

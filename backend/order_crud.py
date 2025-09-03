@@ -3,6 +3,7 @@ from model import Order, OrderItem, OrderAddress, Quote, QuoteItem, Customer,Quo
 from schema import OrderCreate, OrderItemCreate, OrderAddressCreate, PlaceOrderRequest
 from typing import List
 from datetime import datetime
+from sqlalchemy.orm import joinedload
 
 
 
@@ -22,7 +23,13 @@ def get_order_by_customer_and_quote(db: Session, customer_id: int, quote_id: int
     ).first()
 #############################################
 def get_order(db: Session, order_id: int):
-    return db.query(Order).filter(Order.order_id == order_id).first()
+    return db.query(Order).options(
+        joinedload(Order.items),  # Eager load order items
+        joinedload(Order.addresses)  # Eager load order addresses
+    ).filter(Order.order_id == order_id).first()
+
+"""def get_quote(db: Session, quote_id: int):
+    return db.query(Quote).filter(Quote.quote_id == quote_id).first()"""
 
 
 def get_orders(db: Session, skip: int = 0, limit: int = 100):
@@ -72,6 +79,10 @@ def place_order(db: Session, order_data: PlaceOrderRequest):
     # Calculate grand total
     grand_total = quote.total_price - quote.discount + (quote.total_tax or 0)
 
+
+    last_order = db.query(Order).order_by(Order.order_id.desc()).first()
+    next_order_num = f"AS000{(last_order.order_id + 1)}"
+
     # Create a new order
     new_order = Order(
         customer_id=order_data.customer_id,
@@ -82,7 +93,8 @@ def place_order(db: Session, order_data: PlaceOrderRequest):
         grand_total=grand_total,
         order_date=datetime.now(),
         payment_method=order_data.payment_method,
-        shipping_method=order_data.shipping_method
+        shipping_method=order_data.shipping_method,
+        cust_order_num=next_order_num
     )
 
     db.add(new_order)

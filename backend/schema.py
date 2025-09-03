@@ -27,14 +27,6 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str
 
-# Customer Schemas
-"""class CustomerCreate(BaseModel):
-    customer_name: str  # Required
-    email: EmailStr  # Required
-    password: str  # Required
-    first_name: str  # Required
-    last_name: str  # Required
-    phone: str  # Required"""
 
 class CustomerCreate(BaseModel):
     customer_id: Optional[int] = None  # Make customer_id optional
@@ -261,6 +253,21 @@ class OrderItemCreate(BaseModel):
     discount_amount: Optional[float] = 0.0
     tax_percentage: Optional[float] = 0.0
 
+class OrderItemResponse(BaseModel):
+    order_item_id: int
+    order_id: int
+    product_id: int
+    sku: str
+    quantity: int
+    unit_price: float
+    discount_amount: float = 0.0
+    total_price: Optional[float] = None
+    tax_percentage: float = 0.0
+    tax_amount: float = 0.0
+
+    class Config:
+        from_attributes = True  # Enables ORM mode
+
 class OrderAddressCreate(BaseModel):
     address_type: str
     street_address: str
@@ -271,17 +278,33 @@ class OrderAddressCreate(BaseModel):
     first_name: str
     last_name: str
 
+<<<<<<< HEAD
 
 class OrderAddressUpdate(BaseModel):
+=======
+class OrderAddressResponse(BaseModel):
+    order_address_id: int
+    order_id: int
+>>>>>>> f0cf12a2cfe45ae9f2841dbdf0baa9ac2cfcfa38
     address_type: str
     street_address: str
     postal_code: str
     city: str
     state: str
     phone_no: str
+<<<<<<< HEAD
     first_name: str
     last_name: str
 
+=======
+    fast_name: str
+    last_name: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+>>>>>>> f0cf12a2cfe45ae9f2841dbdf0baa9ac2cfcfa38
 
 class OrderResponse(BaseModel):
     
@@ -297,6 +320,10 @@ class OrderResponse(BaseModel):
     grand_total: float
     payment_method: str
     shipping_method: str
+    items: List[OrderItemResponse] = []  # Add this
+    addresses: List[OrderAddressResponse] = []  # Add this
+
+
 
     class Config:
         from_attributes = True
@@ -311,6 +338,7 @@ class PlaceOrderRequest(BaseModel):
 
 class PlaceOrderResponse(BaseModel):
     order_id: int
+    cust_order_num:str
     message: str = "Order placed successfully"
     grand_total: float
     addresses_transferred: bool
