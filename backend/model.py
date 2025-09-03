@@ -34,7 +34,7 @@ class CustomerAddress(Base):
     postal_code = Column(String(50), nullable=False)
     city = Column(String(100), nullable=False)
     state = Column(String(255), nullable=False)
-    fast_name = Column(String(50), nullable=False)
+    first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     phone_no = Column(String(15), nullable=False)
     created_at = Column(DateTime, default=datetime.now)
@@ -137,9 +137,12 @@ class QuoteItem(Base):
     item_discount = Column(Float, default=0.0)
     item_tax = Column(Float, default=0.0)
     tax_percentage = Column(Float, default=0.0)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     quote = relationship("Quote", back_populates="items")
     product = relationship("Product", back_populates="quote_items")
+
 
 
 class QuoteAddress(Base):
@@ -160,7 +163,7 @@ class QuoteAddress(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     quote = relationship("Quote", back_populates="addresses")
-
+    #addresses = relationship("QuoteAddress", back_populates="quote")
 
 class Order(Base):
     __tablename__ = "orders"
@@ -217,3 +220,23 @@ class OrderAddress(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     order = relationship("Order", back_populates="addresses")
+
+
+
+class DiscountCode(Base):
+    __tablename__ = "coupon"
+
+    coupon_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    coupon_code = Column(String(50))
+    coupon_discription = Column(String(250))
+    start_date = Column(DateTime,nullable=True)
+    end_date = Column(DateTime,nullable=True)
+    discount_type = Column(String(50))
+    discount_amount = Column(Integer)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now)
+    coupon_rule = Column(String(20))
+    
+
+
+

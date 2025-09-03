@@ -6,7 +6,7 @@ import CartItemsList from '../../components/CartItemsList';
 
 export default function CartPage() {
   const router = useRouter();
-  const { cartItems, cartTotal } = useCart();
+  const { cartItems, cartTotal , loading } = useCart();
 
   const handleCheckout = () => {
     if (cartItems.length === 0) {
@@ -24,7 +24,11 @@ export default function CartPage() {
         My Cart
         </h1>
 
-        {cartItems.length > 0 ? (
+        {loading ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">Loading your cart...</p>
+        </div>
+      ) : cartItems.length > 0 ? (
           <div className="grid md:grid-cols-3 gap-6">
             {/* Cart Items */}
             <div className="md:col-span-2 space-y-4">

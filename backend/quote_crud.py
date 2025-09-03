@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from model import Quote, QuoteItem, QuoteAddress, Product
-from schema import  QuoteItemCreate, QuoteAddressCreate ###QuoteCreate,
+from schema import  QuoteItemCreate, QuoteAddressCreate,OrderAddressUpdate ###QuoteCreate,
 from typing import List
 import math
 from sqlalchemy.orm import joinedload
@@ -21,7 +21,7 @@ def create_quote(db: Session, quote: QuoteCreate):
     db.refresh(new_quote)
     return new_quote
 """
-   
+
 def get_quote(db: Session, quote_id: int):
     return db.query(Quote).filter(Quote.quote_id == quote_id).first()
 
@@ -128,53 +128,6 @@ def add_quote_item(db: Session, quote_id: int, item: QuoteItemCreate):
 
     return new_item
 
-"""def add_quote_item(db: Session, quote_id: int, item: QuoteItemCreate):
-    # Check if product exists
-    print("quote_id ============ >>>>>>>>>>>>>")
-    print(quote_id)
-    product = db.query(Product).filter(Product.id == item.product_id).first()
-    if not product:
-        raise ValueError("Product not found")
-
-    # Calculate item price with discount
-    item_price = product.product_price
-    if product.percentage_discount > 0:
-        item_price = item_price * (1 - product.percentage_discount / 100)
-    elif product.products_discount > 0:
-        item_price = item_price - product.products_discount
-
-    # Calculate item tax
-    item_tax = 0 #item_price * (product.tax_percentage / 100) * item.item_qty
-
-    # Create quote item
-    new_item = QuoteItem(
-        quote_id = int(quote_id),
-        product_id = int(item.product_id),
-        item_name=product.product_name,
-        item_qty= 1, #item.item_qty,
-        sku=product.sku,
-        item_price=item_price,
-        #item_discount=product.products_discount if product.products_discount else product.percentage_discount,
-        #item_tax=item_tax,
-        #tax_percentage=product.tax_percentage
-    )
-
-    db.add(new_item)
-
-    # Update quote totals
-    quote = db.query(Quote).filter(Quote.quote_id == quote_id).first()
-    if quote:
-        quote.total_price += item_price * item.item_qty
-        quote.discount += (product.products_discount if product.products_discount else 0) * item.item_qty
-        quote.total_tax += item_tax
-        quote.items_count += 1
-        quote.items_quantity += item.item_qty
-
-        db.commit()
-        db.refresh(new_item)
-
-    return new_item
-"""
 
 def remove_quote_item(db: Session, quote_id: int, item_id: int):
     item = db.query(QuoteItem).filter(QuoteItem.item_id == item_id, QuoteItem.quote_id == quote_id).first()
@@ -274,3 +227,29 @@ def update_quote_item_quantity(db: Session, quote_id: int, item_id: int, new_qty
     db.commit()
     db.refresh(item)
     return item
+
+############################
+
+# def update_order_address(db: Session, address_id: int, address_data: OrderAddressUpdate):
+#     db_address = db.query(OrderAddress).filter(OrderAddress.address_id == address_id).first()
+#     if not db_address:
+#         return None
+
+#     db_address.address_type = address_data.address_type
+#     db_address.street_address = address_data.street_address
+#     db_address.postal_code = address_data.postal_code
+#     db_address.city = address_data.city
+#     db_address.state = address_data.state
+#     db_address.phone_no = address_data.phone_no
+#     db_address.first_name = address_data.fast_name
+#     db_address.last_name = address_data.last_name
+    
+
+    # db.commit()
+    # db.refresh(db_address)
+    # return db_address
+
+
+
+
+

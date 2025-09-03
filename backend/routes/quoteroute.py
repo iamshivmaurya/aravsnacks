@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from schema import QuoteCreateResponse, QuoteItemCreate, QuoteAddressCreate, QuoteResponse   #QuoteCreate,
+from schema import QuoteCreateResponse, QuoteItemCreate, QuoteAddressCreate, QuoteResponse,OrderAddressUpdate,DiscountOnPruduct #QuoteCreate,
 from quote_crud import create_quote, update_quote_item_quantity,get_quote, get_quotes, delete_quote, add_quote_item, remove_quote_item, add_quote_address, get_quote_addresses
 from typing import List
 from sqlalchemy.orm import joinedload
@@ -112,3 +112,21 @@ def update_item_quantity_route(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+
+
+
+
+########### 31-09-25
+
+
+# @router.put("/quote/address/update/{address_id}/", response_model=OrderAddressUpdate)
+# def update_order_address_route(address_id: int, address: OrderAddressUpdate, db: Session = Depends(get_db)):
+#     updated_address = update_order_address(db, address_id, address)
+#     if not updated_address:
+#         raise HTTPException(status_code=404, detail="Order address not found")
+#     return updated_address
+
+
+

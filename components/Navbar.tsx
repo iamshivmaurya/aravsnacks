@@ -99,12 +99,12 @@ export default function Navbar() {
                   >
                     <LogIn size={16} /> Login
                   </Link>
-                  <button
-                    onClick={() => setShowLoginForm(true)}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full text-left"
+                  <Link
+                    href="/signup"
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full"
                   >
                     <LogIn size={16} /> Signup
-                  </button>
+                  </Link>
                 </>
               )}
             </div>
@@ -112,25 +112,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Modal for Signup */}
-      {showLoginForm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/40">
-          <div className="bg-white p-6 rounded-lg shadow-lg relative w-96">
-            <LoginForm
-              onSubmit={(formData) => {
-                console.log("Login form submitted:", formData);
-                // TODO: login API call
-              }}
-            />
-            <button
-              onClick={() => setShowLoginForm(false)}
-              className="mt-4 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 w-full"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+   
     </nav>
   );
 }
