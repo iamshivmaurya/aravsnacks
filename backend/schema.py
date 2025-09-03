@@ -278,25 +278,27 @@ class OrderAddressCreate(BaseModel):
     first_name: str
     last_name: str
 
-<<<<<<< HEAD
 
 class OrderAddressUpdate(BaseModel):
-=======
-class OrderAddressResponse(BaseModel):
-    order_address_id: int
-    order_id: int
->>>>>>> f0cf12a2cfe45ae9f2841dbdf0baa9ac2cfcfa38
     address_type: str
     street_address: str
     postal_code: str
     city: str
     state: str
     phone_no: str
-<<<<<<< HEAD
     first_name: str
     last_name: str
+    
 
-=======
+class OrderAddressResponse(BaseModel):
+    order_address_id: int
+    order_id: int
+    address_type: str
+    street_address: str
+    postal_code: str
+    city: str
+    state: str
+    phone_no: str
     fast_name: str
     last_name: str
     created_at: datetime
@@ -304,7 +306,6 @@ class OrderAddressResponse(BaseModel):
 
     class Config:
         from_attributes = True
->>>>>>> f0cf12a2cfe45ae9f2841dbdf0baa9ac2cfcfa38
 
 class OrderResponse(BaseModel):
     
@@ -390,6 +391,52 @@ class CouponResponce(BaseModel):
     start_date: datetime
     end_date: datetime  
     discount_amount :int
+
+    class Config:
+        from_attributes = True
+
+
+class DiscountOnPruduct(BaseModel):
+
+    coupon_id:int 
+    coupon_code :str
+    start_date: datetime
+    end_date: datetime
+    discount_type: int
+    is_avtive: Optional[bool] = True
+    created_at: datetime
+    updated_at: datetime
+    coupon_rule: str
+    coupon_code :str
+    coupon_discription :str
+    class Config:
+        from_attributes = True
+
+
+class CouponCreate(BaseModel):
+    
+    start_date: datetime
+    discount_amount:int
+    end_date: datetime
+    discount_type: str
+    created_at: datetime
+    updated_at: datetime
+    coupon_rule: str
+    coupon_code :str
+    coupon_discription :str
+    class Config:
+        from_attributes = True
+
+
+
+
+class CouponResponce(BaseModel):
+    coupon_id:int 
+    coupon_code :str
+    start_date: datetime
+    end_date: datetime  
+    discount_amount :int
+    discount_type: str
 
     class Config:
         from_attributes = True

@@ -18,6 +18,11 @@ export default function CartPage() {
   const [hasAddresses, setHasAddresses] = useState(false); // naya state
   const [showAddAddressForm, setShowAddAddressForm] = useState(false); // toggle state
 
+   // === NEW DISCOUNT STATES ===
+  const [discountCode, setDiscountCode] = useState("");
+  const [discountMessage, setDiscountMessage] = useState("");
+  const [discountApplied, setDiscountApplied] = useState(false);
+
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     const storedPhone = localStorage.getItem("phone");
@@ -103,6 +108,34 @@ export default function CartPage() {
     }
   };
 
+
+  // === APPLY DISCOUNT CODE ===
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) {
+      setDiscountMessage("Please enter a code.");
+      return;
+    }
+
+    try {
+      const response = await axios.post("http://localhost:8000/apply-discount", {
+        code: discountCode,
+        customer_id: customerId
+      });
+
+      if (response.data.success) {
+        setDiscountApplied(true);
+        setDiscountMessage(`✅ Discount applied: ${response.data.discount}% off`);
+        // You might also want to update total price here
+      } else {
+        setDiscountMessage("❌ Invalid or expired code.");
+      }
+    } catch (err) {
+      console.error(err);
+      setDiscountMessage("❌ Error applying discount.");
+    }
+  };
+
+
   return (
     <section className="mt-6 px-4 grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* LEFT COLUMN */}
@@ -131,6 +164,30 @@ export default function CartPage() {
             <ShippingAddressForm onSuccess={() => setShowAddAddressForm(false)} />
           )}
         </div>
+
+            {/* DISCOUNT CODE FORM */}
+          <div className="mt-6">
+            <p className="font-medium mb-2">Apply Discount Code</p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter code"
+                value={discountCode}
+                onChange={(e) => setDiscountCode(e.target.value)}
+                className="border rounded-lg px-3 py-2 flex-1"
+              />
+              <button
+                onClick={handleApplyDiscount}
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+              >
+                Apply
+              </button>
+            </div>
+            {discountMessage && (
+              <p className="mt-2 text-sm">{discountMessage}</p>
+            )}
+          </div>
+
       </div>
 
       {/* RIGHT COLUMN */}
@@ -139,6 +196,9 @@ export default function CartPage() {
           <h1 className="text-2xl font-bold mb-4">Your Cart</h1>
           <CartItemsList />
         </div>
+
+        
+
       </div>
 
       {/* Place Order Button */}

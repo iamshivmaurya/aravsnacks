@@ -235,6 +235,58 @@ def update_quote_item_quantity(db: Session, quote_id: int, item_id: int, new_qty
     # return db_address
 
 
+def apply_discount(quote_id, coupon, db: Session):
+    quote = db.query(Quote).filter(Quote.quote_id == quote_id).first()
+    if not quote:
+        return None
 
+    items = db.query(QuoteItem).filter(
+        QuoteItem.quote_id == quote_id
+    ).all()
 
+    if not items:
+        return None
+
+    total_subtotal = sum(item.item_price * item.item_qty for item in items)  # full subtotal before discount
+
+    if coupon.discount_type == 'fixed':
+        print("fixed discount")
+
+        remaining_discount = coupon.discount_amount
+
+        for item in items:
+            if remaining_discount <= 0:
+                break
+
+            # Proportional distribution of discount based on item subtotal
+            item_share = (item.item_price / total_subtotal) * coupon.discount_amount
+
+            # round properly
+            item_discount = min(item.item_price, round(item_share, 2))
+
+            item.discount_amount = item_discount
+            item.item_price = item.item_price - item_discount
+
+            remaining_discount -= item_discount
+            db.add(item)
+
+        # update quote discount summary
+        quote.discount = coupon.discount_amount
+        quote.grand_total = total_subtotal - coupon.discount_amount
+
+    else:
+        print("percentage discount")
+        for item in items:
+            item_discount = (coupon.discount_amount / 100) * item.item_price
+            item.discount_amount = round(item_discount, 2)
+            item.item_price = item.item_price - item.discount_amount
+            db.add(item)
+
+        quote.discount = round((coupon.discount_amount / 100) * total_subtotal, 2)
+        quote.grand_total = total_subtotal - quote.discount
+
+    db.commit()
+    db.refresh(quote)
+
+    return quote
 

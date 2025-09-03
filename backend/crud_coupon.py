@@ -21,8 +21,8 @@ def create_coupon(db: Session, coupon: CouponCreate):
     return db_coupon
 
 
-def get_coupan(db: Session, coupon_id: int):
-    return db.query(DiscountCode).filter(DiscountCode.coupon_id == coupon_id).first()
+def get_coupan(db: Session, coupon_code: str):
+    return db.query(DiscountCode).filter(DiscountCode.coupon_code == coupon_code).first()
 
 
 

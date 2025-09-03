@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from crud_coupon import create_coupon,get_coupan,delete_coupon
 from schema import CouponCreate, CouponResponce
+from quote_crud import apply_discount
 
 router = APIRouter()
 
@@ -27,9 +28,12 @@ def delete_coupon_route(coupon_id: int, db: Session = Depends(get_db)):
     return {"message": "coupon deleted successfully"}
 
 
-@router.get("/apply_coupon/{coupon_id}", response_model=CouponResponce)
-def get_coupon_route(coupon_id: int, db: Session = Depends(get_db)):
-    db_coupon = get_coupan(db, coupon_id)
-    if not db_coupon:
+@router.get("/apply_coupon/{coupon_code}/quote/{quote_id}", response_model=CouponResponce)
+def get_coupon_route(quote_id:int, coupon_code: str, db: Session = Depends(get_db)):
+    coupon = get_coupan(db, coupon_code)
+    if not coupon:
         raise HTTPException(status_code=404, detail="coupon not found")
-    return db_coupon
+    
+    apply_discount(quote_id, coupon,  db)
+
+    return coupon
