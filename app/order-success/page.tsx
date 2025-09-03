@@ -10,8 +10,8 @@ export default function OrderSuccessPage() {
 
   useEffect(() => {
     // LocalStorage se data lo (order place hone ke baad set kiya hoga)
-    const orderDate = localStorage.getItem("order_date");
-    const custOrderNum = localStorage.getItem("cust_order_num");
+    const orderDate = sessionStorage.getItem("order_date");
+    const custOrderNum = sessionStorage.getItem("cust_order_num");
 
     if (custOrderNum) {
       setOrderNumber(custOrderNum);

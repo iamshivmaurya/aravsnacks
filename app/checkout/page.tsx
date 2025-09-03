@@ -74,7 +74,24 @@ export default function CartPage() {
 
     try {
       const response = await axios.post('http://localhost:8000/place-order', payload);
+
+      // console.log("Full API Response:", response);
+      // console.log("Response Data Only:", response.data);
+
       if (response.status === 200 || response.status === 201) {
+
+
+
+     // API response se cust_order_num aur order_date save kar lo
+      const orderData = response.data;
+      if (orderData?.cust_order_num) {
+        sessionStorage.setItem("cust_order_num", orderData.cust_order_num);
+        
+      }
+      if (orderData?.order_date) {
+        sessionStorage.setItem("order_date", orderData.order_date);
+      }
+
         alert("Order placed successfully!");
         router.push('/order-success');
       } else {

@@ -315,6 +315,7 @@ class PlaceOrderRequest(BaseModel):
 
 class PlaceOrderResponse(BaseModel):
     order_id: int
+    cust_order_num:str
     message: str = "Order placed successfully"
     grand_total: float
     addresses_transferred: bool
