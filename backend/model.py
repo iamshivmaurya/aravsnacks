@@ -34,7 +34,7 @@ class CustomerAddress(Base):
     postal_code = Column(String(50), nullable=False)
     city = Column(String(100), nullable=False)
     state = Column(String(255), nullable=False)
-    first_name = Column(String(50), nullable=False)
+    fast_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     phone_no = Column(String(15), nullable=False)
     created_at = Column(DateTime, default=datetime.now)
