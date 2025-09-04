@@ -95,7 +95,7 @@ class Product(Base):
     meta_keyword = Column(String(250),nullable=True)
     meta_title = Column(String(250),nullable=True)
     meta_description = Column(String(250),nullable=True)
-    tax_percentage = Column(Integer,nullable=True)
+    tax_class = Column(Integer,nullable=True)
     sku = Column(String(250),unique=True, nullable=False)
     image_url = Column(String(250),nullable=True)
 

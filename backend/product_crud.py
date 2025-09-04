@@ -25,7 +25,7 @@ def create_product(db: Session, product: CreateProduct):
         meta_keyword=product.meta_keyword,
         meta_title=product.meta_title,
         meta_description=product.meta_description,
-        tax_percentage=product.tax_percentage,
+        tax_class=product.tax_class,
         sku=product.sku,
         image_url=product.image_url,
         product_created=datetime.now()

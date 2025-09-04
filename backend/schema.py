@@ -139,7 +139,7 @@ class CreateProduct(BaseModel):
     meta_keyword: Optional[str] = None
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
-    tax_percentage: Optional[int] = 0
+    tax_class: Optional[int] = 0
     sku: Optional[str] = None
     image_url: Optional[str] = None
 
@@ -162,7 +162,7 @@ class ProductResponse(BaseModel):
     meta_keyword: Optional[str]
     meta_title: Optional[str]
     meta_description: Optional[str]
-    tax_percentage: Optional[int]
+    tax_class: Optional[int]
     sku: Optional[str]
     image_url: Optional[str]
 
@@ -391,52 +391,54 @@ class CouponResponce(BaseModel):
     start_date: datetime
     end_date: datetime  
     discount_amount :int
-
-    class Config:
-        from_attributes = True
-
-
-class DiscountOnPruduct(BaseModel):
-
-    coupon_id:int 
-    coupon_code :str
-    start_date: datetime
-    end_date: datetime
-    discount_type: int
-    is_avtive: Optional[bool] = True
-    created_at: datetime
-    updated_at: datetime
-    coupon_rule: str
-    coupon_code :str
-    coupon_discription :str
-    class Config:
-        from_attributes = True
-
-
-class CouponCreate(BaseModel):
-    
-    start_date: datetime
-    discount_amount:int
-    end_date: datetime
-    discount_type: str
-    created_at: datetime
-    updated_at: datetime
-    coupon_rule: str
-    coupon_code :str
-    coupon_discription :str
-    class Config:
-        from_attributes = True
-
-
-
-
-class CouponResponce(BaseModel):
-    coupon_id:int 
-    coupon_code :str
-    start_date: datetime
-    end_date: datetime  
-    discount_amount :int
     discount_type: str
 
     class Config:
         from_attributes = True
+
+
+class ApplyCouponRequest(BaseModel):
+    quote_id: int
+    coupon_code: str
+
+class QuoteItemResponseWithDiscount(BaseModel):
+    item_id: int
+    quote_id: int
+    item_name: Optional[str] = None
+    item_qty: int = 1
+    product_id: int
+    sku: str
+    item_price: float = 0.0
+    item_discount: float = 0.0
+    item_tax: float = 0.0
+    tax_percentage: float = 0.0
+    created_at: datetime
+    updated_at: datetime
+    discount_amount: float = 0.0  # New field
+    gross_total: float = 0.0  # New field
+
+    class Config:
+        from_attributes = True
+
+
+class QuoteResponseWithDiscount(BaseModel):
+    quote_id: int
+    customer_id: Optional[int]
+    email_id: Optional[str]
+    phone_no: Optional[str]
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+    total_price: float
+    discount: float
+    total_tax: int
+    items_count: int
+    items_quantity: int
+    total_discount: float  # New field
+    gross_total: float  # New field
+    items: List[QuoteItemResponseWithDiscount] = []
+
+    class Config:
+        from_attributes = True
+
+
