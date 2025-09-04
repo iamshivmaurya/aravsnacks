@@ -29,12 +29,12 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
   });
 
   const [quoteId, setQuoteId] = useState<string | null>(null);
-  const [customerId, setCustomerId] = useState<string | null>(null);
-  const [saveToCustomer, setSaveToCustomer] = useState(false); // New state
 
   useEffect(() => {
-    setQuoteId(localStorage.getItem("quote_id"));
-    setCustomerId(localStorage.getItem("customer_id")); // customer ID bhi chahiye
+    const storedQuoteId = localStorage.getItem("quote_id");
+    if (storedQuoteId) {
+      setQuoteId(storedQuoteId);
+    }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,24 +56,15 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
     }
 
     try {
-      // Pehle quotes/:id/addresses me save karein
       const response = await axios.post(
         `http://127.0.0.1:8000/quotes/${quoteId}/addresses`,
         {
-          address_type: "permanent",
+          address_type: "permanent", // Static as per your example
           ...form,
         }
       );
 
-      if (response.status === 200 || response.status === 201) {
-        // Agar checkbox tick hai to customer ke addresses me bhi save karein
-        if (saveToCustomer && customerId) {
-          await axios.post(`http://127.0.0.1:8000/customers/${customerId}/addresses`, {
-            address_type: "permanent",
-            ...form,
-          });
-        }
-
+      if (response.status === 201 || response.status === 200) {
         alert("Address saved successfully!");
         if (onSuccess) onSuccess();
       }
@@ -150,18 +141,6 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
         className="border p-2 w-full"
         required
       />
-
-      {/* Checkbox for saving to customer addresses */}
-      <label className="flex items-center space-x-2">
-        <input
-          type="checkbox"
-          checked={saveToCustomer}
-          onChange={(e) => setSaveToCustomer(e.target.checked)}
-        />
-        <span className="text-sm text-gray-700">
-          Save this address to my account
-        </span>
-      </label>
 
       <button
         type="submit"

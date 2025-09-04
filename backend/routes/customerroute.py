@@ -48,11 +48,11 @@ def delete_customer_route(customer_id: int, db: Session = Depends(get_db)):
 # Customer Address CRUD Operations
 @router.post("/customers/{customer_id}/addresses", response_model=CustomerAddressResponse)
 def create_customer_address_route(customer_id: int, address: CustomerAddressCreate, db: Session = Depends(get_db)):
-    try:
+    # try:
         db_address = create_customer_address(db, customer_id, address)
         return db_address
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Internal server error")
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/customers/{customer_id}/addresses", response_model=List[CustomerAddressResponse])
 def get_customer_addresses_route(customer_id: int, db: Session = Depends(get_db)):
