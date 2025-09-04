@@ -34,7 +34,7 @@ export default function LoginForm({ onSubmit }: LoginProps) {
     }
 
     try {
-      const response = await axios.post(LOGIN_API, {
+      const response = await axios.post(SINGUP_API, {
         phone: form.phone,
       });
 
