@@ -102,7 +102,7 @@ class Product(Base):
 
     quote_items = relationship("QuoteItem", back_populates="product")
     order_items = relationship("OrderItem", back_populates="product")
-    tax_class = relationship("TaxClass", back_populates="product")
+    tax_class = relationship("TaxClass", back_populates="products")
 
 
 class Quote(Base):
