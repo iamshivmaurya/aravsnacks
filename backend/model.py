@@ -98,9 +98,11 @@ class Product(Base):
     tax_class = Column(Integer,nullable=True)
     sku = Column(String(250),unique=True, nullable=False)
     image_url = Column(String(250),nullable=True)
+    tax_class_id = Column(Integer, ForeignKey('tax_classes.tax_class_id'), nullable=True)
 
     quote_items = relationship("QuoteItem", back_populates="product")
     order_items = relationship("OrderItem", back_populates="product")
+    tax_class = relationship("TaxClass", back_populates="product")
 
 
 class Quote(Base):
@@ -239,7 +241,24 @@ class DiscountCode(Base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now)
     coupon_rule = Column(String(20))
-    
 
+
+class TaxClass(Base):
+    __tablename__ = "tax_classes"
+
+    tax_class_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    tax_class_name = Column(String(100), nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    tax_rule = Column(String(100), nullable=True)  # ✅ ADD THIS FIELD
+    tax_percentage = Column(Float, nullable=False)
+    tax_type = Column(String(50), nullable=False)
+    is_active = Column(Boolean, default=True)
+    country_code = Column(String(3), nullable=True)
+    state_code = Column(String(10), nullable=True)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    # Relationship to products
+    products = relationship("Product", back_populates="tax_class")
 
 

@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import login, categoryroute, productroute, customerroute, quoteroute, orderroute,couponroute
+from routes import login, categoryroute, productroute, customerroute, quoteroute, orderroute,couponroute,taxclassroute
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -27,6 +27,7 @@ app.include_router(customerroute.router, tags=["Customer Route"])
 app.include_router(quoteroute.router, tags=["Quote Route"])
 app.include_router(orderroute.router, tags=["Order Route"])
 app.include_router(couponroute.router, tags=["Coupon Route"])
+app.include_router(taxclassroute.router, tags=["Tax Route"])
 
 @app.get("/")
 def read_root():

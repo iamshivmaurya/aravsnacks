@@ -139,7 +139,7 @@ class CreateProduct(BaseModel):
     meta_keyword: Optional[str] = None
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
-    tax_class: Optional[int] = 0
+    tax_class_id: Optional[int]
     sku: Optional[str] = None
     image_url: Optional[str] = None
 
@@ -162,9 +162,10 @@ class ProductResponse(BaseModel):
     meta_keyword: Optional[str]
     meta_title: Optional[str]
     meta_description: Optional[str]
-    tax_class: Optional[int]
+    tax_class_id: Optional[int]
     sku: Optional[str]
     image_url: Optional[str]
+
 
     class Config:
         from_attributes = True
@@ -441,4 +442,38 @@ class QuoteResponseWithDiscount(BaseModel):
     class Config:
         from_attributes = True
 
+class TaxClassCreate(BaseModel):
+    tax_class_name: str
+    description: Optional[str] = None
+    tax_rule: Optional[str] = None  # ✅ ADD THIS - make it optional
+    tax_percentage: float
+    tax_type: str
+    country_code: Optional[str] = None
+    state_code: Optional[str] = None
+    is_active: bool = True
 
+class TaxClassResponse(BaseModel):
+    tax_class_id: int
+    tax_class_name: str
+    description: Optional[str] = None
+    tax_rule: Optional[str] = None  # ✅ ADD THIS
+    tax_percentage: float
+    tax_type: str
+    country_code: Optional[str] = None
+    state_code: Optional[str] = None
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class TaxClassUpdate(BaseModel):
+    tax_class_name: Optional[str] = None
+    description: Optional[str] = None
+    tax_rule: Optional[str] = None  # ✅ ADD THIS
+    tax_percentage: Optional[float] = None
+    tax_type: Optional[str] = None
+    country_code: Optional[str] = None
+    state_code: Optional[str] = None
+    is_active: Optional[bool] = None
