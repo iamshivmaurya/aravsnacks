@@ -32,10 +32,6 @@ def get_all_tax_classes(db: Session, skip: int = 0, limit: int = 100):
     return db.query(TaxClass).offset(skip).limit(limit).all()
 
 
-def get_active_tax_classes(db: Session):
-    return db.query(TaxClass).filter(TaxClass.is_active == True).all()
-
-
 def update_tax_class(db: Session, tax_class_id: int, tax_class_data: TaxClassUpdate):
     db_tax_class = db.query(TaxClass).filter(TaxClass.tax_class_id == tax_class_id).first()
     if not db_tax_class:
@@ -73,11 +69,3 @@ def delete_tax_class(db: Session, tax_class_id: int):
     return False
 
 
-def deactivate_tax_class(db: Session, tax_class_id: int):
-    db_tax_class = db.query(TaxClass).filter(TaxClass.tax_class_id == tax_class_id).first()
-    if db_tax_class:
-        db_tax_class.is_active = False
-        db.commit()
-        db.refresh(db_tax_class)
-        return db_tax_class
-    return None

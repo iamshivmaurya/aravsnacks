@@ -95,14 +95,13 @@ class Product(Base):
     meta_keyword = Column(String(250),nullable=True)
     meta_title = Column(String(250),nullable=True)
     meta_description = Column(String(250),nullable=True)
-    tax_class = Column(Integer,nullable=True)
     sku = Column(String(250),unique=True, nullable=False)
     image_url = Column(String(250),nullable=True)
-    tax_class_id = Column(Integer, ForeignKey('tax_classes.tax_class_id'), nullable=True)
+    tax_class_id = Column(Integer, nullable=True)
 
     quote_items = relationship("QuoteItem", back_populates="product")
     order_items = relationship("OrderItem", back_populates="product")
-    tax_class = relationship("TaxClass", back_populates="products")
+    # tax_class = relationship("TaxClass", back_populates="products")
 
 
 class Quote(Base):
@@ -110,6 +109,8 @@ class Quote(Base):
 
     quote_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     customer_id = Column(Integer, ForeignKey('customers.customer_id'), nullable=True)
+    coupon_id = Column(Integer,  nullable=True)
+    coupon_code = Column(String(50), nullable=True)   # 👈 extra column for readability
     email_id = Column(String(50), nullable=True)
     phone_no = Column(String(12), nullable=True)
     is_active = Column(Boolean, default=True)
@@ -124,7 +125,6 @@ class Quote(Base):
     customer = relationship("Customer", back_populates="quotes")
     items = relationship("QuoteItem", back_populates="quote")
     addresses = relationship("QuoteAddress", back_populates="quote")
-
 
 class QuoteItem(Base):
     __tablename__ = "quote_item"
@@ -259,6 +259,6 @@ class TaxClass(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     # Relationship to products
-    products = relationship("Product", back_populates="tax_class")
+    # products = relationship("Product", back_populates="tax_class")
 
 

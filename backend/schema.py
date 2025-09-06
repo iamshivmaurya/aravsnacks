@@ -222,6 +222,8 @@ class QuoteItemResponse(BaseModel):   ###this response add
 class QuoteResponse(BaseModel):
     quote_id: int
     customer_id: Optional[int]
+    coupon_id:int
+    coupon_code:int
     email_id: Optional[str]
     phone_no: Optional[str]
     is_active: bool
@@ -311,7 +313,7 @@ class OrderAddressResponse(BaseModel):
 class OrderResponse(BaseModel):
     
     order_id: int
-    quote_id:int
+    # quote_id:int
     customer_id: Optional[int]
     customer_email: Optional[str]
     order_date: datetime
@@ -445,7 +447,6 @@ class QuoteResponseWithDiscount(BaseModel):
 class TaxClassCreate(BaseModel):
     tax_class_name: str
     description: Optional[str] = None
-    tax_rule: Optional[str] = None  # ✅ ADD THIS - make it optional
     tax_percentage: float
     tax_type: str
     country_code: Optional[str] = None
@@ -456,7 +457,6 @@ class TaxClassResponse(BaseModel):
     tax_class_id: int
     tax_class_name: str
     description: Optional[str] = None
-    tax_rule: Optional[str] = None  # ✅ ADD THIS
     tax_percentage: float
     tax_type: str
     country_code: Optional[str] = None
@@ -471,7 +471,6 @@ class TaxClassResponse(BaseModel):
 class TaxClassUpdate(BaseModel):
     tax_class_name: Optional[str] = None
     description: Optional[str] = None
-    tax_rule: Optional[str] = None  # ✅ ADD THIS
     tax_percentage: Optional[float] = None
     tax_type: Optional[str] = None
     country_code: Optional[str] = None

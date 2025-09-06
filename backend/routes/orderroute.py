@@ -48,12 +48,12 @@ def create_order_route(order: OrderCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
-# @router.get("/orders/{order_id}", response_model=OrderResponse)
-# def get_order_route(order_id: int, db: Session = Depends(get_db)):
-#     db_order = get_order(db, order_id)
-#     if not db_order:
-#         raise HTTPException(status_code=404, detail="Order not found")
-#     return db_order
+@router.get("/orders/{order_id}", response_model=OrderResponse)
+def get_order_route(order_id: int, db: Session = Depends(get_db)):
+    db_order = get_order(db, order_id)
+    if not db_order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return db_order
 
 
 @router.get("/orders", response_model=List[OrderResponse])

@@ -34,8 +34,8 @@ def quotes(quote_id: int, db: Session = Depends(get_db)):    ##along with qute d
 
 
 @router.get("/quotes", response_model=List[QuoteResponse])
-def get_quotes_route(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    quotes = get_quotes(db, skip=skip, limit=limit)
+def get_quotes_route(db: Session = Depends(get_db)):
+    quotes = get_quotes(db)
     return quotes
 
 @router.delete("/quotes/{quote_id}")
