@@ -23,6 +23,8 @@ class Customer(Base):
     #addresses = relationship("CustomerAddress", back_populates="customer")
     quotes = relationship("Quote", back_populates="customer")
     #orders = relationship("Order", back_populates="customer")
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
 
 class CustomerAddress(Base):
@@ -52,6 +54,7 @@ class OTP(Base):
     phone = Column(String(15), nullable=True)
     email = Column(String(50), nullable=True)
     created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
 
 class Category(Base):
@@ -71,6 +74,8 @@ class Category(Base):
     meta_description = Column(String(250),nullable=True)
     category_path = Column(String(50),nullable=True)
     level = Column(String(50),nullable=True)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
 
 
@@ -155,8 +160,8 @@ class QuoteAddress(Base):
     phone_no = Column(String(15),nullable=False)
     first_name = Column(String(250), nullable=False)
     last_name = Column(String(50), nullable=False)
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     #quote = relationship("Quote", back_populates="addresses")
 
@@ -176,6 +181,8 @@ class Order(Base):
     payment_method = Column(String(50),nullable=True)
     shipping_method = Column(String(50),nullable=True)
     cust_order_num = Column(String(50),nullable=True)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
     addresses = relationship("OrderAddress", back_populates="order", cascade="all, delete-orphan")
@@ -234,7 +241,7 @@ class DiscountCode(Base):
     discount_type = Column(String(50))
     discount_amount = Column(Integer)
     created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
     coupon_rule = Column(String(20))
 
 
