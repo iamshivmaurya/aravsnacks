@@ -94,15 +94,11 @@ export default function CartItemsList() {
 
   return (
     <div className="space-y-4">
-         <div className="text-right font-bold text-x mt-4">
-        Subtotal: ₹{subtotal}
-      </div>
       {itemsToShow.map(item => (
         <div
           key={item.id}
           className="bg-white p-4 rounded shadow flex justify-between items-center"
         >
-          
           <div>
             <h2 className="font-semibold">{item.name}</h2>
             {/* <p>₹{item.price} × {item.quantity}</p> */}
@@ -141,6 +137,16 @@ export default function CartItemsList() {
           </p>
         </div>
       ))}
+
+      <div className="text-right font-bold text-x mt-4">
+        Subtotal: ₹{subtotal}
+      </div>
+      <div className="text-right font-bold text-x mt-4">
+        Discount: ₹{totalDiscount}
+      </div>
+      <div className="text-right font-bold text-x mt-4">
+        Grand Total: ₹{grandTotal}
+      </div>
     </div>
   );
 }

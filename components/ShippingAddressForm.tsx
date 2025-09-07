@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
+import {API_BASE_URL } from  "../constants"
 
 type ShippingAddressProps = {
   onSuccess?: () => void; // Optional callback jab address save ho jaye
 };
 
 export type ShippingAddressData = {
-  fast_name: string;
+  first_name: string;
   last_name: string;
   phone_no: string;
   city: string;
@@ -19,7 +20,7 @@ export type ShippingAddressData = {
 
 export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps) {
   const [form, setForm] = useState<ShippingAddressData>({
-    fast_name: "",
+    first_name: "",
     last_name: "",
     phone_no: "",
     city: "",
@@ -50,7 +51,7 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
     }
 
     // Required field validation
-    if (!form.fast_name || !form.phone_no || !form.city) {
+    if (!form.first_name || !form.phone_no || !form.city) {
       alert("Please fill required fields");
       return;
     }
@@ -58,7 +59,7 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
     try {
       // Pehle quotes/:id/addresses me save karein
       const response = await axios.post(
-        `http://127.0.0.1:8000/quotes/${quoteId}/addresses`,
+        `${API_BASE_URL}/quotes/${quoteId}/addresses`,
         {
           address_type: "permanent",
           ...form,
@@ -68,7 +69,7 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
       if (response.status === 200 || response.status === 201) {
         // Agar checkbox tick hai to customer ke addresses me bhi save karein
         if (saveToCustomer && customerId) {
-          await axios.post(`http://127.0.0.1:8000/customers/${customerId}/addresses`, {
+          await axios.post(`${API_BASE_URL}/customers/${customerId}/addresses`, {
             address_type: "permanent",
             ...form,
           });
@@ -89,9 +90,9 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
       className="space-y-4 p-4 bg-white shadow rounded"
     >
       <input
-        name="fast_name"
+        name="first_name"
         placeholder="First Name"
-        value={form.fast_name}
+        value={form.first_name}
         onChange={handleChange}
         className="border p-2 w-full"
         required

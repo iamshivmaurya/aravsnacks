@@ -16,7 +16,7 @@ import {
 // ================== Types ==================
 export type Product = {
   id: number;
-  product_name: string;
+  name: string;
   description: string;
   product_price: number;
   image_url: string;
@@ -27,9 +27,15 @@ export type CartItem = {
   product_id: number;
   item_qty: number;
   item_price: number;
-  product_name: string;
+  name: string;
   image_url: string;
 };
+
+export type Quote = {
+  quote_id: number;
+  coupon_code: string;
+};
+
 
 // Context type
 type CartContextType = {
@@ -40,7 +46,8 @@ type CartContextType = {
   removeFromCart: (itemId: number) => void;
   clearCart: () => void;
   cartTotal: number;
-  loading: boolean
+  loading: boolean;
+  quote: Quote
 };
 
 // ================== Context ==================
@@ -50,11 +57,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [quoteId, setQuoteId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [quote, setQuote] = useState<Quote | null>(null);
 
   // Clear local cart state
   const clearCart = useCallback(() => setCartItems([]), []);
 
-  // ----------------- Load / Create Cart -----------------
+  // ----------------- Create Cart -----------------
   const createCart = useCallback(async () => {
     try {
       const response = await axios.post(CREATE_QUOTES_API);
@@ -69,61 +77,62 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-
+  // ----------------- Load Cart Items -----------------
   const loadCartItems = useCallback(async () => {
-  try {
-    setLoading(true);
     if (!quoteId) {
-      const newId = await createCart();
-      if (!newId) return;
+      setCartItems([]);
+      setLoading(false);
+      return;
     }
-    const response = await axios.get(`${GET_QUOTES_API}/${quoteId}`);
-    if (response.data?.is_active && Array.isArray(response.data.items)) {
-      setCartItems(response.data.items);
-    } else {
-      await createCart();
-    }
-  } catch (err) {
-    console.error('Failed to load cart:', err);
-  } finally {
-    setLoading(false); // ✅ finish loading
-  }
-}, [quoteId, createCart]);
-
-
-  // ----------------- Qty Updates -----------------
-const updateQty = useCallback(
-  async (itemId: number, qty: number) => {
-    // ✅ Optimistic update first
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.item_id === itemId ? { ...item, item_qty: qty } : item
-      )
-    );
-
     try {
-      const url = `${GET_QUOTES_API}/${quoteId}/items/${itemId}/quantity`;
-      const response = await axios.put(url, { item_qty: qty });
-
-      if (response.status === 200 || response.status === 201) {
-        toast.success('Cart updated!');
-        // Optionally refresh from backend (but don't clear first)
-        //loadCartItems();
+      setLoading(true);
+      const response = await axios.get(`${GET_QUOTES_API}/${quoteId}`);
+      if (response.data?.is_active && Array.isArray(response.data.items)) {
+        setCartItems(response.data.items);
+        setQuote(response.data);
       } else {
-        toast.error('Failed to update quantity');
+        // If cart is invalid, reset
+        clearCart();
+        localStorage.removeItem('quote_id');
+        setQuoteId(null);
       }
     } catch (err) {
-      console.error('Failed to update quantity:', err);
-      toast.error('Something went wrong');
-      loadCartItems();
+      console.error('Failed to load cart:', err);
+    } finally {
+      setLoading(false);
     }
-  },
-  [quoteId, loadCartItems]
-);
+  }, [quoteId, clearCart]);
 
+  // ----------------- Qty Updates -----------------
+  const updateQty = useCallback(
+    async (itemId: number, qty: number) => {
+      setCartItems((prev) =>
+        prev.map((item) =>
+          item.item_id === itemId ? { ...item, item_qty: qty } : item
+        )
+      );
 
- const increaseQty = (itemId: number, qty: number) => updateQty(itemId, qty);
-const decreaseQty = (itemId: number, qty: number) => updateQty(itemId, qty);
+      try {
+        if (!quoteId) return;
+        const url = `${GET_QUOTES_API}/${quoteId}/items/${itemId}/quantity`;
+        const response = await axios.put(url, { item_qty: qty });
+
+        if (response.status === 200 || response.status === 201) {
+          toast.success('Cart updated!');
+        } else {
+          toast.error('Failed to update quantity');
+        }
+      } catch (err) {
+        console.error('Failed to update quantity:', err);
+        toast.error('Something went wrong');
+        loadCartItems();
+      }
+    },
+    [quoteId, loadCartItems]
+  );
+
+  const increaseQty = (itemId: number, qty: number) => updateQty(itemId, qty);
+  const decreaseQty = (itemId: number, qty: number) => updateQty(itemId, qty);
 
   // ----------------- Cart Actions -----------------
   const removeFromCart = useCallback((itemId: number) => {
@@ -133,17 +142,27 @@ const decreaseQty = (itemId: number, qty: number) => updateQty(itemId, qty);
   const addToCart = useCallback(
     async (product: Product) => {
       try {
+        let activeQuoteId = quoteId;
+
+        // ✅ Create cart only when needed
+        if (!activeQuoteId) {
+          const newId = await createCart();
+          if (!newId) return;
+          activeQuoteId = newId;
+          setQuoteId(newId);
+        }
+
         const payload = {
           product_id: product.id,
           item_qty: 1,
           item_id: null,
         };
-        const url = `${GET_QUOTES_API}/${quoteId}/add_items`;
+        const url = `${GET_QUOTES_API}/${activeQuoteId}/add_items`;
 
         const response = await axios.post(url, payload);
 
         if (response.status === 200 || response.status === 201) {
-          toast.success(`${product.product_name} added to cart!`);
+          toast.success(`${product.name} added to cart!`);
           await loadCartItems();
         } else {
           toast.error('Failed to add product to cart');
@@ -153,7 +172,7 @@ const decreaseQty = (itemId: number, qty: number) => updateQty(itemId, qty);
         toast.error('Something went wrong!');
       }
     },
-    [quoteId, loadCartItems]
+    [quoteId, createCart, loadCartItems]
   );
 
   // ----------------- Effects -----------------
@@ -161,10 +180,9 @@ const decreaseQty = (itemId: number, qty: number) => updateQty(itemId, qty);
     const savedQuoteId = localStorage.getItem('quote_id');
     if (savedQuoteId) {
       setQuoteId(Number(savedQuoteId));
-    } else {
-      createCart();
     }
-  }, [createCart]);
+    // ❌ no auto createCart() here
+  }, []);
 
   useEffect(() => {
     if (quoteId) {
@@ -189,7 +207,8 @@ const decreaseQty = (itemId: number, qty: number) => updateQty(itemId, qty);
         removeFromCart,
         clearCart,
         cartTotal,
-        loading
+        loading,
+        quote
       }}
     >
       {children}

@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import axios from "axios";
 
+import {API_BASE_URL} from  "../constants"
+
 interface Order {
   order_id: number;
+  cust_order_num: string;
   customer_id: number;
   customer_email: string;
   order_date: string;
@@ -26,7 +29,7 @@ export default function OrderList() {
   useEffect(() => {
     async function fetchOrders() {
       try {
-        const response = await axios.get("http://127.0.0.1:8000/orders?skip=0&limit=100");
+        const response = await axios.get(`${API_BASE_URL}/orders?skip=0&limit=100`);
         setOrders(response.data);
       } catch (err) {
         setError("Failed to fetch orders");
@@ -51,8 +54,6 @@ export default function OrderList() {
           <thead>
             <tr className="bg-gray-100 text-left">
               <th className="border p-2">Order ID</th>
-              <th className="border p-2">Customer</th>
-              <th className="border p-2">Email</th>
               <th className="border p-2">Subtotal</th>
               <th className="border p-2">Discount</th>
               <th className="border p-2">Grand Total</th>
@@ -65,9 +66,7 @@ export default function OrderList() {
           <tbody>
             {orders.map((order) => (
               <tr key={order.order_id} className="hover:bg-gray-50">
-                <td className="border p-2">{order.order_id}</td>
-                <td className="border p-2">{order.customer_id}</td>
-                <td className="border p-2">{order.customer_email}</td>
+                <td className="border p-2">{order.cust_order_num}</td>
                 <td className="border p-2">₹{order.sub_total}</td>
                 <td className="border p-2">-₹{order.discount_amount}</td>
                 <td className="border p-2 font-semibold">₹{order.grand_total}</td>

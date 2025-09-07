@@ -4,6 +4,7 @@ from schema import  QuoteItemCreate, QuoteAddressCreate,OrderAddressUpdate ###Qu
 from typing import List
 import math
 from sqlalchemy.orm import joinedload
+from decimal import Decimal
 
 def create_quote(db: Session):
     # Create a new quote instance
@@ -28,26 +29,13 @@ def calculate_item_totals(product: Product, item_qty: int) -> dict:
     """Calculate price, discount, and tax for a single item"""
     # Calculate item price with discount
     item_price = product.product_price
-    if product.percentage_discount > 0:
-        item_price = item_price * (1 - product.percentage_discount / 100)
-    elif product.products_discount > 0:
-        item_price = item_price - product.products_discount
-
-    # Calculate item tax
-    item_tax = item_price * (product.tax_percentage / 100) * item_qty if product.tax_percentage else 0
-
-    # Calculate item discount total
-    item_discount = 0
-    if product.products_discount > 0:
-        item_discount = product.products_discount * item_qty
-    elif product.percentage_discount > 0:
-        item_discount = (product.product_price * product.percentage_discount / 100) * item_qty
+ 
 
     return {
         'item_price': item_price,
-        'item_tax': item_tax,
-        'item_discount': item_discount,
-        'tax_percentage': product.tax_percentage if product.tax_percentage else 0
+        'item_tax': 0,
+        'item_discount': 0,
+        'tax_percentage': 0
     }
 
 
@@ -76,22 +64,17 @@ def add_quote_item(db: Session, quote_id: int, item: QuoteItemCreate):
     if not product:
         raise ValueError("Product not found")
 
-    # Calculate item totals
-    item_totals = calculate_item_totals(product, item.item_qty)
-
     # Create quote item
     new_item = QuoteItem(
-        quote_id=int(quote_id),
-        product_id=int(item.product_id),
-        item_name=product.product_name,
-        item_qty=item.item_qty,
-        sku=product.sku,
-        item_price=item_totals['item_price'],
-        item_discount=item_totals['item_discount'],
-        item_tax=item_totals['item_tax'],
-        tax_percentage=item_totals['tax_percentage']
+    quote_id=int(quote_id),
+    product_id=int(item.product_id),
+    item_name=product.name,
+    item_qty=item.item_qty,
+    sku=product.sku,
+    item_price=product.product_price
     )
 
+  
     db.add(new_item)
     db.commit()
     db.refresh(new_item)
@@ -100,11 +83,9 @@ def add_quote_item(db: Session, quote_id: int, item: QuoteItemCreate):
     quote = db.query(Quote).filter(Quote.quote_id == quote_id).first()
     if quote:
         # Calculate the impact of this new item
-        item_total_price = item_totals['item_price'] * item.item_qty
-
-        quote.total_price += item_total_price
-        quote.discount += item_totals['item_discount']
-        quote.total_tax += item_totals['item_tax']
+        item_total_price = float(product.product_price) * int(item.item_qty)
+        quote.subtotal += item_total_price
+        quote.grand_total += item_total_price
         quote.items_count += 1
         quote.items_quantity += item.item_qty
 
@@ -123,7 +104,7 @@ def remove_quote_item(db: Session, quote_id: int, item_id: int):
         # Update quote totals BEFORE deleting the item
         quote = db.query(Quote).filter(Quote.quote_id == quote_id).first()
         if quote:
-            quote.total_price -= item_total_price
+            quote.subtotal -= item_total_price
             quote.discount -= item.item_discount
             quote.total_tax -= item.item_tax
             quote.items_count -= 1
@@ -142,7 +123,7 @@ def remove_quote_item(db: Session, quote_id: int, item_id: int):
         # Update quote totals
         quote = db.query(Quote).filter(Quote.quote_id == quote_id).first()
         if quote:
-            quote.total_price -= item.item_price * item.item_qty
+            quote.subtotal -= item.item_price * item.item_qty
             quote.discount -= item.item_discount * item.item_qty
             quote.total_tax -= item.item_tax
             quote.items_count -= 1
@@ -204,10 +185,11 @@ def update_quote_item_quantity(db: Session, quote_id: int, item_id: int, new_qty
         qty_diff = new_qty - old_qty
 
         # Update quote totals
-        quote.total_price += price_diff
+        quote.subtotal += price_diff
         quote.discount += discount_diff
         quote.total_tax += tax_diff
         quote.items_quantity += qty_diff
+        quote.grand_total += (price_diff - discount_diff)
 
     db.commit()
     db.refresh(item)
@@ -226,7 +208,7 @@ def update_quote_item_quantity(db: Session, quote_id: int, item_id: int, new_qty
 #     db_address.city = address_data.city
 #     db_address.state = address_data.state
 #     db_address.phone_no = address_data.phone_no
-#     db_address.first_name = address_data.fast_name
+#     db_address.first_name = address_data.first_name
 #     db_address.last_name = address_data.last_name
     
 
@@ -234,7 +216,7 @@ def update_quote_item_quantity(db: Session, quote_id: int, item_id: int, new_qty
     # db.refresh(db_address)
     # return db_address
 
-
+# Note In Use
 def apply_discount(quote_id, coupon, db: Session):
     quote = db.query(Quote).filter(Quote.quote_id == quote_id).first()
     if not quote:

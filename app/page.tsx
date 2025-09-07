@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { GET_PRODUCTS_API } from '../constants';
 type Product = {
   id: number;
-  product_name: string;
+  name: string;
   description: string;
   product_price: number;
   image_url: string;

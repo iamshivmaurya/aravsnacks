@@ -66,7 +66,7 @@ class CustomerAddressCreate(BaseModel):
     postal_code: str
     city: str
     state: str
-    fast_name: str
+    first_name: str
     last_name: str
     phone_no: str
 
@@ -78,7 +78,7 @@ class CustomerAddressResponse(BaseModel):
     postal_code: str
     city: str
     state: str
-    fast_name: str
+    first_name: str
     last_name: str
     phone_no: str
     created_at: datetime
@@ -123,48 +123,42 @@ class CategoryResponse(BaseModel):
 
 # Product Schemas
 class CreateProduct(BaseModel):
-    product_name: str
-    description: str
+    sku: Optional[str] = None
+    name: str
     is_active: Optional[bool] = True
-    products_discount: Optional[int] = 0
-    percentage_discount: Optional[float] = 0.0
-    discount_start_date: Optional[datetime] = None
-    discount_end_date: Optional[datetime] = None
-    product_left: Optional[int] = None
-    weight_grams: Optional[float] = None
     product_price: Optional[float] = None
-    country_origen: Optional[str] = None
-    product_exp: Optional[datetime] = None
+    special_price: Optional[float] = None
+    special_price_start_date: Optional[datetime] = None
+    special_price_end_date: Optional[datetime] = None
+    tax_class_id: Optional[int]
+    quantity: Optional[int] = None
+    product_weight: Optional[float] = None
+    description: str
     sort_order: Optional[float] = 0.0
     meta_keyword: Optional[str] = None
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
-    tax_class_id: Optional[int]
-    sku: Optional[str] = None
     image_url: Optional[str] = None
 
 class ProductResponse(BaseModel):
     id: int
-    product_name: str
-    description: str
+    sku: Optional[str]
+    name: str
     is_active: bool
-    product_created: datetime
-    products_discount: Optional[int]
-    percentage_discount: Optional[float]
-    discount_start_date: Optional[datetime]
-    discount_end_date: Optional[datetime]
-    product_left: Optional[int]
-    weight_grams: Optional[float]
     product_price: Optional[float]
-    country_origen: Optional[str]
-    product_exp: Optional[datetime]
+    special_price: Optional[float]
+    special_price_start_date: Optional[datetime]
+    special_price_end_date: Optional[datetime]
+    tax_class_id: Optional[int]
+    quantity: Optional[int]
+    product_weight: Optional[float]
+    description: str
     sort_order: Optional[float]
     meta_keyword: Optional[str]
     meta_title: Optional[str]
     meta_description: Optional[str]
-    tax_class_id: Optional[int]
-    sku: Optional[str]
     image_url: Optional[str]
+    created_at: datetime
 
 
     class Config:
@@ -183,7 +177,7 @@ class QuoteAddressCreate(BaseModel):
     city: str
     state: str
     phone_no: str
-    fast_name: str
+    first_name: str
     last_name: str
 
 class QuoteCreateResponse(BaseModel):
@@ -222,14 +216,14 @@ class QuoteItemResponse(BaseModel):   ###this response add
 class QuoteResponse(BaseModel):
     quote_id: int
     customer_id: Optional[int]
-    coupon_id:int
-    coupon_code:int
+    coupon_code: Optional[str]
     email_id: Optional[str]
     phone_no: Optional[str]
     is_active: bool
     created_at: datetime
     updated_at: datetime
-    total_price: float
+    subtotal: float
+    grand_total: float
     discount: float
     total_tax: int
     items_count: int
@@ -302,7 +296,7 @@ class OrderAddressResponse(BaseModel):
     city: str
     state: str
     phone_no: str
-    fast_name: str
+    first_name: str
     last_name: str
     created_at: datetime
     updated_at: datetime
@@ -313,7 +307,7 @@ class OrderAddressResponse(BaseModel):
 class OrderResponse(BaseModel):
     
     order_id: int
-    # quote_id:int
+    cust_order_num:str
     customer_id: Optional[int]
     customer_email: Optional[str]
     order_date: datetime
@@ -358,14 +352,13 @@ class DiscountOnPruduct(BaseModel):
 
     coupon_id:int 
     coupon_code :str
-    start_date: datetime
-    end_date: datetime
+    valid_from: datetime
+    valid_to: datetime
     discount_type: int
     is_avtive: Optional[bool] = True
     created_at: datetime
     updated_at: datetime
     coupon_rule: str
-    coupon_code :str
     coupon_discription :str
     class Config:
         from_attributes = True
@@ -373,9 +366,9 @@ class DiscountOnPruduct(BaseModel):
 
 class CouponCreate(BaseModel):
     
-    start_date: datetime
+    valid_from: datetime
     discount_amount:int
-    end_date: datetime
+    valid_to: datetime
     discount_type: str
     created_at: datetime
     updated_at: datetime
@@ -391,8 +384,8 @@ class CouponCreate(BaseModel):
 class CouponResponce(BaseModel):
     coupon_id:int 
     coupon_code :str
-    start_date: datetime
-    end_date: datetime  
+    valid_from: datetime
+    valid_to: datetime  
     discount_amount :int
     discount_type: str
 
@@ -401,6 +394,10 @@ class CouponResponce(BaseModel):
 
 
 class ApplyCouponRequest(BaseModel):
+    quote_id: int
+    coupon_code: str
+
+class CancelCouponRequest(BaseModel):
     quote_id: int
     coupon_code: str
 
@@ -432,7 +429,8 @@ class QuoteResponseWithDiscount(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
-    total_price: float
+    subtotal: float
+    grand_total: float
     discount: float
     total_tax: int
     items_count: int

@@ -1,7 +1,8 @@
 from database import Base
-from sqlalchemy import Column, Integer, Text, Float, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, Text, Float, String, Boolean, DateTime, ForeignKey, DECIMAL, func
 from datetime import datetime
 from sqlalchemy.orm import relationship
+
 
 
 class Customer(Base):
@@ -19,9 +20,9 @@ class Customer(Base):
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
 
-    addresses = relationship("CustomerAddress", back_populates="customer")
+    #addresses = relationship("CustomerAddress", back_populates="customer")
     quotes = relationship("Quote", back_populates="customer")
-    orders = relationship("Order", back_populates="customer")
+    #orders = relationship("Order", back_populates="customer")
 
 
 class CustomerAddress(Base):
@@ -34,13 +35,13 @@ class CustomerAddress(Base):
     postal_code = Column(String(50), nullable=False)
     city = Column(String(100), nullable=False)
     state = Column(String(255), nullable=False)
-    fast_name = Column(String(50), nullable=False)
+    first_name = Column(String(50), nullable=False)
     last_name = Column(String(50), nullable=False)
     phone_no = Column(String(15), nullable=False)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
-    customer = relationship("Customer", back_populates="addresses")
+    # customer = relationship("Customer", back_populates="addresses")
 
 
 class OTP(Base):
@@ -73,35 +74,28 @@ class Category(Base):
 
 
 
-
 class Product(Base):
     __tablename__ = "products"
-
+    
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    product_name = Column(String(50), nullable=False)
-    products_discount = Column(Integer, nullable=True)
-    percentage_discount = Column(Float, nullable=True)
-    discount_start_date = Column(DateTime,nullable=True)
-    discount_end_date = Column(DateTime,nullable=True)
-    product_left = Column(Integer,nullable=True)
-    weight_grams = Column(Float,nullable=True)
-    product_price = Column(Float,nullable=False)
-    description = Column(Text, nullable=True)
+    sku = Column(String(250), unique=True, nullable=False, index=True)
+    name = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
-    product_created = Column(DateTime, default=datetime.now)
-    country_origen = Column(String(50),nullable=True)
-    product_exp = Column(DateTime,nullable=True)
-    sort_order = Column(Float, default=0.0)
-    meta_keyword = Column(String(250),nullable=True)
-    meta_title = Column(String(250),nullable=True)
-    meta_description = Column(String(250),nullable=True)
-    sku = Column(String(250),unique=True, nullable=False)
-    image_url = Column(String(250),nullable=True)
+    product_price = Column(DECIMAL(10, 2), nullable=False)  # Money safe
+    special_price = Column(DECIMAL(10, 2), nullable=True)   # Nullable
+    special_price_start_date = Column(DateTime, nullable=True)
+    special_price_end_date = Column(DateTime, nullable=True)
+    quantity = Column(Integer, nullable=True)
+    product_weight = Column(DECIMAL(10, 3), nullable=True)          # 3 decimal places
     tax_class_id = Column(Integer, nullable=True)
-
-    quote_items = relationship("QuoteItem", back_populates="product")
-    order_items = relationship("OrderItem", back_populates="product")
-    # tax_class = relationship("TaxClass", back_populates="products")
+    description = Column(Text, nullable=True)
+    sort_order = Column(Integer, default=0)
+    meta_keyword = Column(String(250), nullable=True)
+    meta_title = Column(String(250), nullable=True)
+    meta_description = Column(String(1000), nullable=True)
+    image_url = Column(String(250), nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
 
 class Quote(Base):
@@ -109,22 +103,23 @@ class Quote(Base):
 
     quote_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     customer_id = Column(Integer, ForeignKey('customers.customer_id'), nullable=True)
-    coupon_id = Column(Integer,  nullable=True)
     coupon_code = Column(String(50), nullable=True)   # 👈 extra column for readability
     email_id = Column(String(50), nullable=True)
     phone_no = Column(String(12), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
-    total_price = Column(Float, default=0.0)
+    
     discount = Column(Float, default=0.0)
     total_tax = Column(Integer, default=0)
     items_count = Column(Integer, default=0)
     items_quantity = Column(Integer, default=0)
+    subtotal = Column(Float, default=0.0)
+    grand_total = Column(Float, default=0.0)
 
     customer = relationship("Customer", back_populates="quotes")
-    items = relationship("QuoteItem", back_populates="quote")
-    addresses = relationship("QuoteAddress", back_populates="quote")
+    items = relationship("QuoteItem", back_populates="quote", cascade="all, delete-orphan")
+
 
 class QuoteItem(Base):
     __tablename__ = "quote_item"
@@ -139,11 +134,11 @@ class QuoteItem(Base):
     item_discount = Column(Float, default=0.0)
     item_tax = Column(Float, default=0.0)
     tax_percentage = Column(Float, default=0.0)
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     quote = relationship("Quote", back_populates="items")
-    product = relationship("Product", back_populates="quote_items")
+    #product = relationship("Product", back_populates="quote_items")
 
 
 
@@ -155,17 +150,16 @@ class QuoteAddress(Base):
     address_type = Column(String(50),nullable=False)
     street_address = Column(String(50), nullable=False)
     postal_code = Column(String(50), nullable=False)
-    postal_code = Column(String(50), nullable=False)
     city = Column(String(100), nullable=False)
     state = Column(String(255), nullable=False)
     phone_no = Column(String(15),nullable=False)
-    fast_name = Column(String(250), nullable=False)
+    first_name = Column(String(250), nullable=False)
     last_name = Column(String(50), nullable=False)
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
-    quote = relationship("Quote", back_populates="addresses")
-    #addresses = relationship("QuoteAddress", back_populates="quote")
+    #quote = relationship("Quote", back_populates="addresses")
+
 
 class Order(Base):
     __tablename__ = "orders"
@@ -183,9 +177,8 @@ class Order(Base):
     shipping_method = Column(String(50),nullable=True)
     cust_order_num = Column(String(50),nullable=True)
 
-    customer = relationship("Customer", back_populates="orders")
-    items = relationship("OrderItem", back_populates="order")
-    addresses = relationship("OrderAddress", back_populates="order")
+    items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    addresses = relationship("OrderAddress", back_populates="order", cascade="all, delete-orphan")
 
 
 
@@ -204,7 +197,8 @@ class OrderItem(Base):   #############
     tax_amount = Column(Float, default=0.0)
 
     order = relationship("Order", back_populates="items")
-    product = relationship("Product", back_populates="order_items")
+    
+
 
 
 
@@ -219,12 +213,13 @@ class OrderAddress(Base):
     city = Column(String(100), nullable=False)
     state = Column(String(255), nullable=False)
     phone_no = Column(String(15))
-    fast_name = Column(String(250))
+    first_name = Column(String(250))
     last_name = Column(String(250))
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
     order = relationship("Order", back_populates="addresses")
+    
 
 
 
@@ -232,10 +227,10 @@ class DiscountCode(Base):
     __tablename__ = "coupon"
 
     coupon_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    coupon_code = Column(String(50))
+    coupon_code = Column(String(50), unique=True)
     coupon_discription = Column(String(250))
-    start_date = Column(DateTime,nullable=True)
-    end_date = Column(DateTime,nullable=True)
+    valid_from = Column(DateTime,nullable=True)
+    valid_to = Column(DateTime,nullable=True)
     discount_type = Column(String(50))
     discount_amount = Column(Integer)
     created_at = Column(DateTime, default=datetime.now)
@@ -255,10 +250,8 @@ class TaxClass(Base):
     is_active = Column(Boolean, default=True)
     country_code = Column(String(3), nullable=True)
     state_code = Column(String(10), nullable=True)
-    created_at = Column(DateTime, default=datetime.now)
-    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
-    # Relationship to products
-    # products = relationship("Product", back_populates="tax_class")
 
 

@@ -5,11 +5,14 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import ShippingAddressForm, { ShippingAddressData } from '../../components/ShippingAddressForm';
 import SignInForm, { LoginData } from "../../components/SignInForm";
-import CartItemsList from '../../components/CartItemsList';
+import CartItemsList from '../../components/CheckoutCartItemsList';
 import AddressList from '@/components/AddressList';
+import {APPLY_COUPON , PLACE_ORDER, CANCEL_COUPON} from  "../../constants"
+import { useCart } from '../../components/CartContext';
 
-export default function CartPage() {
+export default function CheckoutPage() {
   const router = useRouter();
+  const { quote } = useCart();
   const [shippingAddress, setShippingAddress] = useState<ShippingAddressData | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [phone, setPhone] = useState("");
@@ -78,16 +81,10 @@ export default function CartPage() {
     };
 
     try {
-      const response = await axios.post('http://localhost:8000/place-order', payload);
-
-      // console.log("Full API Response:", response);
-      // console.log("Response Data Only:", response.data);
+      const response = await axios.post(PLACE_ORDER, payload);
 
       if (response.status === 200 || response.status === 201) {
 
-
-
-     // API response se cust_order_num aur order_date save kar lo
       const orderData = response.data;
       if (orderData?.cust_order_num) {
         sessionStorage.setItem("cust_order_num", orderData.cust_order_num);
@@ -117,14 +114,15 @@ export default function CartPage() {
     }
 
     try {
-      const response = await axios.post("http://localhost:8000/apply-discount", {
-        code: discountCode,
-        customer_id: customerId
+      const quoteId = localStorage.getItem("quote_id");
+      const response = await axios.post(APPLY_COUPON, {
+        coupon_code: discountCode,
+        quote_id:  Number(quoteId)
       });
 
-      if (response.data.success) {
+      if (response.status) {
         setDiscountApplied(true);
-        setDiscountMessage(`✅ Discount applied: ${response.data.discount}% off`);
+        setDiscountMessage(`✅ Discount applied`);
         // You might also want to update total price here
       } else {
         setDiscountMessage("❌ Invalid or expired code.");
@@ -134,6 +132,25 @@ export default function CartPage() {
       setDiscountMessage("❌ Error applying discount.");
     }
   };
+
+  // Remove discount
+const handleRemoveDiscount = async () => {
+  try {
+    const quoteId = localStorage.getItem("quote_id");
+    const response = await axios.post(CANCEL_COUPON, {
+        coupon_code: quote.coupon_code,
+        quote_id:  Number(quoteId)
+      });
+
+    if (response.status) {
+      setDiscountMessage("Coupon removed.");
+    } else {
+      setDiscountMessage("Failed to remove coupon");
+    }
+  } catch (err) {
+    setDiscountMessage("Error removing coupon");
+  }
+};
 
 
   return (
@@ -164,29 +181,46 @@ export default function CartPage() {
             <ShippingAddressForm onSuccess={() => setShowAddAddressForm(false)} />
           )}
         </div>
+          {/* DISCOUNT CODE FORM */}
+<div className="mt-6">
+  <p className="font-medium mb-2">Discount Code</p>
 
-            {/* DISCOUNT CODE FORM */}
-          <div className="mt-6">
-            <p className="font-medium mb-2">Apply Discount Code</p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Enter code"
-                value={discountCode}
-                onChange={(e) => setDiscountCode(e.target.value)}
-                className="border rounded-lg px-3 py-2 flex-1"
-              />
-              <button
-                onClick={handleApplyDiscount}
-                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
-              >
-                Apply
-              </button>
-            </div>
-            {discountMessage && (
-              <p className="mt-2 text-sm">{discountMessage}</p>
-            )}
-          </div>
+  {quote?.coupon_code ? (
+    // If coupon already applied
+    <div className="flex items-center justify-between border rounded-lg px-3 py-2 bg-green-50">
+      <span className="font-medium text-green-700">
+        Applied: {quote.coupon_code}
+      </span>
+      <button
+        onClick={handleRemoveDiscount}
+        className="text-red-600 hover:text-red-800 text-sm font-medium"
+      >
+        Remove
+      </button>
+    </div>
+  ) : ( 
+    // If no coupon applied yet
+    <div className="flex gap-2">
+      <input
+        type="text"
+        placeholder="Enter code"
+        value={discountCode}
+        onChange={(e) => setDiscountCode(e.target.value)}
+        className="border rounded-lg px-3 py-2 flex-1"
+      />
+      <button
+        onClick={handleApplyDiscount}
+        className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+      >
+        Apply
+      </button>
+    </div>
+  )}
+
+  {discountMessage && (
+    <p className="mt-2 text-sm text-gray-600">{discountMessage}</p>
+  )}
+</div>
 
       </div>
 

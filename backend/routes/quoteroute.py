@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from schema import QuoteCreateResponse, QuoteItemCreate, QuoteAddressCreate, QuoteResponse,OrderAddressUpdate,DiscountOnPruduct #QuoteCreate,
+from schema import QuoteCreateResponse, QuoteItemCreate, QuoteAddressCreate, QuoteResponse
 from quote_crud import create_quote, update_quote_item_quantity,get_quote, get_quotes, delete_quote, add_quote_item, remove_quote_item, add_quote_address, get_quote_addresses
 from typing import List
 from sqlalchemy.orm import joinedload
@@ -109,10 +109,6 @@ def update_item_quantity_route(
 
 
 
-
-
-
-########### 31-09-25
 
 
 # @router.put("/quote/address/update/{address_id}/", response_model=OrderAddressUpdate)

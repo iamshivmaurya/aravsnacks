@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import OrderDetails from "@/components/OrderDetails";
+import {API_BASE_URL} from  "../../constants"
 
 export default function OrderViewPage() {
   const searchParams = useSearchParams();
@@ -19,7 +20,7 @@ export default function OrderViewPage() {
 
   const fetchOrder = async (id: string) => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/orders/${id}`);
+      const response = await axios.get(`${API_BASE_URL}/orders/${id}`);
       setOrder(response.data);
     } catch (error) {
       console.error("Error fetching order:", error);
@@ -34,7 +35,7 @@ export default function OrderViewPage() {
   return (
     <section className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Order #{order.order_id}</h1>
+        <h1 className="text-2xl font-bold mb-4">Order #{order.cust_order_num}</h1>
         <OrderDetails order={order} />
       </div>
     </section>

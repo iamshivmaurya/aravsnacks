@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import EditProfileForm from "../../components/EditSignupForm";
 import axios from "axios";
+import {APPLY_COUPON , PLACE_ORDER, API_BASE_URL} from  "../../constants"
 
 export default function ProfilePage() {
   const [customerId, setCustomerId] = useState<string | null>(null);
@@ -19,7 +20,7 @@ export default function ProfilePage() {
       setCustomerId(id);
 
       // API call to fetch customer data
-      axios.get(`http://127.0.0.1:8000/customers/${id}`)
+      axios.get(`${API_BASE_URL}/customers/${id}`)
         .then(res => {
           setInitialData({
             first_name: res.data.first_name,

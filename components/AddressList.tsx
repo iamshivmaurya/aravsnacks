@@ -13,7 +13,7 @@ interface Address {
   city: string;
   state: string;
   phone_no: string;
-  fast_name: string;
+  first_name: string;
   last_name: string;
 }
 
@@ -110,7 +110,7 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
               />
               <div>
                 <h5 className="font-semibold">
-                  {address.fast_name} {address.last_name} , {address.postal_code}{" "}
+                  {address.first_name} {address.last_name} , {address.postal_code}{" "}
                   <span className="p-2 bg-red-100 rounded">{address.address_type}</span>
                 </h5>
                 <p className="text-sm text-gray-600">

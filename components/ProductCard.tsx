@@ -7,7 +7,7 @@ import Image from 'next/image';
 
 type Product = {
   id: number;
-  product_name: string;
+  name: string;
   description: string;
   product_price: number;
   image_url: string;
@@ -30,13 +30,13 @@ export default function ProductCard({ product }: { product: Product }) {
       <div className="w-full h-40 relative">
         <Image
           src={imageSrc}
-          alt={product.product_name}
+          alt={product.name}
           fill
           className="object-cover rounded"
         />
       </div>
 
-      <h2 className="text-lg font-bold mt-2">{product.product_name}</h2>
+      <h2 className="text-lg font-bold mt-2">{product.name}</h2>
       <p className="text-sm text-gray-600">{product.description}</p>
       <p className="font-semibold mt-1">₹{product.product_price}</p>
 

@@ -31,12 +31,6 @@ def get_order_by_customer_and_quote(customer_id: int, order_id: int, db: Session
     }
 
 
-
-
-
-
-
-
 # Order CRUD Operations
 @router.post("/orders", response_model=OrderResponse)
 def create_order_route(order: OrderCreate, db: Session = Depends(get_db)):
@@ -73,7 +67,8 @@ def delete_order_route(order_id: int, db: Session = Depends(get_db)):
  
 
 # Place Order from Quote
-@router.post("/place-order", response_model=PlaceOrderResponse)
+#response_model=PlaceOrderResponse
+@router.post("/place-order")
 def place_order_route(
         order_data: PlaceOrderRequest,
         db: Session = Depends(get_db)
@@ -84,27 +79,17 @@ def place_order_route(
     """
     try:
         result = place_order(db, order_data)
-        db_order = result["order"]
-        addresses_transferred = result["addresses_transferred"]
-        addresses_count = result["addresses_count"]
+        if result['order_id']:
+            return {
+                "order_id": result['order_id'],
+                "cust_order_num": result['cust_order_num'],
+                "message": "Order placed successfully",
 
-        response_message = "Order placed successfully"
-        additional_message = None
-
-        if not addresses_transferred:
-            additional_message = "Please add shipping and billing addresses to your order"
-        elif addresses_count == 1:
-            additional_message = "Address transferred from quote. Please review and add billing address if needed"
-
-        return {
-            "order_id": db_order.order_id,
-            "cust_order_num": db_order.cust_order_num,
-            "message": response_message,
-            "grand_total": db_order.grand_total,
-            "addresses_transferred": addresses_transferred,
-            "addresses_count": addresses_count,
-            "additional_message": additional_message
-        }
+            }
+        else:
+            return {
+                "message": "Something went wrong!"
+            }
 
     except ValueError as e:
         if "Customer not found" in str(e):
@@ -116,7 +101,7 @@ def place_order_route(
         else:
             raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Order Place:: Internal server error: {str(e)}")
 
 # Order Items Operations
 @router.post("/orders/{order_id}/items")
