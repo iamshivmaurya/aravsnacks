@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import axios from 'axios';
+import {API_BASE_URL} from  "../constants"
 
 export type LoginData = {
   access_token: string;
@@ -13,8 +14,8 @@ interface SignInFormProps {
   onSubmit: (data: LoginData) => void;
 }
 
-const SIGNIN_API = 'http://127.0.0.1:8000/login';
-const VERIFY_OTP_API = 'http://127.0.0.1:8000/verify-otp';
+const SIGNIN_API = `${API_BASE_URL}/login`;
+const VERIFY_OTP_API = `${API_BASE_URL}/verify-otp`;
 
 export default function SignInForm({ onSubmit }: SignInFormProps) {
   const [phone, setPhone] = useState('');

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Trash2, Edit } from "lucide-react";
+import {API_BASE_URL} from  "../constants"
 
 interface Address {
   quote_address_id?: number; // Quote address ke liye
@@ -45,12 +46,12 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
 
       // Pehle quote addresses fetch karna
       if (quoteId) {
-        response = await axios.get(`http://127.0.0.1:8000/quotes/${quoteId}/addresses`);
+        response = await axios.get(`${API_BASE_URL}/quotes/${quoteId}/addresses`);
       }
 
       // Agar quote addresses empty hain aur customerId available hai, to fallback
       if ((!response || response.data.length === 0) && customerId) {
-        response = await axios.get(`http://127.0.0.1:8000/customers/${customerId}/addresses`);
+        response = await axios.get(`${API_BASE_URL}/customers/${customerId}/addresses`);
       }
 
       setAddresses(response?.data || []);
@@ -68,7 +69,7 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
     if (!confirm("Are you sure you want to delete this address?")) return;
 
     try {
-      await axios.delete(`http://127.0.0.1:8000/quotes/${quoteId}/addresses/${addressId}`);
+      await axios.delete(`${API_BASE_URL}/quotes/${quoteId}/addresses/${addressId}`);
       setAddresses(addresses.filter(addr => addr.quote_address_id !== addressId));
 
       if (selectedId === addressId) {

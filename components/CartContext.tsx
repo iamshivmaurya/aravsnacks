@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { GET_QUOTES_API, CREATE_QUOTES_API } from '../constants';
+import { GET_QUOTES_API, CREATE_QUOTES_API , API_BASE_URL} from '../constants';
 import {
   createContext,
   useContext,
