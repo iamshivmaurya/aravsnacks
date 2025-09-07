@@ -94,8 +94,8 @@ class Product(Base):
     meta_title = Column(String(250), nullable=True)
     meta_description = Column(String(1000), nullable=True)
     image_url = Column(String(250), nullable=True)
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
 
 class Quote(Base):
@@ -134,8 +134,8 @@ class QuoteItem(Base):
     item_discount = Column(Float, default=0.0)
     item_tax = Column(Float, default=0.0)
     tax_percentage = Column(Float, default=0.0)
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     quote = relationship("Quote", back_populates="items")
     #product = relationship("Product", back_populates="quote_items")
@@ -215,8 +215,8 @@ class OrderAddress(Base):
     phone_no = Column(String(15))
     first_name = Column(String(250))
     last_name = Column(String(250))
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     order = relationship("Order", back_populates="addresses")
     
@@ -250,8 +250,8 @@ class TaxClass(Base):
     is_active = Column(Boolean, default=True)
     country_code = Column(String(3), nullable=True)
     state_code = Column(String(10), nullable=True)
-    created_at = Column(DateTime, server_default=func.now())
-    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
 
 
