@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import OrderDetails from "@/components/OrderDetails";
 import {API_BASE_URL} from  "../../constants"
+import DownloadInvoice from "@/components/DownloadInvoice"
 
 export default function OrderViewPage() {
   const searchParams = useSearchParams();
@@ -36,6 +37,7 @@ export default function OrderViewPage() {
     <section className="min-h-screen bg-gray-100 p-6">
       <div className="max-w-5xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">Order #{order.cust_order_num}</h1>
+        <DownloadInvoice orderId={order.order_id} />
         <OrderDetails order={order} />
       </div>
     </section>
