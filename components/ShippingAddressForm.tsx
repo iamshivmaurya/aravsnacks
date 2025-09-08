@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import {API_BASE_URL } from  "../constants"
+import { API_BASE_URL } from "../constants";
 
 type ShippingAddressProps = {
-  onSuccess?: () => void; // Optional callback jab address save ho jaye
+  onSuccess?: (newAddress: any) => void; // नया address callback में भेजेंगे
 };
 
 export type ShippingAddressData = {
@@ -31,11 +31,11 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
 
   const [quoteId, setQuoteId] = useState<string | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
-  const [saveToCustomer, setSaveToCustomer] = useState(false); // New state
+  const [saveToCustomer, setSaveToCustomer] = useState(false);
 
   useEffect(() => {
     setQuoteId(localStorage.getItem("quote_id"));
-    setCustomerId(localStorage.getItem("customer_id")); // customer ID bhi chahiye
+    setCustomerId(localStorage.getItem("customer_id"));
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,28 +46,20 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
     e.preventDefault();
 
     if (!quoteId) {
-      alert("Quote ID not found in local storage!");
-      return;
-    }
-
-    // Required field validation
-    if (!form.first_name || !form.phone_no || !form.city) {
-      alert("Please fill required fields");
+      alert("Quote ID not found!");
       return;
     }
 
     try {
-      // Pehle quotes/:id/addresses me save karein
-      const response = await axios.post(
-        `${API_BASE_URL}/quotes/${quoteId}/addresses`,
-        {
-          address_type: "permanent",
-          ...form,
-        }
-      );
+      const response = await axios.post(`${API_BASE_URL}/quotes/${quoteId}/addresses`, {
+        address_type: "permanent",
+        ...form,
+      });
 
       if (response.status === 200 || response.status === 201) {
-        // Agar checkbox tick hai to customer ke addresses me bhi save karein
+        const newAddress = response.data;
+
+        // अगर checkbox selected है तो customer ke addresses me bhi save kare
         if (saveToCustomer && customerId) {
           await axios.post(`${API_BASE_URL}/customers/${customerId}/addresses`, {
             address_type: "permanent",
@@ -76,7 +68,7 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
         }
 
         alert("Address saved successfully!");
-        if (onSuccess) onSuccess();
+        if (onSuccess) onSuccess(newAddress); // नया address वापस भेजना
       }
     } catch (error: any) {
       console.error("Error saving address:", error);
@@ -85,89 +77,21 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4 p-4 bg-white shadow rounded"
-    >
-      <input
-        name="first_name"
-        placeholder="First Name"
-        value={form.first_name}
-        onChange={handleChange}
-        className="border p-2 w-full"
-        required
-      />
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white shadow rounded">
+      <input name="first_name" placeholder="First Name" value={form.first_name} onChange={handleChange} className="border p-2 w-full" required />
+      <input name="last_name" placeholder="Last Name" value={form.last_name} onChange={handleChange} className="border p-2 w-full" required />
+      <input name="street_address" placeholder="Street Address" value={form.street_address} onChange={handleChange} className="border p-2 w-full" required />
+      <input name="postal_code" placeholder="Pin Code" value={form.postal_code} onChange={handleChange} className="border p-2 w-full" required />
+      <input name="city" placeholder="City" value={form.city} onChange={handleChange} className="border p-2 w-full" required />
+      <input name="state" placeholder="State" value={form.state} onChange={handleChange} className="border p-2 w-full" required />
+      <input name="phone_no" placeholder="Phone Number" value={form.phone_no} onChange={handleChange} className="border p-2 w-full" required />
 
-      <input
-        name="last_name"
-        placeholder="Last Name"
-        value={form.last_name}
-        onChange={handleChange}
-        className="border p-2 w-full"
-        required
-      />
-
-      <input
-        name="street_address"
-        placeholder="Street Address"
-        value={form.street_address}
-        onChange={handleChange}
-        className="border p-2 w-full"
-        required
-      />
-
-      <input
-        name="postal_code"
-        placeholder="Pin Code"
-        value={form.postal_code}
-        onChange={handleChange}
-        className="border p-2 w-full"
-        required
-      />
-
-      <input
-        name="city"
-        placeholder="City"
-        value={form.city}
-        onChange={handleChange}
-        className="border p-2 w-full"
-        required
-      />
-
-      <input
-        name="state"
-        placeholder="State"
-        value={form.state}
-        onChange={handleChange}
-        className="border p-2 w-full"
-        required
-      />
-
-      <input
-        name="phone_no"
-        placeholder="Phone Number"
-        value={form.phone_no}
-        onChange={handleChange}
-        className="border p-2 w-full"
-        required
-      />
-
-      {/* Checkbox for saving to customer addresses */}
       <label className="flex items-center space-x-2">
-        <input
-          type="checkbox"
-          checked={saveToCustomer}
-          onChange={(e) => setSaveToCustomer(e.target.checked)}
-        />
-        <span className="text-sm text-gray-700">
-          Save this address to my account
-        </span>
+        <input type="checkbox" checked={saveToCustomer} onChange={(e) => setSaveToCustomer(e.target.checked)} />
+        <span className="text-sm text-gray-700">Save this address to my account</span>
       </label>
 
-      <button
-        type="submit"
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-      >
+      <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
         Save Address
       </button>
     </form>
