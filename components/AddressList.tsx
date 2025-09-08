@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Trash2, Edit } from "lucide-react";
-import { API_BASE_URL } from "../constants";
+import {API_BASE_URL} from  "../constants"
 
 interface Address {
-  quote_address_id?: number;
-  customer_address_id?: number;
+  quote_address_id?: number; // Quote address ke liye
+  customer_address_id?: number; // Customer address ke liye
   address_type: string;
   street_address: string;
   postal_code: string;
@@ -20,10 +20,9 @@ interface Address {
 
 interface AddressListProps {
   onSelectAddress: (address: Address) => void;
-  selectedAddress?: Address | null;
 }
 
-export default function AddressList({ onSelectAddress, selectedAddress }: AddressListProps) {
+export default function AddressList({ onSelectAddress }: AddressListProps) {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,6 +32,7 @@ export default function AddressList({ onSelectAddress, selectedAddress }: Addres
     const customerId = localStorage.getItem("customer_id");
 
     if (!quoteId && !customerId) {
+      console.error("No quote_id or customer_id found");
       setLoading(false);
       return;
     }
@@ -40,27 +40,45 @@ export default function AddressList({ onSelectAddress, selectedAddress }: Addres
     fetchAddresses(quoteId, customerId);
   }, []);
 
-  useEffect(() => {
-    if (selectedAddress) {
-      const id = selectedAddress.quote_address_id ?? selectedAddress.customer_address_id ?? null;
-      setSelectedId(id);
-    }
-  }, [selectedAddress]);
-
   const fetchAddresses = async (quoteId: string | null, customerId: string | null) => {
     try {
       let response = null;
+
+      // Pehle quote addresses fetch karna
       if (quoteId) {
         response = await axios.get(`${API_BASE_URL}/quotes/${quoteId}/addresses`);
       }
+
+      // Agar quote addresses empty hain aur customerId available hai, to fallback
       if ((!response || response.data.length === 0) && customerId) {
         response = await axios.get(`${API_BASE_URL}/customers/${customerId}/addresses`);
       }
+
       setAddresses(response?.data || []);
     } catch (error) {
       console.error("Error fetching addresses:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteAddress = async (addressId: number) => {
+    const quoteId = localStorage.getItem("quote_id");
+    if (!quoteId) return;
+
+    if (!confirm("Are you sure you want to delete this address?")) return;
+
+    try {
+      await axios.delete(`${API_BASE_URL}/quotes/${quoteId}/addresses/${addressId}`);
+      setAddresses(addresses.filter(addr => addr.quote_address_id !== addressId));
+
+      if (selectedId === addressId) {
+        setSelectedId(null);
+        onSelectAddress(null as any);
+      }
+    } catch (error) {
+      console.error("Failed to delete address:", error);
+      alert("Failed to delete address.");
     }
   };
 
@@ -70,27 +88,54 @@ export default function AddressList({ onSelectAddress, selectedAddress }: Addres
     onSelectAddress(address);
   };
 
-  if (loading) return <p>Loading addresses...</p>;
-  if (addresses.length === 0) return <p>No addresses found.</p>;
+  if (loading) return <p className="text-gray-600">Loading addresses...</p>;
+  if (addresses.length === 0) return <p className="text-gray-600">No addresses found.</p>;
 
   return (
     <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-      {addresses.map((address) => {
+      {addresses.map(address => {
         const id = address.quote_address_id ?? address.customer_address_id ?? 0;
+
         return (
-          <div key={id} className="bg-white p-4 rounded shadow flex justify-between items-start">
+          <div
+            key={id}
+            className="bg-white p-4 rounded shadow flex justify-between items-start"
+          >
             <div className="flex items-start gap-2">
-              <input type="radio" name="selectedAddress" checked={selectedId === id} onChange={() => handleSelect(address)} className="mt-1" />
+              <input
+                type="radio"
+                name="selectedAddress"
+                checked={selectedId === id}
+                onChange={() => handleSelect(address)}
+                className="mt-1"
+              />
               <div>
                 <h5 className="font-semibold">
-                  {address.first_name} {address.last_name}, {address.postal_code}{" "}
+                  {address.first_name} {address.last_name} , {address.postal_code}{" "}
                   <span className="p-2 bg-red-100 rounded">{address.address_type}</span>
                 </h5>
                 <p className="text-sm text-gray-600">
-                  {address.street_address}, {address.city}, {address.state}, {address.phone_no}
+                  {address.street_address}, {address.city}, {address.state} , {address.phone_no}
                 </p>
               </div>
             </div>
+
+            {address.quote_address_id && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => deleteAddress(address.quote_address_id!)}
+                  className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                >
+                  <Trash2 size={16} />
+                </button>
+                <button
+                  onClick={() => alert("Edit feature coming soon")}
+                  className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                >
+                  <Edit size={16} />
+                </button>
+              </div>
+            )}
           </div>
         );
       })}
