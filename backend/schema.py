@@ -474,3 +474,8 @@ class TaxClassUpdate(BaseModel):
     country_code: Optional[str] = None
     state_code: Optional[str] = None
     is_active: Optional[bool] = None
+
+
+
+
+    

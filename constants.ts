@@ -13,6 +13,7 @@ export const VERIFY_OTP_API = `${API_BASE_URL}/verify-otp`;
 export const PLACE_ORDER = `${API_BASE_URL}/place-order`;
 export const APPLY_COUPON = `${GET_QUOTES_API}/apply-coupon`;
 export const CANCEL_COUPON = `${GET_QUOTES_API}/cancel-coupon`;
+export const ORDERS_API_URL = `${API_BASE_URL}/orders`;
 
 
 

@@ -79,3 +79,8 @@ def delete_address_route(address_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Address not found")
     return {"message": "Address deleted successfully"}
+
+
+
+
+    
