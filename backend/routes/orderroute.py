@@ -137,3 +137,6 @@ def get_order_addresses_route(order_id: int, db: Session = Depends(get_db)):
     """Get all addresses for an order"""
     addresses = get_order_addresses(db, order_id)
     return addresses
+
+
+

@@ -77,31 +77,45 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // ----------------- Load Cart Items -----------------
-  const loadCartItems = useCallback(async () => {
-    if (!quoteId) {
-      setCartItems([]);
-      setLoading(false);
-      return;
+// ----------------- Load Cart Items -----------------
+const loadCartItems = useCallback(async () => {
+  if (!quoteId) {
+    setCartItems([]);
+    setLoading(false);
+    return;
+  }
+
+  try {
+    setLoading(true);
+    const response = await axios.get(`${GET_QUOTES_API}/${quoteId}`);
+
+    if (response.data?.is_active && Array.isArray(response.data.items)) {
+      setCartItems(response.data.items);
+      setQuote(response.data);
+    } else {
+      // Cart is not valid, reset
+      clearCart();
+      localStorage.removeItem("quote_id");
+      setQuoteId(null);
     }
-    try {
-      setLoading(true);
-      const response = await axios.get(`${GET_QUOTES_API}/${quoteId}`);
-      if (response.data?.is_active && Array.isArray(response.data.items)) {
-        setCartItems(response.data.items);
-        setQuote(response.data);
-      } else {
-        // If cart is invalid, reset
+  } catch (err: any) {
+    if (axios.isAxiosError(err)) {
+      if (err.response?.status === 404) {
+        console.warn("Cart not found (404). Resetting cart.");
         clearCart();
-        localStorage.removeItem('quote_id');
+        localStorage.removeItem("quote_id");
         setQuoteId(null);
+      } else {
+        console.error("Failed to load cart:", err.message);
       }
-    } catch (err) {
-      console.error('Failed to load cart:', err);
-    } finally {
-      setLoading(false);
+    } else {
+      console.error("Unexpected error:", err);
     }
-  }, [quoteId, clearCart]);
+  } finally {
+    setLoading(false);
+  }
+}, [quoteId, clearCart]);
+
 
   // ----------------- Qty Updates -----------------
   const updateQty = useCallback(
