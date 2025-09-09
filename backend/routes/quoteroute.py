@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
 from schema import QuoteCreateResponse, QuoteItemCreate, QuoteAddressCreate, QuoteResponse
-from quote_crud import create_quote, update_quote_item_quantity,get_quote, get_quotes, delete_quote, add_quote_item, remove_quote_item, add_quote_address, get_quote_addresses
+# Update this import
+from quote_crud import create_quote,get_quote_with_items, update_quote_item_quantity, get_quote, get_all_quotes, delete_quote, add_quote_item, remove_quote_item, add_quote_address, get_quote_addresses
 from typing import List
 from sqlalchemy.orm import joinedload
 from schema import QuoteItemQuantityUpdate,QuoteItemResponse # Make sure this import exists
@@ -23,19 +24,18 @@ def create_quote_route(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail= f"Internal server error -> {e}" )
 
 
-# Update your get_quote_route
-@router.get("/quotes/{quote_id}", response_model=QuoteResponse)   ####rute change for item detail response
-def quotes(quote_id: int, db: Session = Depends(get_db)):    ##along with qute detail
-    # Use the function that eager loads items
-    db_quote = get_quote(db, quote_id)  # This will now include items
+# Single quote with items
+@router.get("/quotes/{quote_id}", response_model=QuoteResponse)
+def get_quote_route(quote_id: int, db: Session = Depends(get_db)):
+    db_quote = get_quote_with_items(db, quote_id)  # Use the correct function
     if not db_quote:
         raise HTTPException(status_code=404, detail="Quote not found")
     return db_quote
 
-
+# All quotes list
 @router.get("/quotes", response_model=List[QuoteResponse])
-def get_quotes_route(db: Session = Depends(get_db)):
-    quotes = get_quotes(db)
+def get_all_quotes_route(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    quotes = get_all_quotes(db, skip=skip, limit=limit)  # Use the correct function
     return quotes
 
 @router.delete("/quotes/{quote_id}")
@@ -108,15 +108,6 @@ def update_item_quantity_route(
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
-
-
-
-# @router.put("/quote/address/update/{address_id}/", response_model=OrderAddressUpdate)
-# def update_order_address_route(address_id: int, address: OrderAddressUpdate, db: Session = Depends(get_db)):
-#     updated_address = update_order_address(db, address_id, address)
-#     if not updated_address:
-#         raise HTTPException(status_code=404, detail="Order address not found")
-#     return updated_address
 
 
 

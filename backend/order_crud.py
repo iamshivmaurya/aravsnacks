@@ -109,7 +109,6 @@ def place_order(db: Session, order_data: PlaceOrderRequest):
     db.commit()
     db.refresh(new_order)
 
-    # 6. Transfer Quote Items → Order Items
     quote_items = db.query(QuoteItem).filter(QuoteItem.quote_id == order_data.quote_id).all()
     for quote_item in quote_items:
         order_item = OrderItem(
@@ -122,6 +121,8 @@ def place_order(db: Session, order_data: PlaceOrderRequest):
             total_price=Decimal(quote_item.item_price or 0) * quote_item.item_qty,
             tax_percentage=Decimal(quote_item.tax_percentage or 0),
             tax_amount=Decimal(quote_item.item_tax or 0),
+            product_name=quote_item.product_name,  # ← NEW: Transfer product_name
+            row_total=Decimal(quote_item.row_total or 0)  # ← NEW: Transfer row_total
         )
         db.add(order_item)
 

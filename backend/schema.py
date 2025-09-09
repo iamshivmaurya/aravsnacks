@@ -209,6 +209,8 @@ class QuoteItemResponse(BaseModel):   ###this response add
     tax_percentage: float = 0.0
     created_at: datetime
     updated_at: datetime
+    product_name: Optional[str] = None  # ← NEW
+    row_total: Optional[float] = 0.0  # ← NEW
 
     class Config:
         from_attributes = True  # Allows ORM mode (formerly orm_mode)
@@ -261,6 +263,8 @@ class OrderItemResponse(BaseModel):
     total_price: Optional[float] = None
     tax_percentage: float = 0.0
     tax_amount: float = 0.0
+    product_name: Optional[str] = None  # ← NEW
+    row_total: Optional[float] = 0.0  # ← NEW
 
     class Config:
         from_attributes = True  # Enables ORM mode

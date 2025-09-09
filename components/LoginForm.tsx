@@ -1,8 +1,7 @@
 "use client";
 import axios from "axios";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { VERIFY_OTP_API, LOGIN_API, SINGUP_API } from '../constants';
-
 
 export type LoginData = {
   phone: string;
@@ -19,36 +18,78 @@ type LoginProps = {
 export default function LoginForm({ onSubmit }: LoginProps) {
   const [form, setForm] = useState<LoginData>({ 
     phone: "",
-     customer_id: "" ,
-     access_token:"",
-     first_name: "",
-     last_name: ""
-  
+    customer_id: "",
+    access_token:"",
+    first_name: "",
+    last_name: ""
   });
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [otp, setOtp] = useState("");
+  const [otpLength, setOtpLength] = useState(6); // Default OTP length
   const [generatedOtp, setGeneratedOtp] = useState("");
   const [generatedMessage, setGeneratedMessage] = useState("");
-  const [errorMsg, setErrorMsg] = useState(""); // Backend error दिखाने के लिए
-  const [successMsg, setSuccessMsg] = useState(""); // Backend SuccessMsg दिखाने के लिए
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+  const [loading, setLoading] = useState(false);
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Focus on first OTP input when step changes
+  useEffect(() => {
+    if (step === 'otp' && otpInputRefs.current[0]) {
+      otpInputRefs.current[0]?.focus();
+    }
+  }, [step]);
 
   // Handle phone input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     setErrorMsg("");  
-    setSuccessMsg(""); // इनपुट बदलते ही success भी हटे
+    setSuccessMsg("");
+  };
+
+  // Handle OTP input changes
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return; // Only allow numbers
+    
+    const newOtp = otp.split('');
+    newOtp[index] = value;
+    setOtp(newOtp.join(''));
+    
+    // Auto focus to next input
+    if (value && index < otpLength - 1) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      // Move focus to previous input on backspace
+      otpInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').slice(0, otpLength);
+    if (/^\d+$/.test(pastedData)) {
+      setOtp(pastedData);
+      // Focus the last input where the OTP was pasted
+      const lastIndex = Math.min(pastedData.length, otpLength) - 1;
+      otpInputRefs.current[lastIndex]?.focus();
+    }
   };
 
   // Step 1: Send OTP
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.phone || !form.first_name || !form.last_name) {
-      alert("Please fill all required fields");
+      setErrorMsg("Please fill all required fields");
       setSuccessMsg("");
       return;
     }
 
     try {
+      setLoading(true);
       const response = await axios.post(SINGUP_API, {
         phone: form.phone,
         first_name: form.first_name,
@@ -57,91 +98,95 @@ export default function LoginForm({ onSubmit }: LoginProps) {
 
       setGeneratedOtp(response.data.otp);  
       setGeneratedMessage(response.data.message);  
-      setErrorMsg(""); // success आने पर error हटाओ
-      // ✅ Show OTP after it's received
-     // alert(`Your OTP is: ${response.data.otp}`); // In production, send via SMS
+      setErrorMsg("");
+      
+      // Set OTP length based on the received OTP
+      if (response.data.otp) {
+        setOtpLength(response.data.otp.length);
+        setOtp(''); // Reset OTP
+      }
+      
       setStep("otp");
-      setErrorMsg(""); // success होने पर error साफ कर दो
     } catch (error: any) {
       console.error("Error sending OTP:", error);
-     // alert("Failed to send OTP. Please try again.");
-      setErrorMsg(error.response?.data?.detail);
-      setSuccessMsg(""); // error आने पर success हटाओ
-
-
+      setErrorMsg(error.response?.data?.detail || "Failed to send OTP");
+      setSuccessMsg("");
+    } finally {
+      setLoading(false);
     }
   };
 
   // Step 2: Verify OTP
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (otp.length !== otpLength) {
+      setErrorMsg(`Please enter the complete ${otpLength}-digit OTP`);
+      return;
+    }
 
     try {
+      setLoading(true);
       const response = await axios.post(VERIFY_OTP_API, {
         phone: form.phone,
         otp: otp,
       });
 
-      console.log("Backend response:", response.data); // ✅ check what comes from backend
+      console.log("Backend response:", response.data);
 
-      // Example response check
       if (response.data.customer_id) {
         console.log("Customer ID:", response.data.customer_id);
       } else {
         console.warn("Customer ID missing in response!");
       }
 
-
-
-      console.log("Access Token:", response.data.access_token);
-      //console.log("Access Token:", response.data.message);
       localStorage.setItem("access_token", response.data.access_token);
       
       setSuccessMsg(response.data.message);
-      setErrorMsg(""); // success पर error हटाओ
-      //alert(response.data.message);
+      setErrorMsg("");
+      
       onSubmit({
         phone: form.phone,
-        customer_id: response.data.customer_id, // <-- Send customer_id
-        access_token: response.data.access_token, // <-- Send customer_id
+        customer_id: response.data.customer_id,
+        access_token: response.data.access_token,
         first_name: form.first_name,
         last_name: form.last_name
-        
       });
     } catch (error: any) {
       console.error("Error verifying OTP:", error);
-     // alert("Failed to send OTP. Please try again.");
-      setErrorMsg(error.response?.data?.detail);
-      setSuccessMsg(""); // error पर success हटाओ
-     // alert("Invalid OTP. Please try again.");
+      setErrorMsg(error.response?.data?.detail || "Invalid OTP");
+      setSuccessMsg("");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-
-
-
-
-    
-    <div className="bg-white p-5 rounded-2xl shadow-md border">
-   {/* Error message */}
-   {errorMsg && (
-          <span className="block text-red-600 font-medium mb-2">
-            {errorMsg}
-          </span>
-        )}
+    <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
+      {/* Error message */}
+      {errorMsg && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md">
+          {errorMsg}
+        </div>
+      )}
       
       {/* Success/OTP message */}
       {(generatedOtp || successMsg) && (
-          <span className="block text-green-600 font-medium">
-            {successMsg || `${generatedMessage} and your OTP is: ${generatedOtp}`}
-          </span>
-        )}
+  <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md">
+    <div className="flex items-center justify-between">
+      <span>{successMsg || generatedMessage}</span>
+      {generatedOtp && (
+        <span className="font-mono bg-green-200 px-2 py-1 rounded">
+          {generatedOtp}
+        </span>
+      )}
+    </div>
+  </div>
+)}
 
-
-
-      <div className="space-y-4 p-4 bg-white shadow rounded">
-        <h2 className="text-lg font-semibold">Sign Up</h2>
+      <div className="space-y-4 p-4 bg-white rounded">
+        <h2 className="text-2xl font-bold text-center text-gray-800">Sign Up</h2>
+        
         {step === "phone" && (
           <form onSubmit={handleSendOtp} className="space-y-4">
             <input
@@ -149,7 +194,7 @@ export default function LoginForm({ onSubmit }: LoginProps) {
               placeholder="First Name"
               value={form.first_name}
               onChange={handleChange}
-              className="border-2 border-blue-500 p-2 w-full rounded"
+              className="border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 p-3 w-full rounded-lg outline-none transition"
               required
             />
             <input
@@ -157,47 +202,72 @@ export default function LoginForm({ onSubmit }: LoginProps) {
               placeholder="Last Name"
               value={form.last_name}
               onChange={handleChange}
-              className="border-2 border-blue-500 p-2 w-full rounded"
+              className="border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 p-3 w-full rounded-lg outline-none transition"
               required
             />
-
-
             <input
               name="phone"
               placeholder="Phone Number"
               value={form.phone}
               onChange={handleChange}
-              className="border-2 border-blue-500 p-2 w-full rounded "
+              className="border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 p-3 w-full rounded-lg outline-none transition"
               required
             />
             <button
               type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-black"
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold px-4 py-3 rounded-lg w-full transition"
             >
-              Send OTP
+              {loading ? 'Sending OTP...' : 'Send OTP'}
             </button>
           </form>
         )}
 
-
-
-
-
         {step === "otp" && (
           <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <input
-              placeholder="Enter OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-black"
-              required
-            />
+            <div className="text-center mb-4">
+              <p className="text-gray-600">Enter the {otpLength}-digit OTP sent to your phone</p>
+            </div>
+            
+            <div className="flex justify-center space-x-2 mb-4">
+              {Array.from({ length: otpLength }).map((_, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={1}
+                  value={otp[index] || ''}
+                  onChange={(e) => handleOtpChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  onPaste={handlePaste}
+                  ref={(el) => (otpInputRefs.current[index] = el)}
+                  className="w-12 h-12 text-center text-xl font-semibold border border-gray-300 rounded-md focus:border-green-500 focus:ring-2 focus:ring-green-200 outline-none transition"
+                />
+              ))}
+            </div>
+            
             <button
               type="submit"
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              disabled={loading || otp.length !== otpLength}
+              className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold px-4 py-3 rounded-lg w-full transition"
             >
-              Verify OTP
+              {loading ? 'Verifying...' : 'Verify OTP'}
             </button>
+            
+            <div className="text-center">
+              <button 
+                type="button" 
+                onClick={() => {
+                  setStep('phone');
+                  setErrorMsg("");
+                  setSuccessMsg("");
+                }}
+                className="text-blue-600 hover:text-blue-800 text-sm"
+              >
+                Change Phone Number
+              </button>
+            </div>
           </form>
         )}
       </div>
