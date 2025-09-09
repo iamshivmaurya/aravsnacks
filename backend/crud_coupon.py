@@ -39,7 +39,6 @@ def delete_coupon(db: Session, coupon_id: int):
     return False
 
 
-
 def apply_coupon_to_quote(db: Session, quote_id: int, coupon_code: str):
     # 1. Get Quote
     quote = db.query(Quote).filter(Quote.quote_id == quote_id).first()
@@ -65,17 +64,32 @@ def apply_coupon_to_quote(db: Session, quote_id: int, coupon_code: str):
 
     subtotal = Decimal(0)
     total_discount = Decimal(0)
+    total_tax = Decimal(0)
 
-    # 5. Apply Discounts
+    # 5. Apply Discounts and Recalculate Taxes
     if coupon.discount_type.lower() == "fixed":
-        # spread fixed discount equally
-        per_item_discount = Decimal(coupon.discount_amount) / len(quote_items)
-
+        # Calculate total subtotal first
         for item in quote_items:
             line_price = Decimal(item.item_price) * item.item_qty
-            item.item_discount = per_item_discount
             subtotal += line_price
-            total_discount += per_item_discount
+
+        # Spread fixed discount proportionally
+        for item in quote_items:
+            line_price = Decimal(item.item_price) * item.item_qty
+            if subtotal > 0:
+                item_discount = (line_price / subtotal) * Decimal(coupon.discount_amount)
+            else:
+                item_discount = Decimal(0)
+
+            item.item_discount = item_discount
+            total_discount += item_discount
+
+            # ✅ RECALCULATE TAX on discounted amount
+            discounted_amount = line_price - item_discount
+            item.item_tax = (discounted_amount * Decimal(item.tax_percentage)) / 100
+            item.row_total = discounted_amount + item.item_tax
+
+            total_tax += item.item_tax
 
     elif coupon.discount_type.lower() == "percent":
         for item in quote_items:
@@ -84,26 +98,33 @@ def apply_coupon_to_quote(db: Session, quote_id: int, coupon_code: str):
             item.item_discount = item_discount
             subtotal += line_price
             total_discount += item_discount
+
+            # ✅ RECALCULATE TAX on discounted amount
+            discounted_amount = line_price - item_discount
+            item.item_tax = (discounted_amount * Decimal(item.tax_percentage)) / 100
+            item.row_total = discounted_amount + item.item_tax
+
+            total_tax += item.item_tax
     else:
         raise ValueError("Invalid discount type")
 
     # 6. Update Quote Totals
     quote.subtotal = subtotal
     quote.discount = total_discount
-    quote.grand_total = subtotal - total_discount
+    quote.total_tax = total_tax
+    quote.grand_total = subtotal - total_discount + total_tax  # ✅ Include tax
     quote.coupon_code = coupon.coupon_code
 
     db.commit()
     db.refresh(quote)
 
     return {
-        "subtotal": str(subtotal),
-        "discount": str(total_discount),
-        "grand_total": str(quote.grand_total),
+        "subtotal": float(subtotal),
+        "discount": float(total_discount),
+        "total_tax": float(total_tax),
+        "grand_total": float(quote.grand_total),
         "coupon_code": coupon.coupon_code,
     }
-
-
 
 
 def remove_coupon_from_quote(db: Session, quote_id: int):
@@ -118,26 +139,35 @@ def remove_coupon_from_quote(db: Session, quote_id: int):
         raise ValueError("Quote has no items")
 
     subtotal = Decimal(0)
+    total_tax = Decimal(0)
 
-    # 3. Reset discounts on each item
+    # 3. Reset discounts and recalculate taxes on full amount
     for item in quote_items:
         line_price = Decimal(item.item_price) * item.item_qty
         item.item_discount = Decimal(0)  # ✅ clear per-item discount
+
+        # ✅ RECALCULATE TAX on full amount (no discount)
+        item.item_tax = (line_price * Decimal(item.tax_percentage)) / 100
+        item.row_total = line_price + item.item_tax
+
         subtotal += line_price
+        total_tax += item.item_tax
 
     # 4. Update Quote Totals (no discount)
     quote.subtotal = subtotal
     quote.discount = Decimal(0)
-    quote.grand_total = subtotal
+    quote.total_tax = total_tax
+    quote.grand_total = subtotal + total_tax  # ✅ Include tax
     quote.coupon_code = None  # ✅ remove coupon reference
 
     db.commit()
     db.refresh(quote)
 
     return {
-        "subtotal": str(subtotal),
-        "discount": "0",
-        "grand_total": str(quote.grand_total),
+        "subtotal": float(subtotal),
+        "discount": 0,
+        "total_tax": float(total_tax),
+        "grand_total": float(quote.grand_total),
         "coupon_code": None,
     }
 

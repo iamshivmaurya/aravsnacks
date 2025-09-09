@@ -141,6 +141,8 @@ class QuoteItem(Base):
     tax_percentage = Column(Float, default=0.0)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    product_name = Column(String(255), nullable=True)  # ← NEW: Product name
+    row_total = Column(Float, default=0.0)  # ← NEW: Row total (quantity * price - discount)
 
     quote = relationship("Quote", back_populates="items")
     #product = relationship("Product", back_populates="quote_items")
@@ -202,6 +204,8 @@ class OrderItem(Base):   #############
     total_price = Column(Float, nullable=True)
     tax_percentage = Column(Float, default=0.0)
     tax_amount = Column(Float, default=0.0)
+    product_name = Column(String(255), nullable=True)  # ← NEW: Product name
+    row_total = Column(Float, default=0.0)  # ← NEW: Row total (quantity * price - discount)
 
     order = relationship("Order", back_populates="items")
     
