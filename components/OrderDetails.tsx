@@ -1,7 +1,7 @@
 interface OrderItem {
   order_item_id: number;
   sku: string;
-  name: string;
+  item_name: string;
   quantity: number;
   unit_price: number;
   total_price: number;
@@ -64,7 +64,7 @@ export default function OrderDetails({ order }: { order: OrderData }) {
           <tbody>
             {order.items.map((item) => (
               <tr key={item.order_item_id} className="border-b">
-                <td className="p-2">{item.name || item.sku}</td>
+                <td className="p-2">{item.item_name || item.sku}</td>
                 <td className="p-2">{item.quantity}</td>
                 <td className="p-2">₹{item.unit_price}</td>
                 <td className="p-2">₹{item.total_price}</td>
