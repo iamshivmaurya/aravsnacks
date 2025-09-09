@@ -87,16 +87,17 @@ async def generate_invoice(order_id: int):
     story.append(Spacer(1, 30))
     
     # Items table
-    items_data = [['Product', 'SKU', 'Qty', 'Unit Price', 'Discount', 'Total']]
+    items_data = [['Product', 'P Name','SKU', 'Qty', 'Unit Price', 'Discount', 'Total']]
     
     for item in order_data['items']:
         items_data.append([
             f"Product {item['product_id']}",
+            item['product_name'],
             item['sku'],
             str(item['quantity']),
-            f"₹{item['unit_price']}",
-            f"₹{item['discount_amount']}",
-            f"₹{item['total_price']}"
+            f"Rs. {item['unit_price']}",
+            f"Rs. {item['discount_amount']}",
+            f"Rs. {item['total_price']}"
         ])
     
     # Create table
@@ -119,11 +120,11 @@ async def generate_invoice(order_id: int):
     
     # Summary
     summary_data = [
-        ['Sub Total:', f"₹{order_data['sub_total']}"],
-        ['Shipping:', f"₹{order_data['shipping_amount']}"],
-        ['Tax:', f"₹{order_data['total_tax_amount']}"],
-        ['Discount:', f"-₹{order_data['discount_amount']}"],
-        ['GRAND TOTAL:', f"₹{order_data['grand_total']}"]
+        ['Sub Total:', f"Rs. {order_data['sub_total']}"],
+        ['Shipping:', f"Rs. {order_data['shipping_amount']}"],
+        ['Tax:', f"Rs. {order_data['total_tax_amount']}"],
+        ['Discount:', f"Rs. {order_data['discount_amount']}"],
+        ['GRAND TOTAL:', f"Rs. {order_data['grand_total']}"]
     ]
     
     summary_table = Table(summary_data, colWidths=[100, 100])
