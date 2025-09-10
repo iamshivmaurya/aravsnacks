@@ -16,10 +16,8 @@ type Product = {
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart, cartItems, increaseQty, decreaseQty } = useCart();
 
-  const item = cartItems.find((ci) => ci.product_id === product.id);
-
-  console.log("item ==> ", item);
-
+  const item = cartItems.find((ci) => ci.product_id === product.id && ci.item_qty > 0);
+  console.log("item item ==> ", item);
 
   const imageSrc = product.image_url.startsWith('/')
     ? product.image_url

@@ -103,15 +103,19 @@ async def verify_otp(request: OTPVerifyRequest, db: Session = Depends(get_db)):
         db.commit()
 
         # Create JWT token
-        token_data = {"sub": request.phone, "customer_id": customer.customer_id}
+        token_data = {
+            "phone": request.phone, 
+            "customer_id": customer.customer_id, 
+            "first_name": customer.first_name,
+            "last_name": customer.last_name
+            }
         access_token = create_access_token(token_data)
 
         return {
             "message": "Login successful",
             "access_token": access_token,
             "token_type": "bearer",
-            "customer_id": customer.customer_id,
-            "is_profile_complete": bool(customer.customer_name and customer.email)  # Check if profile complete
+            "customer_id": customer.customer_id
         }
 
     raise HTTPException(status_code=400, detail="Verification failed")

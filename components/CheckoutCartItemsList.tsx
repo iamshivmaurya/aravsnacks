@@ -5,6 +5,7 @@ import { Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from './CartContext';
 import axios from 'axios';
 import {API_BASE_URL, GET_QUOTES_API} from  "../constants"
+import { useRouter } from "next/navigation";
 
 interface QuoteItem {
   item_id: number;
@@ -36,7 +37,7 @@ export default function CartItemsList() {
       setLoading(false);
       return;
     }
-
+    
     async function fetchQuote() {
       try {
         const response = await axios.get(`${GET_QUOTES_API}/${storedQuoteId}`);
@@ -91,7 +92,7 @@ export default function CartItemsList() {
   }
 
   if (itemsToShow.length === 0) {
-    return <p className="text-gray-600">Your cart is empty.</p>;
+    return null; // avoid rendering UI before redirect
   }
 
   return (
