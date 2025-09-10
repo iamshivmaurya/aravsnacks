@@ -24,6 +24,7 @@ export default function CartItemsList() {
   const [loading, setLoading] = useState(true);
   const [quoteId, setQuoteId] = useState<string | null>(null);
   const [grandTotal, setGrandTotal] = useState<number>(0);
+  const [totalTax, setTotalTax] = useState<number>(0);
   const [subtotal, setSubtotal] = useState<number>(0);
   const [totalDiscount, setTotalDiscount] = useState<number>(0);
 
@@ -43,6 +44,7 @@ export default function CartItemsList() {
         setGrandTotal(response.data.grand_total || 0);
         setSubtotal(response.data.subtotal || 0);
         setTotalDiscount(response.data.discount || 0);
+        setTotalTax(response.data.total_tax || 0);
       } catch (error) {
         console.error("Failed to fetch quote items:", error);
       } finally {
@@ -143,6 +145,9 @@ export default function CartItemsList() {
       </div>
       <div className="text-right font-bold text-x mt-4">
         Discount: ₹{totalDiscount}
+      </div>
+      <div className="text-right font-bold text-x mt-4">
+       Total Tax: ₹{totalTax}
       </div>
       <div className="text-right font-bold text-x mt-4">
         Grand Total: ₹{grandTotal}
