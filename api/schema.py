@@ -3,13 +3,34 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 
 
+class AdminCreate(BaseModel):
+    id: Optional[int] = None  # Make customer_id optional
+    user_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    user_type: Optional[str] = None
+    is_active: Optional[bool] = None
+    created_at: datetime # Phone is required
+
+
+
+
+class AdminResponse(BaseModel):
+    id: Optional[int] = None  # Make customer_id optional
+    user_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+    user_type: Optional[str] = None
+    is_active: Optional[bool] = None
+    created_at: datetime # Phone is required
+    
+
+
+
+
 class OrderFromQuoteCreate(BaseModel):
     customer_id: int
     quote_id: int
-
-
-
-
 
 
 # Login Schemas

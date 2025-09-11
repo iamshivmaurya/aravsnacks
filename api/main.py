@@ -29,6 +29,7 @@ app.include_router(orderroute.router, tags=["Order Route"])
 app.include_router(couponroute.router, tags=["Coupon Route"])
 app.include_router(taxclassroute.router, tags=["Tax Route"])
 app.include_router(order_invoice.router, tags=["Order Invoice"])
+app.include_router(adminroute.router, tags=["admin route"])
 
 @app.get("/")
 def read_root():

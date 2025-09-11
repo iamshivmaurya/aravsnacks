@@ -3,6 +3,20 @@ from sqlalchemy import Column, Integer, Text, Float, String, Boolean, DateTime, 
 from datetime import datetime
 from sqlalchemy.orm import relationship
 
+#rajesh
+
+class AdminLogin(Base):
+    __tablename__ = "admin_login"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_name = Column(String(50), nullable=True)
+    password = Column(String(255), nullable=True)
+    user_type = Column(String(50), nullable=True)
+    is_active = Column(Boolean, default=True)
+
+ 
+    created_at = Column(DateTime, default=datetime.now)
+
 
 
 class Customer(Base):

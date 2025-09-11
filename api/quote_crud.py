@@ -228,6 +228,10 @@ def update_quote_item_quantity(db: Session, quote_id: int, item_id: int, new_qty
     item = db.query(QuoteItem).filter(QuoteItem.item_id == item_id, QuoteItem.quote_id == quote_id).first()
     if not item:
         return None
+    # remove item from cart if 0 qty 
+    if new_qty <= 0 and remove_quote_item(db, quote_id, item_id):
+        return {"message":"Item removed from cart."}
+        
 
     # Store old values
     old_qty = item.item_qty
