@@ -3,7 +3,7 @@
 import { useCart } from '../components/CartContext';
 import { Minus, Plus } from 'lucide-react';
 import Image from 'next/image';
-
+import Link from 'next/link';
 
 type Product = {
   id: number;
@@ -16,8 +16,12 @@ type Product = {
 export default function ProductCard({ product }: { product: Product }) {
   const { addToCart, cartItems, increaseQty, decreaseQty } = useCart();
 
+<<<<<<< HEAD
+  const item = cartItems.find((ci) => ci.product_id === product.id);
+=======
   const item = cartItems.find((ci) => ci.product_id === product.id && ci.item_qty > 0);
   console.log("item item ==> ", item);
+>>>>>>> aef45d47f4d1f5e83d8fc20bc0e187ebe51c1019
 
   const imageSrc = product.image_url.startsWith('/')
     ? product.image_url
@@ -25,23 +29,33 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <div className="bg-white border rounded-lg shadow p-4 flex flex-col">
-      <div className="w-full h-40 relative">
+      {/* ✅ Image clickable */}
+      <Link href={`/product_details/${product.id}`} className="w-full h-40 relative block">
+
+     
+        
         <Image
           src={imageSrc}
           alt={product.name}
           fill
           className="object-cover rounded"
         />
-      </div>
+      </Link>
 
-      <h2 className="text-lg font-bold mt-2">{product.name}</h2>
+      {/* ✅ Name clickable */}
+      <Link href={`/product_details/${product.id}`}>
+        <h2 className="text-lg font-bold mt-2 hover:text-blue-600 transition">
+          {product.name}
+        </h2>
+      </Link>
+
       <p className="text-sm text-gray-600">{product.description}</p>
       <p className="font-semibold mt-1">₹{product.product_price}</p>
 
       {/* ✅ If item is already in cart, show qty inline */}
       {!item ? (
         <button
-           onClick={() => addToCart(product) }
+          onClick={() => addToCart(product)}
           className="bg-green-600 text-white px-4 py-1 rounded mt-2 hover:bg-green-700"
         >
           Add to Cart
