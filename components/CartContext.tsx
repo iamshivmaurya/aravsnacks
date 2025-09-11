@@ -29,11 +29,13 @@ export type CartItem = {
   item_price: number;
   name: string;
   image_url: string;
+  item_name: string;
 };
 
 export type Quote = {
   quote_id: number;
   coupon_code: string;
+  subtotal: number;
 };
 
 
@@ -47,7 +49,7 @@ type CartContextType = {
   clearCart: () => void;
   cartTotal: number;
   loading: boolean;
-  quote: Quote
+  quote: Quote | null
 };
 
 // ================== Context ==================
@@ -90,13 +92,18 @@ const loadCartItems = useCallback(async () => {
     const response = await axios.get(`${GET_QUOTES_API}/${quoteId}`);
 
     if (response.data?.is_active && Array.isArray(response.data.items)) {
-      setCartItems(response.data.items);
-      setQuote(response.data);
+      if(response.data.items.length > 0){
+          setCartItems(response.data.items);
+          setQuote(response.data);
+        }else{
+          setCartItems([]);
+        }
     } else {
       // Cart is not valid, reset
       clearCart();
       localStorage.removeItem("quote_id");
       setQuoteId(null);
+      setLoading(false);
     }
   } catch (err: any) {
     if (axios.isAxiosError(err)) {
@@ -133,13 +140,14 @@ const loadCartItems = useCallback(async () => {
 
         if (response.status === 200 || response.status === 201) {
           toast.success('Cart updated!');
+           await loadCartItems();
         } else {
           toast.error('Failed to update quantity');
         }
       } catch (err) {
         console.error('Failed to update quantity:', err);
         toast.error('Something went wrong');
-        loadCartItems();
+        await loadCartItems();
       }
     },
     [quoteId, loadCartItems]

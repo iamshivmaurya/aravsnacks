@@ -82,7 +82,7 @@ def get_quote_addresses_route(quote_id: int, db: Session = Depends(get_db)):
     return addresses
 
 
-@router.put("/quotes/{quote_id}/items/{item_id}/quantity", response_model=QuoteItemResponse)
+@router.put("/quotes/{quote_id}/items/{item_id}/quantity")
 def update_item_quantity_route(
         quote_id: int,
         item_id: int,
@@ -93,7 +93,7 @@ def update_item_quantity_route(
         # Now you can directly access the quantity
         new_qty = quantity_data.item_qty
 
-        if new_qty < 1:
+        if new_qty < 0:
             raise HTTPException(status_code=400, detail="Quantity must be at least 1")
 
         # Your update logic here

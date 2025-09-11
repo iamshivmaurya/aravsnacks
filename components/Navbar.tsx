@@ -5,33 +5,51 @@ import { useRouter } from 'next/navigation';
 import LoginForm from './LoginForm';
 import { useCart } from '../components/CartContext';
 import { ShoppingCart, User, LogOut, LogIn, List } from 'lucide-react';
+import { jwtDecode } from 'jwt-decode';
+
+type JwtPayload = {
+  first_name: string;        // or "id" depending on your backend
+  last_name: string;    
+  phone?: string;     // adjust fields based on what you put in token
+  exp?: number;       // expiration timestamp
+};
 
 export default function Navbar() {
   const { cartItems } = useCart();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showLoginForm, setShowLoginForm] = useState(false);
-  const [phone, setPhone] = useState<string | null>(null);
-  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
-    const storedPhone = localStorage.getItem('phone');
-    const storedCustomerId = localStorage.getItem('customer_id');
 
     if (token) {
-      setIsLoggedIn(true);
-      setPhone(storedPhone);
-      setCustomerId(storedCustomerId);
+      try {
+        const decoded: JwtPayload = jwtDecode(token);
+
+        // Check expiration (optional)
+        if (decoded.exp && decoded.exp * 1000 < Date.now()) {
+          localStorage.removeItem('access_token');
+          setIsLoggedIn(false);
+          return;
+        }
+
+        setIsLoggedIn(true);
+
+        // choose what to display: username or phone
+        setUsername(decoded.first_name || decoded.phone || null);
+      } catch (err) {
+        console.error("Invalid token", err);
+        setIsLoggedIn(false);
+      }
     }
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('access_token');
-    localStorage.removeItem('phone');
-    localStorage.removeItem('customer_id');
     setIsLoggedIn(false);
+    setUsername(null);
     router.push('/');
   };
 
@@ -64,7 +82,7 @@ export default function Navbar() {
             onClick={() => setShowProfile(!showProfile)}
             className="flex items-center gap-2 bg-green-700 px-3 py-1 rounded hover:bg-green-800"
           >
-            <User size={18} /> {isLoggedIn ? phone : "Account"}
+            <User size={18} /> {isLoggedIn ? username : "Account"}
           </button>
 
           {/* Dropdown */}
@@ -111,8 +129,6 @@ export default function Navbar() {
           )}
         </div>
       </div>
-
-   
     </nav>
   );
 }

@@ -12,7 +12,14 @@ import { useCart } from '../../components/CartContext';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { quote } = useCart();
+  const { quote, cartItems } = useCart();
+
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      router.push("/cart"); // or "/products" if you prefer
+    }
+  }, [cartItems, router]);
+
   const [shippingAddress, setShippingAddress] = useState<ShippingAddressData | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [phone, setPhone] = useState("");
