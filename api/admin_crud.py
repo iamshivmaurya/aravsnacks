@@ -9,7 +9,6 @@ def create_admin(db: Session, admin: AdminCreate):
     Create a new admin in the database
     """
     new_admin= AdminLogin(
-        id=admin.id,
         user_name=admin.user_name,
         password=admin.password,
         user_type=admin.user_type,
@@ -24,5 +23,8 @@ def create_admin(db: Session, admin: AdminCreate):
 
 
 def get_admin(db: Session, skip: int = 0, limit: int = 100):
-    """Get multiple products with pagination"""
     return db.query(AdminLogin).offset(skip).limit(limit).all()
+
+
+# def get_all_quotes(db: Session, skip: int = 0, limit: int = 100):
+#     return db.query(Quote).offset(skip).limit(limit).all()

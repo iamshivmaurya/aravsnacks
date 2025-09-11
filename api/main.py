@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import login, categoryroute, productroute, customerroute, quoteroute, orderroute,couponroute,taxclassroute, order_invoice
+from routes import login, categoryroute, productroute, customerroute, quoteroute, orderroute,couponroute,taxclassroute, order_invoice,adminroute
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()

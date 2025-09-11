@@ -4,7 +4,7 @@ from typing import Optional, List
 
 
 class AdminCreate(BaseModel):
-    id: Optional[int] = None  # Make customer_id optional
+    
     user_name: Optional[str] = None
     email: Optional[EmailStr] = None
     password: Optional[str] = None
@@ -25,7 +25,12 @@ class AdminResponse(BaseModel):
     created_at: datetime # Phone is required
     
 
-
+class SignupRequestAdmin(BaseModel):
+    user_name:[str] 
+    password:int
+    
+    class Config:
+        from_attributes = True
 
 
 class OrderFromQuoteCreate(BaseModel):
