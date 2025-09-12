@@ -26,7 +26,7 @@ class AdminResponse(BaseModel):
     
 
 class SignupRequestAdmin(BaseModel):
-    user_name:[str] 
+    user_name: str 
     password:int
     
     class Config:

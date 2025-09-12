@@ -19,7 +19,9 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-gray-100">
         <CartProvider>
-          <Navbar />
+        <div className="fixed top-0 left-0 w-full z-50">
+            <Navbar />
+          </div>
           <Toaster position="top-right" />
           <main className="p-4 max-w-7xl mx-auto">{children}</main>
         </CartProvider>
