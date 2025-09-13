@@ -1,6 +1,7 @@
 ﻿from datetime import datetime
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
+from datetime import datetime  #########################################
 
 
 # class AdminCreate(BaseModel):
@@ -31,12 +32,17 @@ from typing import Optional, List
 
 #-------------------------------  Admin Login Response rajesh  -------------------------------------
 
-# In your models file (likely models.py or schemas.py)
 
+
+
+
+#######################################################
 class AdminLoginResponse(BaseModel):
     message: str
     user_name: Optional[str] = None  # Make optional if not always needed
     user_type: Optional[str] = None  # Make optional if not always needed
+    access_token: str  # Make sure this field exists
+    token_type: str 
     
     class Config:
         from_attributes = True
@@ -546,4 +552,7 @@ class ReviewStatsResponse(BaseModel):
     average_rating: float
     total_reviews: int
 
-    
+    ########################################################
+
+
+
