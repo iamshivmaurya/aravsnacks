@@ -1,28 +1,34 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from schema import AdminCreate,AdminResponse
-from admin_crud import create_admin,get_admin
+from model import AdminLogin 
+from schema import AdminLoginRequest,AdminLoginResponse
+
 from typing import List
 
 router = APIRouter()
 
 
-@router.post("/admin", response_model=AdminResponse)
-def create_admin_route(admin: AdminCreate, db: Session = Depends(get_db)):
-    """Create a new order manually"""
-    try:
-        db_admin= create_admin(db, admin)
-        return db_admin
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+@router.post("/admin/login")
+async def admin_login(login_data: AdminLoginRequest, db: Session = Depends(get_db)):
+    admin_db = db.query(AdminLogin).filter(AdminLogin.user_name == login_data.user_name).first()
 
-
-
-
-@router.get("/admin", response_model=List[AdminResponse])
-def get_admin_route(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Get list of orders"""
-    admin = get_admin(db, skip=skip, limit=limit)
-    return admin
-
+    if not admin_db:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Admin username not found."
+        )
+    
+    if admin_db.password != str(login_data.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password."
+        )
+    
+    # Return ALL required fields from AdminLoginResponse
+    return AdminLoginResponse(
+        message="Login successful!",
+        user_name=admin_db.user_name,    # Add this
+        user_type=admin_db.user_type     # Add this
+        # Don't include password - it's a security risk!
+    )
