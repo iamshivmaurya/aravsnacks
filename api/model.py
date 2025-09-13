@@ -280,3 +280,14 @@ class TaxClass(Base):
 
 
 
+class ProductReview(Base):
+    __tablename__ = "product_reviews"
+
+    review_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
+    customer_phone = Column(String(20), nullable=False)
+    customer_name = Column(String(100), nullable=True)
+    rating = Column(Float, nullable=False)
+    comment = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
