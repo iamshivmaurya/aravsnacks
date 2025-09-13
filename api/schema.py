@@ -506,6 +506,31 @@ class TaxClassUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 
+# Minimal schemas without any complex configurations
+class ReviewCreate(BaseModel):
+    product_id: int
+    customer_phone: str
+    rating: float
+    comment: Optional[str] = None
 
+class ReviewUpdate(BaseModel):
+    rating: Optional[float] = None
+    comment: Optional[str] = None
+
+class ReviewResponse(BaseModel):
+    review_id: int
+    product_id: int
+    customer_phone: str
+    rating: float
+    comment: Optional[str]
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class ReviewStatsResponse(BaseModel):
+    product_id: int
+    average_rating: float
+    total_reviews: int
 
     
