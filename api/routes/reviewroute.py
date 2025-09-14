@@ -4,13 +4,29 @@ from database import get_db
 from schema import ReviewCreate, ReviewUpdate, ReviewResponse, ReviewStatsResponse
 from review_crud import create_review, get_review, get_product_reviews, get_review_stats, update_review, delete_review, get_customer_reviews
 from typing import List
+from .login import get_current_customer  # Import from where you defined it
 
 router = APIRouter()
 
+"""
 @router.post("/", response_model=ReviewResponse)
 def create_review_endpoint(review: ReviewCreate, db: Session = Depends(get_db)):
     try:
         db_review = create_review(db, review)
+        return db_review
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")"""
+
+@router.post("/", response_model=ReviewResponse)
+def create_review_endpoint(
+    review: ReviewCreate,
+    db: Session = Depends(get_db),
+    customer = Depends(get_current_customer)  # Add this dependency
+):
+    try:
+        db_review = create_review(db, review, customer)  # Pass customer object
         return db_review
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -46,6 +62,6 @@ def delete_review_endpoint(review_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Review not found")
     return {"message": "Review deleted successfully"}
 
-@router.get("/customer/{customer_phone}", response_model=List[ReviewResponse])
-def get_customer_reviews_endpoint(customer_phone: str, db: Session = Depends(get_db)):
-    return get_customer_reviews(db, customer_phone)
+@router.get("/customer/{customer_id}", response_model=List[ReviewResponse])
+def get_customer_reviews_endpoint(customer_id: int, db: Session = Depends(get_db)):
+    return get_customer_reviews(db, customer_id)
