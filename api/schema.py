@@ -1,36 +1,55 @@
 ﻿from datetime import datetime
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
+from datetime import datetime  #########################################
 
 
-class AdminCreate(BaseModel):
+# class AdminCreate(BaseModel):
     
-    user_name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
-    user_type: Optional[str] = None
-    is_active: Optional[bool] = None
-    created_at: datetime # Phone is required
+#     user_name: Optional[str] = None
+#     first_name: Optional[str] = None
+#     last_name: Optional[str] = None
+#     email: Optional[EmailStr] = None
+#     password: Optional[str] = None
+#     user_role: Optional[str] = None
+#     is_active: Optional[bool] = None
+#     created_at: datetime # Phone is required
 
 
 
 
-class AdminResponse(BaseModel):
-    id: Optional[int] = None  # Make customer_id optional
-    user_name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
-    user_type: Optional[str] = None
-    is_active: Optional[bool] = None
-    created_at: datetime # Phone is required
+# class AdminResponse(BaseModel):
+#     id: Optional[int] = None  # Make customer_id optional
+#     user_name: Optional[str] = None
+#     first_name: str
+#     last_name:str
+#     email: Optional[EmailStr] = None
+#     password: Optional[str] = None
+#     user_role: Optional[str] = None
+#     is_active: Optional[bool] = None
+#     created_at: datetime # Phone is required
     
 
-class SignupRequestAdmin(BaseModel):
-    user_name:str
-    password:int
+#-------------------------------  Admin Login Response rajesh  -------------------------------------
+
+
+
+
+
+#######################################################
+class AdminLoginResponse(BaseModel):
+    message: str
+    user_name: Optional[str] = None  # Make optional if not always needed
+    user_type: Optional[str] = None  # Make optional if not always needed
+    access_token: str  # Make sure this field exists
+    token_type: str 
     
     class Config:
         from_attributes = True
+
+class AdminLoginRequest(BaseModel):  #AdminLoginRequest
+    user_name:str 
+    password:str
 
 
 class OrderFromQuoteCreate(BaseModel):
@@ -533,4 +552,7 @@ class ReviewStatsResponse(BaseModel):
     average_rating: float
     total_reviews: int
 
-    
+    ########################################################
+
+
+

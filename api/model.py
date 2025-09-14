@@ -10,6 +10,7 @@ class AdminLogin(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_name = Column(String(50), nullable=True)
+    email = Column(String(50), nullable=True)
     password = Column(String(255), nullable=True)
     user_type = Column(String(50), nullable=True)
     is_active = Column(Boolean, default=True)
@@ -115,6 +116,7 @@ class Product(Base):
     image_url = Column(String(250), nullable=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+ 
 
 
 class Quote(Base):

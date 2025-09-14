@@ -1,28 +1,66 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database import get_db
-from schema import AdminCreate,AdminResponse
-from admin_crud import create_admin,get_admin
+from model import AdminLogin 
+from schema import AdminLoginRequest,AdminLoginResponse
 from typing import List
+from jose import jwt,JWTError
+from datetime import datetime, timedelta
+#######
+from fastapi.security import OAuth2PasswordBearer
+
+
+
+
+
+
 
 router = APIRouter()
 
+SECRET_KEY = "ABC123"
+ALGORITHM = "HS256"
 
-@router.post("/admin", response_model=AdminResponse)
-def create_admin_route(admin: AdminCreate, db: Session = Depends(get_db)):
-    """Create a new order manually"""
-    try:
-        db_admin= create_admin(db, admin)
-        return db_admin
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
 
 
-@router.get("/admin", response_model=List[AdminResponse])
-def get_admin_route(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Get list of orders"""
-    admin = get_admin(db, skip=skip, limit=limit)
-    return admin
+
+
+@router.post("/admin/login")
+async def admin_login(login_data: AdminLoginRequest, db: Session = Depends(get_db)):
+    admin_db = db.query(AdminLogin).filter(AdminLogin.user_name == login_data.user_name).first()
+
+    if not admin_db:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Admin username not found."
+        )
+    
+    if admin_db.password != str(login_data.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid password."
+        )
+      # Create JWT token
+    token_data = {
+    "sub": admin_db.user_name,  # Use 'sub' for subject (standard JWT)
+    "user_type": admin_db.user_type,
+    }
+    access_token = create_access_token(token_data)
+
+
+    # Return ALL required fields from AdminLoginResponse
+    return AdminLoginResponse(
+        message="Login successful!",
+        user_name=admin_db.user_name,
+        user_type=admin_db.user_type,
+        access_token=access_token,  # Fixed: removed quotes
+        token_type="bearer"  # Added token type
+    )
+#####################################################
+
 
