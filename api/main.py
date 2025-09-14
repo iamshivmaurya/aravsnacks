@@ -2,8 +2,10 @@ from fastapi import FastAPI
 from routes import login, categoryroute, productroute, customerroute, quoteroute, orderroute,couponroute,taxclassroute, order_invoice,adminroute,reviewroute
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+from fastapi.staticfiles import StaticFiles
 
+app = FastAPI()
+app.mount("/media", StaticFiles(directory="media"), name="media")
 origins = [
     "http://localhost:3000",   # React/Next.js local
     "http://127.0.0.1:8000",

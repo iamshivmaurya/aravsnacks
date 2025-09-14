@@ -25,7 +25,7 @@ def create_product(db: Session, product: CreateProduct):
         meta_description=product.meta_description,
         tax_class_id=product.tax_class_id,
         image_url=product.image_url,
-        product_created=datetime.now()
+       #product_created=datetime.now()
     )
 
     db.add(new_product)

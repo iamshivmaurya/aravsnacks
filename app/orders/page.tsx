@@ -80,7 +80,7 @@ export default function OrdersPage() {
                   : "hover:bg-gray-100"
               }`}
             >
-              Add New Address
+             My Address Book
             </button>
           </nav>
         </aside>

@@ -34,7 +34,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="w-full mt-10">
+    <div className="w-full mt-0">
       {/* Banner full-width */}
       <Banner />
 
@@ -45,7 +45,7 @@ export default function Home() {
       </section>
 
       {/* Products Grid */}
-      <section className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full px-4 md:px-0">
+      <section className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4 max-w-7xl mx-auto px-4 md:px-0 ">
         {loading ? (
           <p className="text-center col-span-full">Loading products...</p>
         ) : (
@@ -57,3 +57,4 @@ export default function Home() {
     </div>
   );
 }
+ 

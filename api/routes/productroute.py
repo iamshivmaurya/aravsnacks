@@ -4,6 +4,10 @@ from database import get_db
 from schema import CreateProduct, ProductResponse
 from product_crud import create_product, get_product, get_products, update_product, delete_product
 from typing import List
+from fastapi import FastAPI, File, UploadFile
+ 
+import shutil
+import os
 
 router = APIRouter()
 
@@ -40,3 +44,15 @@ def delete_product_route(product_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Product not found")
     return {"message": "Product deleted successfully"}
+
+UPLOAD_DIR = "media/"
+
+@router.post("/upload-image")
+async def upload_image(file: UploadFile = File(...)):
+    file_location = os.path.join(UPLOAD_DIR, file.filename)
+
+    with open(file_location, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # ✅ Always return served URL
+    return {"url": f"http://127.0.0.1:8000/media/{file.filename}"}
