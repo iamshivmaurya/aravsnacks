@@ -1,12 +1,13 @@
-from fastapi import FastAPI, HTTPException, Depends, APIRouter
+from fastapi import FastAPI, HTTPException, Depends, APIRouter,status
 from sqlalchemy.orm import Session
 import random
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from datetime import datetime, timedelta
 from pydantic import BaseModel
 from model import Customer, OTP
 from database import get_db, Base, engine
 from schema import SignupRequest, LoginRequest, OTPVerifyRequest, CustomerUpdate
-from jose import jwt
+from jose import jwt,JWTError
 import os
 from dotenv import load_dotenv
 
@@ -153,3 +154,46 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
+
+
+
+# Add this security scheme
+security = HTTPBearer()
+
+
+# Add this function to decode and validate JWT tokens
+def get_current_customer(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        customer_id: int = payload.get("customer_id")
+        phone: str = payload.get("phone")
+
+        if customer_id is None or phone is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        # Verify customer still exists in database
+        customer = db.query(Customer).filter(Customer.customer_id == customer_id, Customer.phone == phone).first()
+        if not customer:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Customer not found",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+
+        return customer
+
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+
+
