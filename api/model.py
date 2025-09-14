@@ -286,8 +286,8 @@ class ProductReview(Base):
     __tablename__ = "product_reviews"
 
     review_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    product_id = Column(Integer, ForeignKey('products.id'), nullable=False)
-    customer_phone = Column(String(20), nullable=False)
+    product_id = Column(Integer, nullable=False) #, ForeignKey('products.id'),
+    customer_id = Column(Integer, ForeignKey('customers.customer_id'), nullable=False)
     customer_name = Column(String(100), nullable=True)
     rating = Column(Float, nullable=False)
     comment = Column(Text, nullable=True)

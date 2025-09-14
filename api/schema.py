@@ -528,7 +528,7 @@ class TaxClassUpdate(BaseModel):
 # Minimal schemas without any complex configurations
 class ReviewCreate(BaseModel):
     product_id: int
-    customer_phone: str
+    #customer_id: str
     rating: float
     comment: Optional[str] = None
 
@@ -539,7 +539,7 @@ class ReviewUpdate(BaseModel):
 class ReviewResponse(BaseModel):
     review_id: int
     product_id: int
-    customer_phone: str
+    customer_id: int
     rating: float
     comment: Optional[str]
     created_at: datetime
