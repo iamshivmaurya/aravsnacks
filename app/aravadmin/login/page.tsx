@@ -1,22 +1,22 @@
 'use client';
-import SignInForm, { LoginData } from '../../../components/admin/SignInForm';
-import { useRouter } from 'next/navigation';
 
-export default function LoginPage() {
+import { useRouter } from 'next/navigation';
+import AdminLoginForm, { AdminLoginData } from '../../../components/admin/AdminLoginForm';
+
+export default function AdminLoginPage() {
   const router = useRouter();
 
-  const handleLoginSuccess = (data: LoginData) => {
+  const handleLoginSuccess = (data: AdminLoginData) => {
     localStorage.setItem('access_token', data.access_token);
-    localStorage.setItem('phone', data.phone);
-    localStorage.setItem('customer_id', data.customer_id);
-    router.push('/'); // Login ke baad homepage
+    localStorage.setItem('user_name', data.user_name);
+    localStorage.setItem('admin_id', data.admin_id);
+
+    router.push('/aravadmin/dashboard'); // login ke baad admin dashboard pe bhej do
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <SignInForm onSubmit={handleLoginSuccess} />
-      </div>
+      <AdminLoginForm onSubmit={handleLoginSuccess} />
     </div>
   );
 }

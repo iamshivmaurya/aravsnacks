@@ -24,7 +24,8 @@ export default function EditProfileForm({ customer_id, initialData, onUpdateSucc
     last_name: initialData.last_name || "",
     phone: initialData.phone || "",
   });
-
+  const [generatedMessage, setSuccessMessage] = useState("");
+  const [errorMsg, setFailedMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,17 +38,32 @@ export default function EditProfileForm({ customer_id, initialData, onUpdateSucc
 
     try {
       await axios.put(`${API_BASE_URL}/customers/${customer_id}`, form);
-      alert("Profile updated successfully!");
+      setSuccessMessage("Updated profile successfully !");
       onUpdateSuccess?.();
     } catch (error: any) {
       console.error("Error updating profile:", error.response?.data || error.message);
-      alert("Failed to update profile.");
+      setFailedMessage("Failed to update profile.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
+
+    <div>
+
+        {errorMsg && (
+            <div className="text-center p-3 bg-red-100 text-red-700 rounded-md text-sm">
+              {errorMsg}
+            </div>
+          )}
+        {(generatedMessage) && (
+          <div className="text-center p-3 bg-green-100 text-green-700 rounded-md text-sm">
+            ✅ {generatedMessage}{" "}
+          </div>
+        )}
+
+
     <form onSubmit={handleSubmit} className="space-y-4 p-4 bg-white shadow rounded max-w-md">
       <h2 className="text-lg font-semibold">Edit Profile</h2>
 
@@ -96,5 +112,6 @@ export default function EditProfileForm({ customer_id, initialData, onUpdateSucc
         {loading ? "Updating..." : "Update Profile"}
       </button>
     </form>
+    </div> 
   );
 }

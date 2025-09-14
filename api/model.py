@@ -116,6 +116,7 @@ class Product(Base):
     image_url = Column(String(250), nullable=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+ 
 
 
 class Quote(Base):

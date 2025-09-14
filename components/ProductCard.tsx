@@ -19,9 +19,13 @@ export default function ProductCard({ product }: { product: Product }) {
   const item = cartItems.find((ci) => ci.product_id === product.id && ci.item_qty > 0);
   console.log("item item ==> ", item);
 
-  const imageSrc = product.image_url.startsWith('/')
-    ? product.image_url
-    : '/' + product.image_url;
+  // const imageSrc = product.image_url.startsWith('/')
+  //   ? product.image_url
+  //   : '/' + product.image_url;
+
+  const imageSrc = product.image_url.startsWith("http")
+  ? product.image_url
+  : `http://127.0.0.1:8000/media/${product.image_url}`;
 
   return (
     <div className="bg-white border rounded-lg shadow p-4 flex flex-col">
