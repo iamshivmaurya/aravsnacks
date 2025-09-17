@@ -1,5 +1,5 @@
 'use client';
-
+ 
 import { useRouter } from 'next/navigation';
 import AdminLoginForm, { AdminLoginData } from '../../../components/admin/AdminLoginForm';
 
@@ -11,7 +11,7 @@ export default function AdminLoginPage() {
     localStorage.setItem('user_name', data.user_name);
     localStorage.setItem('admin_id', data.admin_id);
 
-    router.push('/aravadmin/dashboard'); // login ke baad admin dashboard pe bhej do
+    router.push('/aravadmin/dashboard'); // login ke baad dashboard
   };
 
   return (

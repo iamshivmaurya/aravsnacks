@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [userName, setUserName] = useState<string | null>(null);
 
@@ -62,16 +62,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
       </aside>
 
-      {/* Right Side Content */}
-      <main className="flex-1 p-8">
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-          <div className="text-gray-600">
-            Welcome, <span className="font-semibold text-blue-600">{userName}</span>
+      {/* Right Side */}
+      <main className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className="flex justify-between items-center bg-white shadow px-6 py-4">
+          <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+          <div className="flex items-center gap-4">
+            <span className="text-gray-600">
+              Welcome, <span className="font-semibold text-blue-600">{userName}</span>
+            </span>
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
+            >
+              Logout
+            </button>
           </div>
         </header>
 
-        <div>{children}</div>
+        {/* Page Content */}
+        <div className="p-8 flex-1">{children}</div>
       </main>
     </div>
   );
