@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import login, categoryroute, productroute, customerroute, quoteroute, orderroute,couponroute,taxclassroute, order_invoice,adminroute,reviewroute
+from routes import login,trackingroute,categoryroute, productroute, customerroute, quoteroute, orderroute,couponroute,taxclassroute, order_invoice,adminroute,reviewroute
 from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi.staticfiles import StaticFiles
@@ -33,6 +33,7 @@ app.include_router(taxclassroute.router, tags=["Tax Route"])
 app.include_router(order_invoice.router, tags=["Order Invoice"])
 app.include_router(adminroute.router, tags=["admin route"])
 app.include_router(reviewroute.router, tags=["Reviews"])
+app.include_router(trackingroute.router, tags=["Tracking"])
 
 
 @app.get("/")

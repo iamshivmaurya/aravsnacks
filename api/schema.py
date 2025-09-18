@@ -555,4 +555,34 @@ class ReviewStatsResponse(BaseModel):
     ########################################################
 
 
+class TrackingCreate(BaseModel):
+    order_id: int
+    warehouse_id: int
 
+class TrackingStatusUpdate(BaseModel):
+    status: str  # Order Packed, Order Shipped, On The Way, Order Arrived, Order Delivered
+
+class TrackingStage(BaseModel):
+    stage_name: str
+    status: str  # completed, current, pending
+    timestamp: Optional[datetime] = None
+    display_time: Optional[str] = None
+
+class TrackingResponse(BaseModel):
+    tracking_id: int
+    order_id: int
+    customer_id: int
+    warehouse_id: int
+    warehouse_name: str
+    destination_postal_code: str
+    destination_city: str
+    current_status: str
+    estimated_delivery_time: Optional[datetime]
+    stages: List[TrackingStage]
+    distance_km: Optional[float]
+    time_remaining: Optional[str]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
