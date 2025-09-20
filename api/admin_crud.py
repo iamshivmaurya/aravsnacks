@@ -1,33 +1,29 @@
 from sqlalchemy.orm import Session
-from datetime import datetime
-from model import AdminLogin
-from schema import AdminCreate
-from typing import List, Optional
+import admin_model, admin_schema, admin_auth
+from typing import List
 
-# def create_admin(db: Session, admin: AdminCreate):
-#     """
-#     Create a new admin in the database
-#     """
-#     new_admin= AdminLogin(
-#         user_name=admin.user_name,
-#         first_name=admin.first_name,
-#         last_name=admin.last_name,
-#         email=admin.email,
-#         password=admin.password,
-#         user_role=admin.user_role,
-#         is_active=admin.is_active,
-#         created_at=admin.created_at,
-#     )
+def get_user_by_username(db: Session, username: str):
+    return db.query(admin_model.User).filter(admin_model.User.username == username).first()
 
-#     db.add(new_admin)
-#     db.commit()
-#     db.refresh(new_admin)
-#     return new_admin
+def create_user(db: Session, user_in: admin_schema.UserCreate):
+    role = db.query(admin_model.Role).filter(admin_model.Role.name == user_in.role).first()
+    if not role:
+        raise ValueError("Role not found")
+    hashed = admin_auth.get_password_hash(user_in.password)
+    user = admin_model.User(username=user_in.username, hashed_password=hashed, role=role)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
 
+def list_users(db: Session, skip: int = 0, limit: int = 10) -> List[admin_model.User]:
+    """
+    List users with pagination.
 
-# def get_admin(db: Session, skip: int = 0, limit: int = 100):
-#     return db.query(AdminLogin).offset(skip).limit(limit).all()
+    :param db: Database session
+    :param skip: Number of records to skip
+    :param limit: Maximum number of records to return
+    """
+    
+    return db.query(admin_model.User).offset(skip).limit(limit).all()
 
-
-# def get_all_quotes(db: Session, skip: int = 0, limit: int = 100):
-#     return db.query(Quote).offset(skip).limit(limit).all()
