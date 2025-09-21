@@ -35,8 +35,7 @@ export default function SettingsPage() {
   const [locale, setLocale] = useState('');
   const [timezone, setTimezone] = useState('');
   const [currency, setCurrency] = useState('');
-  const [enableAnalytics, setEnableAnalytics] = useState(false);
-  const [enableMaintenance, setEnableMaintenance] = useState(false);
+  const [enableAnalytics, setEnableAnalytics] = useState(2);
 
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
@@ -57,24 +56,24 @@ export default function SettingsPage() {
   const [smtpUser, setSmtpUser] = useState('');
   const [smtpPass, setSmtpPass] = useState('');
 
-  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [maintenanceMode, setMaintenanceMode] = useState(2);
   const [maintenanceMessage, setMaintenanceMessage] = useState('');
 
-  const [enable2FA, setEnable2FA] = useState(false);
+  const [enable2FA, setEnable2FA] = useState(2);
   const [passwordExpiryDays, setPasswordExpiryDays] = useState(0);
   const [maxLoginAttempts, setMaxLoginAttempts] = useState(0);
-  const [enableCaptcha, setEnableCaptcha] = useState(false);
+  const [enableCaptcha, setEnableCaptcha] = useState(2);
   const [passwordComplexity, setPasswordComplexity] = useState('');
 
-  const [enableCOD, setEnableCOD] = useState(false);
-  const [enableStripe, setEnableStripe] = useState(false);
+  const [enableCOD, setEnableCOD] = useState(2);
+  const [enableStripe, setEnableStripe] = useState(2);
   const [stripeApiKey, setStripeApiKey] = useState('');
-  const [enablePayPal, setEnablePayPal] = useState(false);
+  const [enablePayPal, setEnablePayPal] = useState(2);
   const [paypalClientId, setPaypalClientId] = useState('');
 
   const [defaultShippingMethod, setDefaultShippingMethod] = useState('');
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(0);
-  const [enableExpressShipping, setEnableExpressShipping] = useState(false);
+  const [enableExpressShipping, setEnableExpressShipping] = useState(2);
 
   const [googleAnalyticsId, setGoogleAnalyticsId] = useState('');
   const [facebookPixelId, setFacebookPixelId] = useState('');
@@ -87,12 +86,11 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (message) {
-      toast(message); // ✅ Show toast when message changes
-      setMessage('');  // Clear message so it doesn't show again
+      toast(message);
+      setMessage('');
     }
   }, [message]);
 
-  
   // --- Populate states from API ---
   useEffect(() => {
     if (!session?.user.accessToken) return;
@@ -105,8 +103,7 @@ export default function SettingsPage() {
       setLocale(data.locale || '');
       setTimezone(data.timezone || '');
       setCurrency(data.currency || '');
-      setEnableAnalytics(data.enableAnalytics || false);
-      setEnableMaintenance(data.enableMaintenance || false);
+      setEnableAnalytics(data.enableAnalytics || 2);
 
       setContactEmail(data.contactEmail || '');
       setContactPhone(data.contactPhone || '');
@@ -127,24 +124,24 @@ export default function SettingsPage() {
       setSmtpUser(data.smtpUser || '');
       setSmtpPass(data.smtpPass || '');
 
-      setMaintenanceMode(data.maintenanceMode || false);
+      setMaintenanceMode(data.maintenanceMode || 2);
       setMaintenanceMessage(data.maintenanceMessage || '');
 
-      setEnable2FA(data.enable2FA || false);
+      setEnable2FA(data.enable2FA || 2);
       setPasswordExpiryDays(data.passwordExpiryDays || 0);
       setMaxLoginAttempts(data.maxLoginAttempts || 0);
-      setEnableCaptcha(data.enableCaptcha || false);
+      setEnableCaptcha(data.enableCaptcha || 2);
       setPasswordComplexity(data.passwordComplexity || '');
 
-      setEnableCOD(data.enableCOD || false);
-      setEnableStripe(data.enableStripe || false);
+      setEnableCOD(data.enableCOD || 2);
+      setEnableStripe(data.enableStripe || 2);
       setStripeApiKey(data.stripeApiKey || '');
-      setEnablePayPal(data.enablePayPal || false);
+      setEnablePayPal(data.enablePayPal || 2);
       setPaypalClientId(data.paypalClientId || '');
 
       setDefaultShippingMethod(data.defaultShippingMethod || '');
       setFreeShippingThreshold(data.freeShippingThreshold || 0);
-      setEnableExpressShipping(data.enableExpressShipping || false);
+      setEnableExpressShipping(data.enableExpressShipping || 2);
 
       setGoogleAnalyticsId(data.googleAnalyticsId || '');
       setFacebookPixelId(data.facebookPixelId || '');
@@ -157,6 +154,17 @@ export default function SettingsPage() {
     });
   }, [session]);
 
+  const booleanFields = [
+      "enableAnalytics",
+      "enable2FA",
+      "enableCaptcha",
+      "enableCOD",
+      "enableStripe",
+      "enablePayPal",
+      "enableExpressShipping",
+      "maintenanceMode"
+  ];
+
   const handleSave = () => {
     const payload = {
       siteName,
@@ -165,7 +173,6 @@ export default function SettingsPage() {
       timezone,
       currency,
       enableAnalytics,
-      enableMaintenance,
       contactEmail,
       contactPhone,
       address,
@@ -208,30 +215,40 @@ export default function SettingsPage() {
 
     if (!session?.user.accessToken) return;
 
-    axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/settings`, payload, {
+    api.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/settings`, payload, {
       headers: { Authorization: `Bearer ${session.user.accessToken}` },
     }).then(() => {
       setMessage('✅ Settings saved successfully!')
     });
   };
 
+  // 🔥 Improved renderer: dropdowns for booleans, number input for numbers
   const renderInputs = (inputs: [string, any, Function][]) => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {inputs.map(([key, value, setter]: any) => (
         <div key={key} className="flex flex-col">
           <label className="font-medium mb-1">{formatLabel(key)}</label>
-          {typeof value === 'boolean' ? (
+          {booleanFields.includes(key) ? (
+            <select
+              value={value}
+              onChange={(e) => setter(e.target.value)}
+              className="border p-2 rounded"
+            >
+              <option value="1">Yes</option>
+              <option value="2">No</option>
+            </select>
+          ) : typeof value === 'number' ? (
             <input
-              type="checkbox"
-              checked={value}
-              onChange={e => setter(e.target.checked)}
-              className="h-5 w-5"
+              type="number"
+              value={value}
+              onChange={(e) => setter(Number(e.target.value))}
+              className="border p-2 rounded"
             />
           ) : (
             <input
               type="text"
               value={value}
-              onChange={e => setter(e.target.value)}
+              onChange={(e) => setter(e.target.value)}
               className="border p-2 rounded"
             />
           )}
@@ -247,8 +264,7 @@ export default function SettingsPage() {
       ['locale', locale, setLocale],
       ['timezone', timezone, setTimezone],
       ['currency', currency, setCurrency],
-      ['enableAnalytics', enableAnalytics, setEnableAnalytics],
-      ['enableMaintenance', enableMaintenance, setEnableMaintenance]
+      ['enableAnalytics', enableAnalytics, setEnableAnalytics]
     ],
     'Store Info': [
       ['contactEmail', contactEmail, setContactEmail],
@@ -310,6 +326,7 @@ export default function SettingsPage() {
 
   return (
     <div className="p-6 flex space-x-6 max-w-7xl">
+      {/* Sidebar */}
       <div className="w-48 space-y-2">
         {tabs.map(tab => (
           <button
@@ -326,6 +343,7 @@ export default function SettingsPage() {
         ))}
       </div>
 
+      {/* Main Content */}
       <div className="flex-1 space-y-6">
         {/* Top Save */}
         <div className="flex justify-end">
@@ -339,7 +357,9 @@ export default function SettingsPage() {
 
         {/* Form */}
         <div className="space-y-6 bg-white shadow rounded p-6">
-          <h2 className="text-xl font-semibold border-b pb-2 mb-4">{activeTab} Settings</h2>
+          <h2 className="text-xl font-semibold border-b pb-2 mb-4">
+            {activeTab} Settings
+          </h2>
           {renderInputs(tabSettings[activeTab])}
         </div>
 

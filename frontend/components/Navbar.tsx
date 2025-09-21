@@ -2,7 +2,6 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import LoginForm from './LoginForm';
 import { useCart } from '../components/CartContext';
 import { ShoppingCart, User, LogOut, LogIn, List } from 'lucide-react';
 import { jwtDecode } from 'jwt-decode';

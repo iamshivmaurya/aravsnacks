@@ -16,8 +16,8 @@ export async function middleware(req: NextRequest) {
 
   try {
     const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/settings`);
-    const maintenanceMode =
-      res.data.maintenanceMode === true || res.data.maintenanceMode === 'True';
+    console.log("res.data.maintenanceMode =======>" , res.data.maintenanceMode)
+    const maintenanceMode = res.data.maintenanceMode && res.data.maintenanceMode === '1';
 
     const response = NextResponse.next();
 

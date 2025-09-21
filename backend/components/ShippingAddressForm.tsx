@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import api from "@/utils/axios";
-import {API_BASE_URL } from  "../constants"
 
 type ShippingAddressProps = {
   onSuccess?: () => void; // Optional callback jab address save ho jaye

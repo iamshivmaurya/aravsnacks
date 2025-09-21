@@ -18,8 +18,7 @@ class SettingsUpdate(BaseModel):
     locale: str
     timezone: str
     currency: str
-    enableAnalytics: bool
-    enableMaintenance: bool
+    enableAnalytics: int
 
     # Store Info
     contactEmail: EmailStr
@@ -44,27 +43,27 @@ class SettingsUpdate(BaseModel):
     smtpPass: Optional[str] = None
 
     # Maintenance
-    maintenanceMode: bool
+    maintenanceMode: int
     maintenanceMessage: str
 
     # Security
-    enable2FA: bool
+    enable2FA: int
     passwordExpiryDays: int
     maxLoginAttempts: int
-    enableCaptcha: bool
+    enableCaptcha: int
     passwordComplexity: str
 
     # Payments
-    enableCOD: bool
-    enableStripe: bool
+    enableCOD: int
+    enableStripe: int
     stripeApiKey: Optional[str] = None
-    enablePayPal: bool
+    enablePayPal: int
     paypalClientId: Optional[str] = None
 
     # Shipping
     defaultShippingMethod: str
     freeShippingThreshold: int
-    enableExpressShipping: bool
+    enableExpressShipping: int
 
     # Analytics
     googleAnalyticsId: Optional[str] = None
