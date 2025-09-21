@@ -1,18 +1,18 @@
 
 // constants.ts
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
-export const GET_PRODUCTS_API = `${API_BASE_URL}/products`;
-export const GET_QUOTES_API = `${API_BASE_URL}/quotes`;
-export const CREATE_QUOTES_API = `${API_BASE_URL}/create_quotes`;
-export const CUSTOMERS_API = `${API_BASE_URL}/customers`;
-export const SEND_OTP_API = `${API_BASE_URL}/send-otp`;
-export const SINGUP_API = `${API_BASE_URL}/signup`;
-export const LOGIN_API = `${API_BASE_URL}/login`;
-export const VERIFY_OTP_API = `${API_BASE_URL}/verify-otp`;
-export const PLACE_ORDER = `${API_BASE_URL}/place-order`;
-export const APPLY_COUPON = `${GET_QUOTES_API}/apply-coupon`;
-export const CANCEL_COUPON = `${GET_QUOTES_API}/cancel-coupon`;
-export const ORDERS_API_URL = `${API_BASE_URL}/orders`;
+export const GET_PRODUCTS_API = `/products`;
+export const GET_QUOTES_API = `/quotes`;
+export const CREATE_QUOTES_API = `/create_quotes`;
+export const CUSTOMERS_API = `/customers`;
+export const SEND_OTP_API = `/send-otp`;
+export const SINGUP_API = `/signup`;
+export const LOGIN_API = `/login`;
+export const VERIFY_OTP_API = `/verify-otp`;
+export const PLACE_ORDER = `/place-order`;
+export const APPLY_COUPON = `/apply-coupon`;
+export const CANCEL_COUPON = `/cancel-coupon`;
+export const ORDERS_API_URL = `/orders`;
 
 
 

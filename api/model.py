@@ -3,25 +3,6 @@ from sqlalchemy import Column, Integer, Text, Float, String, Boolean, DateTime, 
 from datetime import datetime
 from sqlalchemy.orm import relationship
 
-
-
-#rajesh
-
-class AdminLogin(Base):
-    __tablename__ = "admin_login"
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_name = Column(String(50), nullable=True)
-    email = Column(String(50), nullable=True)
-    password = Column(String(255), nullable=True)
-    user_type = Column(String(50), nullable=True)
-    is_active = Column(Boolean, default=True)
-
- 
-    created_at = Column(DateTime, default=datetime.now)
-
-
-
 class Customer(Base):
     __tablename__ = "customers"
 
@@ -125,6 +106,7 @@ class Quote(Base):
     __tablename__ = "quote"
 
     quote_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    quote_uid = Column(String, unique=True, index=True, nullable=False)  # public UID
     customer_id = Column(Integer, ForeignKey('customers.customer_id'), nullable=True)
     coupon_code = Column(String(50), nullable=True)   # 👈 extra column for readability
     email_id = Column(String(50), nullable=True)

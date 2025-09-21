@@ -1,6 +1,6 @@
 "use client";
 
-import axios from "axios";
+import api from "@/utils/axios";
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { VERIFY_OTP_API, SINGUP_API } from "../constants";
@@ -90,7 +90,7 @@ export default function LoginForm({ onSubmit }: LoginProps) {
     }
     try {
       setLoading(true);
-      const response = await axios.post(SINGUP_API, {
+      const response = await api.post(SINGUP_API, {
         phone: form.phone,
         first_name: form.first_name,
         last_name: form.last_name,
@@ -120,7 +120,7 @@ export default function LoginForm({ onSubmit }: LoginProps) {
     }
     try {
       setLoading(true);
-      const response = await axios.post(VERIFY_OTP_API, {
+      const response = await api.post(VERIFY_OTP_API, {
         phone: form.phone,
         otp: otp,
       });

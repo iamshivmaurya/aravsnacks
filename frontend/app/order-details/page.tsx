@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import axios from "axios";
+import api from "@/utils/axios";
 import OrderDetails from "@/components/OrderDetails";
-import {API_BASE_URL} from  "../../constants"
 import DownloadInvoice from "@/components/DownloadInvoice"
 
 export default function OrderViewPage() {
@@ -23,7 +22,7 @@ export default function OrderViewPage() {
 
   const fetchOrder = async (id: string) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/orders/${id}`);
+      const response = await api.get(`/orders/${id}`);
       setOrder(response.data);
     } catch (error) {
       console.error("Error fetching order:", error);

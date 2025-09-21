@@ -38,6 +38,13 @@ export default function ViewProducts() {
     }
   };
 
+  const getMediaUrl = (image_url: string) => {
+      return image_url.startsWith("http")
+      ? image_url
+      : `${process.env.NEXT_PUBLIC_MEDIA_URL}/media/${image_url}`;
+      
+  }
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -84,7 +91,7 @@ export default function ViewProducts() {
                     <td className="p-2">
                       {p.image_url ? (
                         <img
-                          src={p.image_url}
+                          src={getMediaUrl(p.image_url)}
                           alt={p.name}
                           className="w-12 h-12 object-cover rounded"
                         />

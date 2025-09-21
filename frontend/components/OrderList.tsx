@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import axios from "axios";
-
-import {API_BASE_URL} from  "../constants"
+import api from "@/utils/axios";
 
 interface Order {
   order_id: number;
@@ -29,7 +27,7 @@ export default function OrderList() {
   useEffect(() => {
     async function fetchOrders() {
       try {
-        const response = await axios.get(`${API_BASE_URL}/orders?skip=0&limit=100`);
+        const response = await api.get(`/orders?skip=0&limit=100`);
         setOrders(response.data);
       } catch (err) {
         setError("Failed to fetch orders");

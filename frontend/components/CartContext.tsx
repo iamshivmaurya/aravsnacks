@@ -1,8 +1,8 @@
 'use client';
 
-import axios from 'axios';
+import api from "@/utils/axios";
 import { toast } from 'react-hot-toast';
-import { GET_QUOTES_API, CREATE_QUOTES_API , API_BASE_URL} from '../constants';
+import { GET_QUOTES_API, CREATE_QUOTES_API } from '../constants';
 import {
   createContext,
   useContext,
@@ -33,7 +33,7 @@ export type CartItem = {
 };
 
 export type Quote = {
-  quote_id: number;
+  quote_uid: number;
   coupon_code: string;
   subtotal: number;
 };
@@ -57,7 +57,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [quoteId, setQuoteId] = useState<number | null>(null);
+  const [quoteUid, setQuoteUid] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [quote, setQuote] = useState<Quote | null>(null);
 
@@ -67,10 +67,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // ----------------- Create Cart -----------------
   const createCart = useCallback(async () => {
     try {
-      const response = await axios.post(CREATE_QUOTES_API);
-      const newQuoteId = response.data.quote_id;
-      localStorage.setItem('quote_id', String(newQuoteId));
-      setQuoteId(newQuoteId);
+      const response = await api.post(CREATE_QUOTES_API);
+      const newQuoteId = response.data.quote_uid;
+      localStorage.setItem('quote_uid', String(newQuoteId));
+      setQuoteUid(newQuoteId);
       return newQuoteId;
     } catch (err) {
       console.error('Failed to create cart:', err);
@@ -81,7 +81,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
 // ----------------- Load Cart Items -----------------
 const loadCartItems = useCallback(async () => {
-  if (!quoteId) {
+  if (!quoteUid) {
     setCartItems([]);
     setLoading(false);
     return;
@@ -89,7 +89,7 @@ const loadCartItems = useCallback(async () => {
 
   try {
     setLoading(true);
-    const response = await axios.get(`${GET_QUOTES_API}/${quoteId}`);
+    const response = await api.get(`${GET_QUOTES_API}/${quoteUid}`);
 
     if (response.data?.is_active && Array.isArray(response.data.items)) {
       if(response.data.items.length > 0){
@@ -101,27 +101,25 @@ const loadCartItems = useCallback(async () => {
     } else {
       // Cart is not valid, reset
       clearCart();
-      localStorage.removeItem("quote_id");
-      setQuoteId(null);
+      localStorage.removeItem("quote_uid");
+      setQuoteUid(null);
       setLoading(false);
     }
   } catch (err: any) {
-    if (axios.isAxiosError(err)) {
+   
       if (err.response?.status === 404) {
         console.warn("Cart not found (404). Resetting cart.");
         clearCart();
-        localStorage.removeItem("quote_id");
-        setQuoteId(null);
+        localStorage.removeItem("quote_uid");
+        setQuoteUid(null);
       } else {
         console.error("Failed to load cart:", err.message);
       }
-    } else {
-      console.error("Unexpected error:", err);
-    }
+   
   } finally {
     setLoading(false);
   }
-}, [quoteId, clearCart]);
+}, [quoteUid, clearCart]);
 
 
   // ----------------- Qty Updates -----------------
@@ -134,9 +132,9 @@ const loadCartItems = useCallback(async () => {
       );
 
       try {
-        if (!quoteId) return;
-        const url = `${GET_QUOTES_API}/${quoteId}/items/${itemId}/quantity`;
-        const response = await axios.put(url, { item_qty: qty });
+        if (!quoteUid) return;
+        const url = `${GET_QUOTES_API}/${quoteUid}/items/${itemId}/quantity`;
+        const response = await api.put(url, { item_qty: qty });
 
         if (response.status === 200 || response.status === 201) {
           toast.success('Cart updated!');
@@ -150,28 +148,37 @@ const loadCartItems = useCallback(async () => {
         await loadCartItems();
       }
     },
-    [quoteId, loadCartItems]
+    [quoteUid, loadCartItems]
   );
 
   const increaseQty = (itemId: number, qty: number) => updateQty(itemId, qty);
   const decreaseQty = (itemId: number, qty: number) => updateQty(itemId, qty);
 
   // ----------------- Cart Actions -----------------
-  const removeFromCart = useCallback((itemId: number) => {
-    setCartItems((prev) => prev.filter((item) => item.item_id !== itemId));
-  }, []);
+    // Delete handler for quote items
+  const removeFromCart = async (itemId: number) => {
+    if (!quoteUid) return;
+
+    try {
+      await api.delete(`${GET_QUOTES_API}/${quoteUid}/items/${itemId}`);
+      setCartItems(prev => prev.filter(item => item.item_id !== itemId));
+    } catch (error) {
+      console.error("Failed to delete quote item:", error);
+      alert("Failed to delete item from quote!");
+    }
+  };
 
   const addToCart = useCallback(
     async (product: Product) => {
       try {
-        let activeQuoteId = quoteId;
+        let activeQuoteId = quoteUid;
 
         // ✅ Create cart only when needed
         if (!activeQuoteId) {
           const newId = await createCart();
           if (!newId) return;
           activeQuoteId = newId;
-          setQuoteId(newId);
+          setQuoteUid(newId);
         }
 
         const payload = {
@@ -181,7 +188,7 @@ const loadCartItems = useCallback(async () => {
         };
         const url = `${GET_QUOTES_API}/${activeQuoteId}/add_items`;
 
-        const response = await axios.post(url, payload);
+        const response = await api.post(url, payload);
 
         if (response.status === 200 || response.status === 201) {
           toast.success(`${product.name} added to cart!`);
@@ -194,23 +201,23 @@ const loadCartItems = useCallback(async () => {
         toast.error('Something went wrong!');
       }
     },
-    [quoteId, createCart, loadCartItems]
+    [quoteUid, createCart, loadCartItems]
   );
 
   // ----------------- Effects -----------------
   useEffect(() => {
-    const savedQuoteId = localStorage.getItem('quote_id');
+    const savedQuoteId = localStorage.getItem('quote_uid');
     if (savedQuoteId) {
-      setQuoteId(Number(savedQuoteId));
+      setQuoteUid(savedQuoteId);
     }
     // ❌ no auto createCart() here
   }, []);
 
   useEffect(() => {
-    if (quoteId) {
+    if (quoteUid) {
       loadCartItems();
     }
-  }, [quoteId, loadCartItems]);
+  }, [quoteUid, loadCartItems]);
 
   // ----------------- Derived Values -----------------
   const cartTotal = useMemo(

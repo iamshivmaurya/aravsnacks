@@ -21,7 +21,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   const imageSrc = product.image_url.startsWith("http")
   ? product.image_url
-  : `${process.env.NEXT_PUBLIC_API_BASE_URL}/media/${product.image_url}`;
+  : `${process.env.NEXT_PUBLIC_MEDIA_URL}/media/${product.image_url}`;
 
   return (
     <div className="bg-white border rounded-lg shadow p-4 flex flex-col">

@@ -5,8 +5,6 @@ from typing import List
 from datetime import datetime
 from decimal import Decimal
 
-
-
 #############################
 
 def create_order(db: Session, order: OrderCreate):
@@ -60,12 +58,12 @@ def place_order(db: Session, order_data: PlaceOrderRequest):
     """
     Create a complete order from customer ID and quote ID with all required details
     """
-
+    
     # 1. Validate Customer
     customer = db.query(Customer).filter(Customer.customer_id == order_data.customer_id).first()
     if not customer:
         raise ValueError("Customer not found. Please sign up first.")
-
+    
     # 2. Validate Quote
     quote = db.query(Quote).filter(Quote.quote_id == order_data.quote_id).first()
     if not quote:

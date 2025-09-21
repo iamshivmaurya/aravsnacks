@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "@/utils/axios";
 import OrderList from "../../components/OrderList";
 import ShippingAddressForm from "../../components/ShippingAddressForm";
 import EditProfileForm from "../../components/EditSignupForm";
-import { API_BASE_URL } from "../../constants";
 
 export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState<"orders" | "editProfile" | "newAddress">("orders");
@@ -24,7 +23,7 @@ export default function OrdersPage() {
       setCustomerId(id);
 
       // Fetch customer profile data
-      axios.get(`${API_BASE_URL}/customers/${id}`)
+      api.get(`/customers/${id}`)
         .then(res => {
           setInitialData({
             first_name: res.data.first_name || "",

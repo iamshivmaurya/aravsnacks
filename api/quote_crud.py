@@ -1,14 +1,18 @@
 from sqlalchemy.orm import Session
 from model import Quote, QuoteItem, QuoteAddress, Product,TaxClass ,DiscountCode
-from schema import  QuoteItemCreate, QuoteAddressCreate,OrderAddressUpdate ###QuoteCreate,
-from typing import List
-import math
+from schema import  QuoteItemCreate, QuoteAddressCreate
 from sqlalchemy.orm import joinedload
-from decimal import Decimal
+import uuid
 
-def create_quote(db: Session):
+def create_quote(db: Session, customer_id: int | None = None):
     # Create a new quote instance
-    new_quote = Quote()
+    if customer_id:
+        # ✅ Customer cart
+        new_quote = Quote(customer_id=customer_id, quote_uid=str(uuid.uuid4()), is_active=1)
+    else:
+        # ✅ Guest cart with secure token
+        new_quote = Quote(quote_uid=str(uuid.uuid4()), is_active=1)
+
     db.add(new_quote)
     db.commit()
     db.refresh(new_quote)  # This gets the auto-incremented ID
@@ -17,7 +21,7 @@ def create_quote(db: Session):
 
 # ✅ CORRECT: Get single quote by ID
 def get_quote(db: Session, quote_id: int):
-    return db.query(Quote).filter(Quote.quote_id == quote_id).first()
+    return db.query(Quote).filter(Quote.quote_uid == quote_id).first()
 
 # ✅ CORRECT: Get single quote with items eager loaded
 def get_quote_with_items(db: Session, quote_id: int):

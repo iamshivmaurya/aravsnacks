@@ -192,7 +192,7 @@ class QuoteAddressCreate(BaseModel):
     last_name: str
 
 class QuoteCreateResponse(BaseModel):
-    quote_id: int
+    quote_uid: str
     message: str = "Quote created successfully"
     #created_at: datetime
 
@@ -342,8 +342,8 @@ class OrderResponse(BaseModel):
         from_attributes = True
 
 class PlaceOrderRequest(BaseModel):
-    customer_id: int
-    quote_id: int
+    customer_id: str
+    quote_uid: str
     payment_method: str
     shipping_method: str
     shipping_address: OrderAddressCreate
@@ -409,11 +409,11 @@ class CouponResponce(BaseModel):
 
 
 class ApplyCouponRequest(BaseModel):
-    quote_id: int
+    quote_uid: str
     coupon_code: str
 
 class CancelCouponRequest(BaseModel):
-    quote_id: int
+    quote_uid: str
     coupon_code: str
 
 class QuoteItemResponseWithDiscount(BaseModel):

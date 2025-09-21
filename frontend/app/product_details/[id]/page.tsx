@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from "@/utils/axios";
 import { GET_PRODUCTS_API } from '../../../constants';
 import ProductDetails from '../../../components/ProductDetails';
 
@@ -17,7 +17,7 @@ export default function ProductDetailsPage() {
 
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`${GET_PRODUCTS_API}/${id}`);
+        const response = await api.get(`${GET_PRODUCTS_API}/${id}`);
         setProduct(response.data);
       } catch (err) {
         console.error('Error fetching product:', err);

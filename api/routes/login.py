@@ -15,9 +15,9 @@ router = APIRouter()
 
 load_dotenv()
 
-# JWT
-SECRET_KEY = "ABC123"
-ALGORITHM = "HS256"
+# Load secrets from environment
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
 
 
 def create_access_token(data: dict):
@@ -70,7 +70,7 @@ async def signup(request: SignupRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return {
-        "message": "OTP sent successfully",
+        "message": f"OTP sent successfully OTP #1 - ${otp}",
         "otp": otp,
         "customer_id": new_customer.customer_id
     }
@@ -145,7 +145,7 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return {
-        "message": "OTP sent successfully",
+        "message": f"OTP sent successfully OTP #2 - {otp}",
         "otp": otp,  # In production, send via SMS instead
         "customer_id": customer.customer_id
     }

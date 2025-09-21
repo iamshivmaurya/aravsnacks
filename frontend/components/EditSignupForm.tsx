@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import axios from "axios";
-import {API_BASE_URL} from  "../constants"
+import api from "@/utils/axios";
 
 type EditProfileFormProps = {
   customer_id: string;
@@ -37,7 +36,7 @@ export default function EditProfileForm({ customer_id, initialData, onUpdateSucc
     setLoading(true);
 
     try {
-      await axios.put(`${API_BASE_URL}/customers/${customer_id}`, form);
+      await api.put(`/customers/${customer_id}`, form);
       setSuccessMessage("Updated profile successfully !");
       onUpdateSuccess?.();
     } catch (error: any) {

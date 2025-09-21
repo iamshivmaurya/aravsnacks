@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from './CartContext';
-import axios from 'axios';
-import {API_BASE_URL, GET_QUOTES_API} from  "../constants"
-import { useRouter } from "next/navigation";
+import api from "@/utils/axios";
+import {GET_QUOTES_API} from  "../constants"
 
 interface QuoteItem {
   item_id: number;
@@ -23,15 +22,15 @@ export default function CartItemsList() {
 
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [quoteId, setQuoteId] = useState<string | null>(null);
+  const [quoteUid, setQuoteUid] = useState<string | null>(null);
   const [grandTotal, setGrandTotal] = useState<number>(0);
   const [totalTax, setTotalTax] = useState<number>(0);
   const [subtotal, setSubtotal] = useState<number>(0);
   const [totalDiscount, setTotalDiscount] = useState<number>(0);
 
   useEffect(() => {
-    const storedQuoteId = localStorage.getItem('quote_id');
-    setQuoteId(storedQuoteId);
+    const storedQuoteId = localStorage.getItem('quote_uid');
+    setQuoteUid(storedQuoteId);
 
     if (!storedQuoteId) {
       setLoading(false);
@@ -40,7 +39,7 @@ export default function CartItemsList() {
     
     async function fetchQuote() {
       try {
-        const response = await axios.get(`${GET_QUOTES_API}/${storedQuoteId}`);
+        const response = await api.get(`${GET_QUOTES_API}/${storedQuoteId}`);
         setQuoteItems(response.data.items || []);
         setGrandTotal(response.data.grand_total || 0);
         setSubtotal(response.data.subtotal || 0);
@@ -57,10 +56,10 @@ export default function CartItemsList() {
 
   // Delete handler for quote items
   const handleDeleteQuoteItem = async (itemId: number) => {
-    if (!quoteId) return;
+    if (!quoteUid) return;
 
     try {
-      await axios.delete(`${GET_QUOTES_API}/${quoteId}/items/${itemId}`);
+      await api.delete(`${GET_QUOTES_API}/${quoteUid}/items/${itemId}`);
       setQuoteItems(prev => prev.filter(item => item.item_id !== itemId));
     } catch (error) {
       console.error("Failed to delete quote item:", error);

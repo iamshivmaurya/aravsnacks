@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
-import {API_BASE_URL } from  "../constants"
+import api from "@/utils/axios";
 
 type ShippingAddressProps = {
   onSuccess?: () => void; // Optional callback jab address save ho jaye
@@ -29,12 +28,12 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
     street_address: "",
   });
 
-  const [quoteId, setQuoteId] = useState<string | null>(null);
+  const [quoteUid, setQuoteUid] = useState<string | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [saveToCustomer, setSaveToCustomer] = useState(false); // New state
 
   useEffect(() => {
-    setQuoteId(localStorage.getItem("quote_id"));
+    setQuoteUid(localStorage.getItem("quote_uid"));
     setCustomerId(localStorage.getItem("customer_id")); // customer ID bhi chahiye
   }, []);
 
@@ -45,7 +44,7 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!quoteId) {
+    if (!quoteUid) {
       alert("Quote ID not found in local storage!");
       return;
     }
@@ -58,8 +57,8 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
 
     try {
       // Pehle quotes/:id/addresses me save karein
-      const response = await axios.post(
-        `${API_BASE_URL}/quotes/${quoteId}/addresses`,
+      const response = await api.post(
+        `/quotes/${quoteUid}/addresses`,
         {
           address_type: "permanent",
           ...form,
@@ -69,7 +68,7 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
       if (response.status === 200 || response.status === 201) {
         // Agar checkbox tick hai to customer ke addresses me bhi save karein
         if (saveToCustomer && customerId) {
-          await axios.post(`${API_BASE_URL}/customers/${customerId}/addresses`, {
+          await api.post(`/customers/${customerId}/addresses`, {
             address_type: "permanent",
             ...form,
           });

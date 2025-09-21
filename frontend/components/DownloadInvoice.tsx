@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { API_BASE_URL } from "../constants";
+import api from "@/utils/axios";
 
 interface DownloadInvoiceProps {
   orderId: number;
@@ -10,7 +10,7 @@ interface DownloadInvoiceProps {
 export default function DownloadInvoice({ orderId }: DownloadInvoiceProps) {
   const handleDownload = async (): Promise<void> => {
     try {
-      const res = await fetch(`${API_BASE_URL}/invoice/${orderId}`);
+      const res = await api(`/invoice/${orderId}`);
 
       if (!res.ok) {
         throw new Error("Failed to fetch invoice");

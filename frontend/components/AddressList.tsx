@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/utils/axios";
 import { Trash2, Edit } from "lucide-react";
-import {API_BASE_URL} from  "../constants"
 
 interface Address {
-  quote_address_id?: number; // Quote address ke liye
-  customer_address_id?: number; // Customer address ke liye
+  quote_address_id?: number; 
+  customer_address_id?: number; 
   address_type: string;
   street_address: string;
   postal_code: string;
@@ -19,39 +18,37 @@ interface Address {
 }
 
 interface AddressListProps {
-  onSelectAddress: (address: Address) => void;
+  onSelectAddress: (address: Address | null) => void;
 }
 
 export default function AddressList({ onSelectAddress }: AddressListProps) {
   const [addresses, setAddresses] = useState<Address[]>([]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const quoteId = localStorage.getItem("quote_id");
+    const quoteUid = localStorage.getItem("quote_uid");
     const customerId = localStorage.getItem("customer_id");
 
-    if (!quoteId && !customerId) {
-      console.error("No quote_id or customer_id found");
+    if (!quoteUid && !customerId) {
+      console.error("No quote_uid or customer_id found");
       setLoading(false);
       return;
     }
 
-    fetchAddresses(quoteId, customerId);
+    fetchAddresses(quoteUid, customerId);
   }, []);
 
-  const fetchAddresses = async (quoteId: string | null, customerId: string | null) => {
+  const fetchAddresses = async (quoteUid: string | null, customerId: string | null) => {
     try {
       let response = null;
 
-      // Pehle quote addresses fetch karna
-      if (quoteId) {
-        response = await axios.get(`${API_BASE_URL}/quotes/${quoteId}/addresses`);
+      if (quoteUid) {
+        response = await api.get(`/quotes/${quoteUid}/addresses`);
       }
 
-      // Agar quote addresses empty hain aur customerId available hai, to fallback
       if ((!response || response.data.length === 0) && customerId) {
-        response = await axios.get(`${API_BASE_URL}/customers/${customerId}/addresses`);
+        response = await api.get(`/customers/${customerId}/addresses`);
       }
 
       setAddresses(response?.data || []);
@@ -63,18 +60,18 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
   };
 
   const deleteAddress = async (addressId: number) => {
-    const quoteId = localStorage.getItem("quote_id");
-    if (!quoteId) return;
+    const quoteUid = localStorage.getItem("quote_uid");
+    if (!quoteUid) return;
 
     if (!confirm("Are you sure you want to delete this address?")) return;
 
     try {
-      await axios.delete(`${API_BASE_URL}/quotes/${quoteId}/addresses/${addressId}`);
+      await api.delete(`/quotes/${quoteUid}/addresses/${addressId}`);
       setAddresses(addresses.filter(addr => addr.quote_address_id !== addressId));
 
-      if (selectedId === addressId) {
+      if (selectedId === String(addressId)) {
         setSelectedId(null);
-        onSelectAddress(null as any);
+        onSelectAddress(null);
       }
     } catch (error) {
       console.error("Failed to delete address:", error);
@@ -83,7 +80,10 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
   };
 
   const handleSelect = (address: Address) => {
-    const id = address.quote_address_id ?? address.customer_address_id ?? 0;
+    const id =
+      address.quote_address_id?.toString() ??
+      address.customer_address_id?.toString() ??
+      `${address.postal_code}-${address.phone_no}`;
     setSelectedId(id);
     onSelectAddress(address);
   };
@@ -93,8 +93,11 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
 
   return (
     <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-      {addresses.map(address => {
-        const id = address.quote_address_id ?? address.customer_address_id ?? 0;
+      {addresses.map((address, index) => {
+        const id =
+          address.quote_address_id?.toString() ??
+          address.customer_address_id?.toString() ??
+          `addr-${index}`; // ✅ unique fallback key
 
         return (
           <div

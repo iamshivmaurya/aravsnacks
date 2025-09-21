@@ -2,9 +2,8 @@
 
 import Banner from "@/components/Banner";
 import ProductCard from "@/components/ProductCard";
-import axios from "axios";
+import api from "@/utils/axios";
 import { useEffect, useState } from "react";
-import { GET_PRODUCTS_API } from '../constants';
 
 type Product = {
   id: number;
@@ -21,7 +20,7 @@ export default function Home() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get(GET_PRODUCTS_API);
+        const response = await api.get('/products');
         setProducts(response.data);
       } catch (error) {
         console.error('Error fetching products:', error);
