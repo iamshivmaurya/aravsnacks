@@ -7,12 +7,25 @@ import { CartProvider } from '../components/CartContext';
 import { Toaster } from 'react-hot-toast';
 import MaintenancePage from '../components/MaintenancePage';
 import { cookies } from 'next/headers';
+import axios from 'axios';
 
-export const metadata: Metadata = {
-  title: 'Grocery Store',
-  description: 'Buy groceries online!',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/settings`);
+    const settings = res.data;
 
+    return {
+      title: settings.metaTitle || 'Grocery Store',
+      description: settings.metaDescription || 'Buy groceries online!',
+    };
+  } catch (err) {
+    console.error('Failed to fetch metadata:', err);
+    return {
+      title: 'Grocery Store',
+      description: 'Buy groceries online!',
+    };
+  }
+}
 export default async function RootLayout({
   children,
 }: {
@@ -21,11 +34,15 @@ export default async function RootLayout({
   // ✅ Await cookies before reading them
   const cookieStore = await cookies();
   const maintenanceMode = cookieStore.get('maintenanceMode')?.value  === 'true' ? true : false;
-
+  const metadata = await generateMetadata();
   console.log("maintenanceMode ==> ", maintenanceMode);
 
   return (
     <html lang="en">
+      <head>
+        <title>{metadata.title}</title>
+        <meta name="description" content={metadata.description} />
+      </head>
       <body className="bg-gray-100">
         <CartProvider>
           <Toaster position="top-right" />

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from "@/utils/axios";
 import Link from 'next/link';
 
 
@@ -16,14 +16,14 @@ type Customer = {
   is_active: boolean;
 };
 
-const CUSTOMER_API = `${process.env.NEXT_PUBLIC_API_BASE_URL}/customers`;
+const CUSTOMER_API = `customers`;
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
 
   const fetchCustomers = async () => {
     try {
-      const res = await axios.get(CUSTOMER_API);
+      const res = await api.get(CUSTOMER_API);
       setCustomers(res.data);
     } catch (err) {
       console.error(err);

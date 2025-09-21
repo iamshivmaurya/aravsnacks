@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "@/utils/axios";
 import {API_BASE_URL } from  "../constants"
 
 type ShippingAddressProps = {
@@ -58,8 +58,8 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
 
     try {
       // Pehle quotes/:id/addresses me save karein
-      const response = await axios.post(
-        `${API_BASE_URL}/quotes/${quoteId}/addresses`,
+      const response = await api.post(
+        `quotes/${quoteId}/addresses`,
         {
           address_type: "permanent",
           ...form,
@@ -69,7 +69,7 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
       if (response.status === 200 || response.status === 201) {
         // Agar checkbox tick hai to customer ke addresses me bhi save karein
         if (saveToCustomer && customerId) {
-          await axios.post(`${API_BASE_URL}/customers/${customerId}/addresses`, {
+          await api.post(`customers/${customerId}/addresses`, {
             address_type: "permanent",
             ...form,
           });

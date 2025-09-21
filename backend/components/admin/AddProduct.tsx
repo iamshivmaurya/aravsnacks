@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from "@/utils/axios";
 import { Loader2 } from 'lucide-react';
 
 type Product = {
@@ -24,7 +24,7 @@ type Product = {
   image_url: string;
 };
 
-const PRODUCT_API = "http://127.0.0.1:8000/products"; // ✅ API URL
+const PRODUCT_API = "products"; // ✅ API URL
 
 export default function ProductPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -53,7 +53,7 @@ export default function ProductPage() {
   // Fetch products
   const fetchProducts = async () => {
     try {
-      const res = await axios.get(PRODUCT_API);
+      const res = await api.get(PRODUCT_API);
       setProducts(res.data);
     } catch (err) {
       console.error(err);
@@ -72,7 +72,7 @@ export default function ProductPage() {
 
     try {
       setLoading(true);
-      await axios.post(PRODUCT_API, formData);
+      await api.post(PRODUCT_API, formData);
       setSuccessMsg('✅ Product added successfully!');
       setFormData({
         sku: '',
@@ -250,7 +250,7 @@ export default function ProductPage() {
                 formDataObj.append("file", file);
 
                 try {
-                  const res = await axios.post("http://127.0.0.1:8000/upload-image", formDataObj, {
+                  const res = await api.post("upload-image", formDataObj, {
                     headers: { "Content-Type": "multipart/form-data" },
                   });
                   setFormData({ ...formData, image_url: res.data.url });

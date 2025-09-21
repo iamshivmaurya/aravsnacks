@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import axios from 'axios';
+import api from "@/utils/axios";
 
 type Customer = {
   customer_id?: number;
@@ -13,7 +13,7 @@ type Customer = {
   is_active: boolean;
 };
 
-const CUSTOMER_API = "http://127.0.0.1:8000/customers";
+const CUSTOMER_API = "customers";
 
 export default function CustomerForm({ onSuccess }: { onSuccess?: () => void }) {
   const [formData, setFormData] = useState<Customer>({
@@ -35,7 +35,7 @@ export default function CustomerForm({ onSuccess }: { onSuccess?: () => void }) 
 
     try {
       setLoading(true);
-      await axios.post(CUSTOMER_API, formData);
+      await api.post(CUSTOMER_API, formData);
       setSuccessMsg("✅ Customer added successfully!");
       setFormData({
         customer_name: '',

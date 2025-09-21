@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from "@/utils/axios";
 import { useRouter } from 'next/navigation';
 import { PlusCircle } from 'lucide-react';
 
@@ -17,7 +17,7 @@ type Product = {
   created_at: string;
 };
 
-const PRODUCT_API = `${process.env.NEXT_PUBLIC_API_BASE_URL}/products?skip=0&limit=100`;
+const PRODUCT_API = `admin/products?skip=0&limit=100`;
 
 export default function ViewProducts() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -28,7 +28,7 @@ export default function ViewProducts() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(PRODUCT_API);
+      const res = await api.get(PRODUCT_API);
       setProducts(res.data);
     } catch (err) {
       console.error(err);

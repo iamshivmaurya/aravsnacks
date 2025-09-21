@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from "@/utils/axios";
 import {
   ChevronRight,
 } from 'lucide-react';
@@ -55,7 +55,7 @@ export default function ViewOrders() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(ORDER_API);
+      const res = await api.get(ORDER_API);
       setOrders(res.data);
     } catch (err) {
       console.error(err);

@@ -8,13 +8,8 @@ from fastapi import FastAPI, File, UploadFile
  
 import shutil
 import os
-from dependency import login_required
 
-# router = APIRouter()
-
-router = APIRouter(dependencies=[Depends(login_required)])  # <-- applied to ALL routes
-
-
+router = APIRouter()  # <-- applied to ALL routes
 
 @router.post("/products", response_model=ProductResponse)
 def create_product_route(product: CreateProduct, db: Session = Depends(get_db)):

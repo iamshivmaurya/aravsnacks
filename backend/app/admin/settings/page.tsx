@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from "@/utils/axios";
 import { useSession } from 'next-auth/react';
+import { toast } from 'react-hot-toast';
 
 // Helper to format camelCase keys into human-readable labels
 function formatLabel(key: string) {
@@ -84,12 +85,19 @@ export default function SettingsPage() {
   const [instagramUrl, setInstagramUrl] = useState('');
   const [linkedinUrl, setLinkedinUrl] = useState('');
 
+  useEffect(() => {
+    if (message) {
+      toast(message); // ✅ Show toast when message changes
+      setMessage('');  // Clear message so it doesn't show again
+    }
+  }, [message]);
+
+  
   // --- Populate states from API ---
   useEffect(() => {
     if (!session?.user.accessToken) return;
-    axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/settings`, {
-      headers: { Authorization: `Bearer ${session.user.accessToken}` },
-    }).then(res => {
+
+    api.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/settings`).then(res => {
       const data = res.data;
 
       setSiteName(data.siteName || '');
@@ -202,7 +210,9 @@ export default function SettingsPage() {
 
     axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/settings`, payload, {
       headers: { Authorization: `Bearer ${session.user.accessToken}` },
-    }).then(() => setMessage('✅ Settings saved successfully!'));
+    }).then(() => {
+      setMessage('✅ Settings saved successfully!')
+    });
   };
 
   const renderInputs = (inputs: [string, any, Function][]) => (

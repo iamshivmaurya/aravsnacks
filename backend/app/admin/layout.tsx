@@ -2,6 +2,8 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import {jwtDecode} from "jwt-decode";
+
 import {
   LayoutDashboard,
   Package,
@@ -16,30 +18,62 @@ import {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [userName, setUserName] = useState<string | null>(null);
   const [showProductsSubmenu, setShowProductsSubmenu] = useState(false);
   const [showCustomersSubmenu, setShowCustomersSubmenu] = useState(false);
-  const [showOrdersSubmenu, setShowOrdersSubmenu] = useState(false); // ✅ Orders submenu state
+  const [showOrdersSubmenu, setShowOrdersSubmenu] = useState(false);
 
   const { data: session, status } = useSession();
 
+
+  type DecodedToken = {
+    exp: number; // expiry timestamp
+    iat: number;
+    [key: string]: any;
+  };
+
+  function isTokenValid(token?: string) {
+    if (!token) return false;
+    try {
+      const decoded: DecodedToken = jwtDecode(token);
+      if (!decoded.exp) return false;
+
+      const now = Date.now() / 1000; // seconds
+      return decoded.exp > now;
+    } catch (err) {
+      return false;
+    }
+  }
+
   useEffect(() => {
+
+     // Redirect if not logged in
     if (status === "unauthenticated") {
       router.push("/login");
     }
-  }, [status]);
+    
+    if (status === "authenticated" && session?.user.accessToken) {
+      if (!isTokenValid(session?.user.accessToken)) {
+        signOut(); // token expired → logout
+      }
+    }
+   
+
+    // Check session expiry (extra safeguard)
+    if (session?.expires) {
+      const expiryDate = new Date(session.expires);
+      if (expiryDate < new Date()) {
+        signOut(); // session expired → log out
+      }
+    }
+    
+  }, [status, session, router]);
 
   if (status === "loading") return <p>Loading...</p>;
 
-  if (session?.user.role !== "admin") {
-    return <p>Access Denied. You are not an admin.</p>;
+  // Role check
+  if (session?.user?.role !== "admin") {
+    return  <p>Loading...</p>;
   }
-
-
-  const handleLogout = () => {
-    localStorage.clear();
-    router.push('/admin/login');
-  };
 
   return (
     <div className="min-h-screen flex bg-gray-100">

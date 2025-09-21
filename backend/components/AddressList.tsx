@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "@/utils/axios";
 import { Trash2, Edit } from "lucide-react";
 import {API_BASE_URL} from  "../constants"
 
@@ -46,12 +46,12 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
 
       // Pehle quote addresses fetch karna
       if (quoteId) {
-        response = await axios.get(`${API_BASE_URL}/quotes/${quoteId}/addresses`);
+        response = await api.get(`${API_BASE_URL}/quotes/${quoteId}/addresses`);
       }
 
       // Agar quote addresses empty hain aur customerId available hai, to fallback
       if ((!response || response.data.length === 0) && customerId) {
-        response = await axios.get(`${API_BASE_URL}/customers/${customerId}/addresses`);
+        response = await api.get(`customers/${customerId}/addresses`);
       }
 
       setAddresses(response?.data || []);

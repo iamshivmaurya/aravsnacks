@@ -1,6 +1,4 @@
 from fastapi import APIRouter, HTTPException
-from sqlalchemy.orm import Session
-from database import get_db
 import httpx
 from fastapi import Response
 from reportlab.lib.pagesizes import A4

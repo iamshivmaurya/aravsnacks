@@ -1,7 +1,7 @@
 // app/maintenance/page.tsx
 'use client';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import api from "@/utils/axios";
 
 export default function MaintenancePage() {
   const [maintenanceMessage, setMaintenanceMessage] = useState('We are currently performing maintenance.');
@@ -9,7 +9,7 @@ export default function MaintenancePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/settings`)
+    api.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/settings`)
       .then(res => {
         const data = res.data;
         setMaintenanceMode(data.maintenanceMode || false);

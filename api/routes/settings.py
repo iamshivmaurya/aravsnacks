@@ -4,6 +4,7 @@ import settings_crud
 from database import get_db
 from typing import Dict
 from settings_schema import SettingsUpdate
+import admin_auth
 
 router = APIRouter(prefix="/admin/settings")
 
@@ -13,7 +14,7 @@ def list_settings(db: Session = Depends(get_db)):
     return {s.key: s.value for s in all_settings}
 
 @router.post("/")
-def save_settings(data: SettingsUpdate, db: Session = Depends(get_db)):
+def save_settings(data: SettingsUpdate, db: Session = Depends(get_db), current_user=Depends(admin_auth.require_role("admin"))):
     print(data)
     for key, value in data.dict().items():
         settings_crud.create_or_update_setting(db, key, str(value))  # store as string if DB is varchar

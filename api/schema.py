@@ -3,40 +3,6 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime  #########################################
 
-
-# class AdminCreate(BaseModel):
-    
-#     user_name: Optional[str] = None
-#     first_name: Optional[str] = None
-#     last_name: Optional[str] = None
-#     email: Optional[EmailStr] = None
-#     password: Optional[str] = None
-#     user_role: Optional[str] = None
-#     is_active: Optional[bool] = None
-#     created_at: datetime # Phone is required
-
-
-
-
-# class AdminResponse(BaseModel):
-#     id: Optional[int] = None  # Make customer_id optional
-#     user_name: Optional[str] = None
-#     first_name: str
-#     last_name:str
-#     email: Optional[EmailStr] = None
-#     password: Optional[str] = None
-#     user_role: Optional[str] = None
-#     is_active: Optional[bool] = None
-#     created_at: datetime # Phone is required
-    
-
-#-------------------------------  Admin Login Response rajesh  -------------------------------------
-
-
-
-
-
-#######################################################
 class AdminLoginResponse(BaseModel):
     message: str
     user_name: Optional[str] = None  # Make optional if not always needed

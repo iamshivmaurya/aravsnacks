@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from crud_coupon import create_coupon,get_coupan, delete_coupon, apply_coupon_to_quote, remove_coupon_from_quote
+from coupon_crud import create_coupon,get_coupan, delete_coupon, apply_coupon_to_quote, remove_coupon_from_quote
 from schema import CouponCreate, CouponResponce, ApplyCouponRequest, CancelCouponRequest
 
 

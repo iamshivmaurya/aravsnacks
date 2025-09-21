@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
+import api from "@/utils/axios";
 import { motion } from 'framer-motion';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -49,7 +49,7 @@ export default function SignInForm({ onSubmit }: SignInFormProps) {
 
     try {
       setLoading(true);
-      const response = await axios.post(SIGNIN_API, { phone });
+      const response = await api.post(SIGNIN_API, { phone });
       setSuccessMsg(response.data.message);
       setGeneratedOtp(response.data.otp);
       if (response.data.otp) {

@@ -1,6 +1,6 @@
 'use client';
 
-import axios from 'axios';
+import api from "@/utils/axios";
 import { toast } from 'react-hot-toast';
 import { GET_QUOTES_API, CREATE_QUOTES_API , API_BASE_URL} from '../constants';
 import {
@@ -67,7 +67,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // ----------------- Create Cart -----------------
   const createCart = useCallback(async () => {
     try {
-      const response = await axios.post(CREATE_QUOTES_API);
+      const response = await api.post(CREATE_QUOTES_API);
       const newQuoteId = response.data.quote_id;
       localStorage.setItem('quote_id', String(newQuoteId));
       setQuoteId(newQuoteId);

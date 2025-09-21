@@ -1,5 +1,6 @@
 import Providers from "./providers";
 import "./globals.css";
+import { Toaster } from 'react-hot-toast';
 
 export const metadata = {
   title: "Next.js Admin",
@@ -11,6 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <Providers>
+          <Toaster position="top-right" />
           {children}
         </Providers>
       </body>

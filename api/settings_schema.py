@@ -82,4 +82,4 @@ class SettingOut(SettingBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True  # Allows ORM mode (formerly orm_mode)

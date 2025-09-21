@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from './CartContext';
-import axios from 'axios';
+import api from "@/utils/axios";
 import {API_BASE_URL, GET_QUOTES_API} from  "../constants"
-import { useRouter } from "next/navigation";
 
 interface QuoteItem {
   item_id: number;
@@ -60,7 +59,7 @@ export default function CartItemsList() {
     if (!quoteId) return;
 
     try {
-      await axios.delete(`${GET_QUOTES_API}/${quoteId}/items/${itemId}`);
+      await api.delete(`${GET_QUOTES_API}/${quoteId}/items/${itemId}`);
       setQuoteItems(prev => prev.filter(item => item.item_id !== itemId));
     } catch (error) {
       console.error("Failed to delete quote item:", error);
