@@ -12,42 +12,21 @@ import { useCart } from '@/components/CartContext';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { quote, cartItems } = useCart();
+  const { quote, cartItems, clearCart } = useCart();
 
-  // --- Login / User State ---
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [phone, setPhone] = useState<string>("");
 
-  // --- Shipping / Address State ---
   const [shippingAddress, setShippingAddress] = useState<ShippingAddressData | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [showAddAddressForm, setShowAddAddressForm] = useState(false);
 
-  // --- Discount / Coupon State ---
+  const [shippingMethod, setShippingMethod] = useState<string>("free");
   const [discountCode, setDiscountCode] = useState("");
   const [discountMessage, setDiscountMessage] = useState("");
   const [discountApplied, setDiscountApplied] = useState(false);
 
-  // Redirect if cart empty
-  // useEffect(() => {
-  //   if (!cartItems.length) router.push("/cart");
-  // }, [cartItems, router]);
-
-  useEffect(() => {
-  const fetchCart = async () => {
-    const quoteUid = localStorage.getItem("quote_uid");
-    if (!quoteUid) {
-      router.push("/cart");
-      return;
-    }
-  };
-
-  fetchCart();
-}, []);
-
-
-  // Load user from localStorage
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     const storedCustomerId = localStorage.getItem("customer_id");
@@ -74,42 +53,42 @@ export default function CheckoutPage() {
     setShowAddAddressForm(false);
   };
 
-  // --- Place Order ---
   const handlePlaceOrder = async () => {
-    if (!isLoggedIn) return alert("Please login before placing order!");
-    if (!selectedAddress) return alert("Please select a delivery address!");
+  if (!isLoggedIn) return alert("Please login before placing order!");
+  if (!selectedAddress) return alert("Please select a delivery address!");
 
-    const quoteUid = localStorage.getItem("quote_uid");
-    if (!quoteUid) return alert("Quote not found!");
+  const quoteUid = localStorage.getItem("quote_uid");
+  if (!quoteUid) return alert("Quote not found!");
 
-    const payload = {
-      customer_id: customerId || 0,
-      quote_uid: quoteUid,
-      payment_method: "cod",
-      shipping_method: "standard",
-      shipping_address: selectedAddress,
-      billing_address: selectedAddress,
-    };
-
-    try {
-      const res = await api.post(PLACE_ORDER, payload);
-
-      if (res.status === 200 || res.status === 201) {
-        const { cust_order_num, order_date } = res.data;
-        if (cust_order_num) sessionStorage.setItem("cust_order_num", cust_order_num);
-        if (order_date) sessionStorage.setItem("order_date", order_date);
-
-        router.push("/order-success");
-      } else {
-        alert("Failed to place order.");
-      }
-    } catch (err: any) {
-      console.error("Order error:", err.response || err.message);
-      alert("Something went wrong while placing the order.");
-    }
+  const payload = {
+    customer_id: customerId || 0,
+    quote_uid: quoteUid,
+    payment_method: "cod",
+    shipping_method: shippingMethod,
+    shipping_address: selectedAddress,
+    billing_address: selectedAddress,
   };
 
-  // --- Apply / Remove Discount ---
+  try {
+    const res = await api.post(PLACE_ORDER, payload);
+    if (res.status === 200 || res.status === 201) {
+      const { cust_order_num, order_date } = res.data;
+      if (cust_order_num) sessionStorage.setItem("cust_order_num", cust_order_num);
+      if (order_date) sessionStorage.setItem("order_date", order_date);
+
+      // ✅ Clear the cart after successful order
+      clearCart();
+
+      router.push("/order-success");
+    } else {
+      alert("Failed to place order.");
+    }
+  } catch (err: any) {
+    console.error("Order error:", err.response || err.message);
+    alert("Something went wrong while placing the order.");
+  }
+};
+
   const handleApplyDiscount = async () => {
     if (!discountCode.trim()) return setDiscountMessage("Please enter a code.");
 
@@ -149,14 +128,15 @@ export default function CheckoutPage() {
   };
 
   return (
-    <section className="mt-6 px-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="max-w-6xl mx-auto my-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* --- Left Column --- */}
       <div className="space-y-6">
+      
+
         {!isLoggedIn && <SignInForm onSubmit={handleLoginSuccess} />}
 
-        <div>
-          <p className="text-md font-semibold mb-2">Choose a Delivery Address</p>
-
+        <div className="border rounded-lg p-4">
+          <h2 className="font-semibold mb-2">Shipping Address</h2>
           {!showAddAddressForm ? (
             <>
               <AddressList onSelectAddress={setSelectedAddress} />
@@ -172,10 +152,46 @@ export default function CheckoutPage() {
           )}
         </div>
 
-        {/* --- Discount Code --- */}
-        <div className="mt-6">
-          <p className="font-medium mb-2">Discount Code</p>
+        {/* Shipping Method */}
+        <div className="border rounded-lg p-4 mt-4">
+          <h2 className="font-semibold mb-2">Shipping Method</h2>
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="shipping"
+                value="free"
+                checked={shippingMethod === "free"}
+                onChange={(e) => setShippingMethod(e.target.value)}
+              />
+              Free Shipping - $0.00
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="shipping"
+                value="standard"
+                checked={shippingMethod === "standard"}
+                onChange={(e) => setShippingMethod(e.target.value)}
+              />
+              Standard Ground - $18.85
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="shipping"
+                value="priority"
+                checked={shippingMethod === "priority"}
+                onChange={(e) => setShippingMethod(e.target.value)}
+              />
+              Priority - $26.58
+            </label>
+          </div>
+        </div>
 
+        {/* Discount Code */}
+        <div className="border rounded-lg p-4 mt-4">
+          <h2 className="font-semibold mb-2">Discount Code</h2>
           {quote?.coupon_code ? (
             <div className="flex items-center justify-between border rounded-lg px-3 py-2 bg-green-50">
               <span className="font-medium text-green-700">Applied: {quote.coupon_code}</span>
@@ -203,28 +219,30 @@ export default function CheckoutPage() {
               </button>
             </div>
           )}
-
           {discountMessage && <p className="mt-2 text-sm text-gray-600">{discountMessage}</p>}
         </div>
       </div>
 
-      {/* --- Right Column: Cart --- */}
+      {/* --- Right Column: Cart & Order Summary --- */}
       <div className="bg-white p-5 rounded-2xl shadow-md border flex flex-col justify-between">
         <div>
-          <h1 className="text-2xl font-bold mb-4">Your Cart</h1>
+          <h1 className="text-2xl font-bold mb-4">Order Summary</h1>
           <CartItemsList />
+
+          <div className="mt-4 border-t pt-4 space-y-2">
+            <div className="flex justify-between"><span>Subtotal</span><span>${quote?.subtotal || "0.00"}</span></div>
+            <div className="flex justify-between"><span>Shipping</span><span>${shippingMethod === "free" ? "0.00" : shippingMethod === "standard" ? "18.85" : "26.58"}</span></div>
+            <div className="flex justify-between font-semibold"><span>Total</span><span>${quote?.total || "0.00"}</span></div>
+          </div>
+
+          <button
+            onClick={handlePlaceOrder}
+            className="w-full mt-6 bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 shadow-md transition"
+          >
+            Place Order
+          </button>
         </div>
       </div>
-
-      {/* --- Place Order Button --- */}
-      <div className="mt-6 md:mt-10 flex justify-end">
-        <button
-          onClick={handlePlaceOrder}
-          className="w-full md:w-auto bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 shadow-md transition"
-        >
-          Place Order
-        </button>
-      </div>
-    </section>
+    </div>
   );
 }

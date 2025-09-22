@@ -1,4 +1,3 @@
-// app/layout.tsx
 import './globals.css';
 import type { Metadata } from 'next';
 import Navbar from '../components/Navbar';
@@ -13,11 +12,10 @@ import api from "@/utils/axios";
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const res = await api.get(`/admin/settings`);
-    const settings = res.data;
-
+    const { metaTitle, metaDescription } = res.data;
     return {
-      title: settings.metaTitle || 'Grocery Store',
-      description: settings.metaDescription || 'Buy groceries online!',
+      title: metaTitle || 'Grocery Store',
+      description: metaDescription || 'Buy groceries online!',
     };
   } catch (err) {
     console.error('Failed to fetch metadata:', err);
@@ -27,14 +25,10 @@ export async function generateMetadata(): Promise<Metadata> {
     };
   }
 }
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  // ✅ Await cookies before reading them
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
-  const maintenanceMode = cookieStore.get('maintenanceMode')?.value  === 'true' ? true : false;
+  const maintenanceMode = cookieStore.get('maintenanceMode')?.value === 'true';
   const metadata = await generateMetadata();
 
   return (
@@ -44,6 +38,7 @@ export default async function RootLayout({
         <meta name="description" content={metadata.description} />
       </head>
       <body className="bg-gray-100">
+        {/* Wrap AuthProvider first so that CartProvider can use useAuth */}
         <AuthProvider>
           <CartProvider>
             <Toaster position="top-right" />
@@ -51,9 +46,9 @@ export default async function RootLayout({
               <MaintenancePage />
             ) : (
               <>
-                <div className="top-0 left-0 w-full z-50">
+                <header className="top-0 left-0 w-full z-50">
                   <Navbar />
-                </div>
+                </header>
                 <main className="min-h-[80vh]">{children}</main>
                 <Footer />
               </>

@@ -3,11 +3,10 @@ from sqlalchemy.orm import Session
 from database import get_db
 from schema import QuoteCreateResponse, QuoteItemCreate, QuoteAddressCreate, QuoteResponse
 # Update this import
-from quote_crud import create_quote,get_quote_with_items, update_quote_item_quantity, get_quote, get_all_quotes, delete_quote, add_quote_item, remove_quote_item, add_quote_address, get_quote_addresses
+from quote_crud import create_quote,get_quote_with_items, update_quote_item_quantity, get_all_quotes, delete_quote, add_quote_item, remove_quote_item, add_quote_address, get_quote_addresses
 from typing import List
-from sqlalchemy.orm import joinedload
 from schema import QuoteItemQuantityUpdate,QuoteItemResponse # Make sure this import exists
-from dependencies import get_current_customer, get_customer_id_from_token, resolve_quote_id_by_uid
+from dependencies import get_customer_id_from_token, resolve_quote_id_by_uid
 from model import Quote
 router = APIRouter()
 
@@ -106,29 +105,23 @@ def update_item_quantity_route(
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 
-@router.get("/customers/{customer_id}/active-quote")
-def get_active_quote(
-    customer_id: int,
-    db: Session = Depends(get_db),
-    current_customer=Depends(get_current_customer),
-):
-    # Ensure the logged-in user is the same as requested customer
-    if current_customer.customer_id != customer_id:
+@router.get("/customer/active-quote")
+def get_active_quote(customer_id: int = Depends(get_customer_id_from_token),
+    db: Session = Depends(get_db)):
+
+    if not customer_id:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    # Fetch active quote (example: status='active')
     active_quote = db.query(Quote).filter(
         Quote.customer_id == customer_id,
         Quote.is_active == 1
     ).first()
 
     if not active_quote:
-        return {"quote_id": None}
+        return {"quote_uid": None}
 
     return {
-        "quote_id": active_quote.quote_id,
-        #"items_count": len(active_quote.items),  # optional
-        #"total_price": active_quote.total_price  # optional
+        "quote_uid": active_quote.quote_uid
     }
 
 

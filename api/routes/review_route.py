@@ -62,6 +62,6 @@ def delete_review_endpoint(review_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Review not found")
     return {"message": "Review deleted successfully"}
 
-@router.get("/customer/{customer_id}", response_model=List[ReviewResponse])
+@router.get("/customer/id/{customer_id}", response_model=List[ReviewResponse])
 def get_customer_reviews_endpoint(customer_id: int, db: Session = Depends(get_db)):
     return get_customer_reviews(db, customer_id)
