@@ -120,3 +120,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* NProgress custom color */
+#nprogress .bar {
+  background: #ff6900 !important; /* Tailwind green-600 */
+  height: 3px;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px #16a34a, 0 0 5px #16a34a !important;
+}
+
+#nprogress .spinner-icon {
+  border-top-color: #16a34a !important;
+  border-left-color: #16a34a !important;
+}
+

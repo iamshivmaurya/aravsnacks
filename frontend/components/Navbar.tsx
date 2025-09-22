@@ -1,16 +1,28 @@
 'use client';
+
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from '../components/CartContext';
 import { useAuth } from '../components/AuthContext';
 import { ShoppingCart, User, LogOut, LogIn, List } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import NProgress from 'nprogress'; // ✅ must be in quotes
+import 'nprogress/nprogress.css'; // Import nprogress CSS
+
+NProgress.configure({ showSpinner: false, speed: 2000, minimum: 0.1 });
 
 export default function Navbar() {
   const { cartItems } = useCart();
   const { isLoggedIn, username, logout } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+
+  // -------------------- NProgress effect --------------------
+  useEffect(() => {
+    NProgress.start();
+    NProgress.done();
+  }, [pathname]); // triggers on route change
 
   const handleLogout = () => {
     logout();
@@ -18,7 +30,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-green-600 text-white px-6 py-3 flex justify-between items-center shadow-md">
+    <nav className="bg-green-600 text-white px-6 py-3 flex justify-between items-center shadow-md relative">
       {/* Brand */}
       <Link href="/" className="font-bold text-xl flex items-center gap-2">
         🛒 <span>Arav Snacks</span>

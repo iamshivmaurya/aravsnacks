@@ -1,4 +1,5 @@
 import axios from "axios"
+import { toast } from 'react-hot-toast';
 
 console.log("process.env.NEXT_PUBLIC_API_BASE_URL ", process.env.NEXT_PUBLIC_API_BASE_URL);
 
@@ -14,9 +15,13 @@ if (typeof window !== "undefined") {
 
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      console.error("Axios : ", error);
+  (error) => {
+    if (!error.response) {
+      toast.error('Server is not reachable.');
+    } else if (error.response.status === 404) {
+      toast.error('Resource not found.');
+    } else if (error.response.status >= 500) {
+      toast.error('Server error, please try again later.');
     }
     return Promise.reject(error);
   }

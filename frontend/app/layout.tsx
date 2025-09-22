@@ -8,17 +8,32 @@ import { Toaster } from 'react-hot-toast';
 import MaintenancePage from '../components/MaintenancePage';
 import { cookies } from 'next/headers';
 import api from "@/utils/axios";
+import NetworkStatusBanner from '@/components/NetworkStatusBanner';
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
     const res = await api.get(`/admin/settings`);
     const { metaTitle, metaDescription } = res.data;
+
     return {
       title: metaTitle || 'Grocery Store',
       description: metaDescription || 'Buy groceries online!',
     };
-  } catch (err) {
-    console.error('Failed to fetch metadata:', err);
+  } catch (err: any) {
+    console.error('Failed to fetch metadata:', err.message);
+
+    // Handle specific errors
+    if (err.response) {
+      if (err.response.status === 404) {
+        console.warn('Settings not found, using default metadata.');
+      } else if (err.response.status >= 500) {
+        console.error('Server error while fetching settings.');
+      }
+    } else if (err.code === 'ECONNREFUSED') {
+      console.error('Backend server is not running.');
+    }
+
+    // Fallback default metadata
     return {
       title: 'Grocery Store',
       description: 'Buy groceries online!',
@@ -39,9 +54,33 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="bg-gray-100">
         {/* Wrap AuthProvider first so that CartProvider can use useAuth */}
+         <NetworkStatusBanner />
         <AuthProvider>
           <CartProvider>
-            <Toaster position="top-right" />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 1000, // 2 seconds
+                style: {
+                  fontSize: '14px',
+                  padding: '12px 16px',
+                  background: '#f3f4f6', // Tailwind gray-100
+                  color: '#111827',       // Tailwind gray-900
+                },
+                success: {
+                  iconTheme: {
+                    primary: '#16a34a', // green
+                    secondary: '#ffffff',
+                  },
+                },
+                error: {
+                  iconTheme: {
+                    primary: '#dc2626', // red
+                    secondary: '#ffffff',
+                  },
+                },
+              }}
+            />
             {maintenanceMode ? (
               <MaintenancePage />
             ) : (
