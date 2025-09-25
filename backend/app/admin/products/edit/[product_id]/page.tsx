@@ -46,7 +46,7 @@ export default function ViewProducts() {
     <div className="p-6 space-y-6">
       {/* Header with Add Button */}
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Products</h2>
+        <h2 className="text-xl font-semibold">Products..</h2>
         <button
           onClick={() => router.push('/admin/products')}
           className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"

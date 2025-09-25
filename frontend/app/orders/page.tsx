@@ -5,6 +5,7 @@ import api from "@/utils/axios";
 import OrderList from "../../components/OrderList";
 import ShippingAddressForm from "../../components/ShippingAddressForm";
 import EditProfileForm from "../../components/EditSignupForm";
+import CustomerAddressList from "../../components/CustomerAddressList"; // ✅ import
 
 export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState<"orders" | "editProfile" | "newAddress">("orders");
@@ -93,7 +94,14 @@ export default function OrdersPage() {
               initialData={initialData}
             />
           )}
-          {activeTab === "newAddress" && <ShippingAddressForm />}
+          {/* {activeTab === "newAddress" && <ShippingAddressForm />} */}
+          {activeTab === "newAddress" && (
+            <CustomerAddressList
+              onSelectAddress={(address) => {
+                console.log("Selected address:", address);
+              }}
+            />
+          )}
         </main>
       </div>
     </section>

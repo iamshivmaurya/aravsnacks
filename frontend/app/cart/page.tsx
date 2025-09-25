@@ -3,10 +3,24 @@
 import { useRouter } from 'next/navigation';
 import { useCart } from '../../components/CartContext';
 import CartItemsList from '../../components/CartItemsList';
+import { useEffect, useState } from 'react';
+ 
 
 export default function CartPage() {
   const router = useRouter();
   const { cartItems, cartTotal , loading } = useCart();
+  const [settingValue, setSettingValue] = useState(null);
+
+// API call to FastAPI backend
+useEffect(() => {
+  fetch("http://127.0.0.1:8000/api/v1/admin/settings/29")
+    .then((res) => res.json())
+    .then((data) => {
+      setSettingValue(data.value);
+    })
+    .catch((err) => console.error("Error fetching setting:", err));
+}, []);
+
 
   const handleCheckout = () => {
     if (cartItems.length === 0) {
@@ -21,9 +35,16 @@ export default function CartPage() {
       <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-6 md:p-10">
         {/* Header */}
         <h1 className="text-3xl font-extrabold text-gray-800 mb-6 border-b pb-4">
-        My Cart
+        My Cart   
         </h1>
+        {/* 🚀 Show message if cartTotal < settingValue */}
+        {settingValue !== null && cartTotal < settingValue && (
+          <p className="text-right text-red-600">
+            Add Rs {settingValue - cartTotal} more to get Free shipping!
+          </p>
+        )}
 
+            
         {loading ? (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">Loading your cart...</p>
@@ -42,10 +63,13 @@ export default function CartPage() {
                 <span>Subtotal</span>
                 <span>₹{cartTotal}</span>
               </div>
-              <div className="flex justify-between text-gray-600 mb-2">
-                <span>Shipping</span>
-                <span className="text-green-600 font-medium">FREE</span>
-              </div>
+              {/* Show Shipping only when cartTotal >= settingValue */}
+              {settingValue !== null && cartTotal >= settingValue && (
+                <div className="flex justify-between text-gray-600 mb-2">
+                  <span>Shipping</span>
+                  <span className="text-green-600 font-medium">FREE</span>
+                </div>
+              )}
               <hr className="my-3" />
               <div className="flex justify-between text-lg font-bold text-gray-800">
                 <span>Total</span>
