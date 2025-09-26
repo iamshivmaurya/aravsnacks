@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import api from "@/utils/axios";
 import OrderList from "../../components/OrderList";
 import ShippingAddressForm from "../../components/ShippingAddressForm";
-import EditProfileForm from "../../components/EditSignupForm";
+import EditSignupForm from "../../components/EditSignupForm";
 import CustomerAddressList from "../../components/CustomerAddressList"; // ✅ import
 
 export default function OrdersPage() {
@@ -89,7 +89,7 @@ export default function OrdersPage() {
         <main className="flex-1 bg-white shadow rounded-xl p-6">
           {activeTab === "orders" && <OrderList />}
           {activeTab === "editProfile" && (
-            <EditProfileForm
+            <EditSignupForm
               customer_id={customerId}
               initialData={initialData}
             />

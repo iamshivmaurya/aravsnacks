@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import api from "@/utils/axios";
+import { Pencil } from "lucide-react"; // ✏️ edit icon
 
 type EditProfileFormProps = {
   customer_id: string;
@@ -23,6 +24,7 @@ export default function EditProfileForm({ customer_id, initialData, onUpdateSucc
     last_name: initialData.last_name || "",
     phone: initialData.phone || "",
   });
+  const [phoneEditable, setPhoneEditable] = useState(false);
   const [generatedMessage, setSuccessMessage] = useState("");
   const [errorMsg, setFailedMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -94,14 +96,28 @@ export default function EditProfileForm({ customer_id, initialData, onUpdateSucc
         required
       />
 
-      <input
-        name="phone"
-        placeholder="Phone"
-        value={form.phone}
-        onChange={handleChange}
-        className="border p-2 w-full"
-        required
-      />
+      {/* 📱 Phone field with edit button */}
+      <div className="relative flex items-center">
+          <input
+            name="phone"
+            placeholder="Phone"
+            value={form.phone}
+            onChange={handleChange}
+            readOnly={!phoneEditable}
+            className={`border p-2 w-full ${
+              phoneEditable ? "bg-white" : "bg-gray-100 cursor-not-allowed"
+            }`}
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setPhoneEditable(!phoneEditable)}
+            className="absolute right-2 text-gray-500 hover:text-gray-700"
+            title={phoneEditable ? "Lock" : "Edit"}
+          >
+            <Pencil size={16} />
+          </button>
+        </div>
 
       <button
         type="submit"

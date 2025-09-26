@@ -3,9 +3,11 @@
 import { useEffect, useState } from "react";
 import api from "@/utils/axios";
 import { Trash2, Edit } from "lucide-react";
+import EditShippingAddressForm from "./EditShippingAddressForm";  
 
 interface Address {
   customer_address_id?: number;
+  address_id?: number;  
   address_type: string;
   street_address: string;
   postal_code: string;
@@ -24,6 +26,7 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);  
 
   useEffect(() => {
     const customerId = localStorage.getItem("customer_id");
@@ -56,6 +59,43 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
     onSelectAddress(address);
   };
 
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to delete this address?")) return;
+
+    try {
+      const response = await api.delete(`/addresses/${id}`);
+      if (response.status === 200 || response.status === 204) {
+        alert("Address deleted successfully!");
+        setAddresses((prev) => prev.filter((a) => a.customer_address_id !== id));
+      }
+    } catch (error: any) {
+      console.error("Error deleting address:", error);
+      alert(error.response?.data?.message || "Failed to delete address");
+    }
+  };
+
+
+
+// ✅ If editing, show EditShippingAddressForm instead of list
+if (editingAddress) {
+  return (
+    <EditShippingAddressForm
+      initialData={editingAddress}
+      onClose={() => setEditingAddress(null)} // 👈 back to list
+      onSuccess={() => {
+        setEditingAddress(null);
+        const customerId = localStorage.getItem("customer_id");
+        if (customerId) fetchAddresses(customerId);
+      }}
+    />
+  );
+}
+
+
+
+
+
   if (loading) return <p className="text-gray-600">Loading addresses...</p>;
   if (addresses.length === 0) return <p className="text-gray-600">No addresses found.</p>;
 
@@ -72,13 +112,7 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
             className="bg-white p-4 rounded shadow flex justify-between items-start"
           >
             <div className="flex items-start gap-2">
-              <input
-                type="radio"
-                name="selectedAddress"
-                checked={selectedId === id}
-                onChange={() => handleSelect(address)}
-                className="mt-1"
-              />
+              
               <div>
                 <h5 className="font-semibold">
                   {address.first_name} {address.last_name} , {address.postal_code}{" "}
@@ -91,14 +125,18 @@ export default function AddressList({ onSelectAddress }: AddressListProps) {
             </div>
 
             <div className="flex gap-2">
-              <button
-                onClick={() => alert("Delete feature coming soon")}
+            <button
+                onClick={() =>
+                  handleDelete(
+                    address.customer_address_id || address.address_id || 0
+                  )
+                }
                 className="p-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
               >
                 <Trash2 size={16} />
               </button>
               <button
-                onClick={() => alert("Edit feature coming soon")}
+                  onClick={() => setEditingAddress(address)} // 👈 set state
                 className="p-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
               >
                 <Edit size={16} />
