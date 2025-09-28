@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import create_model
+from sqlalchemy import func, desc
 from database import get_db
 from model import Quote
 from schema import (OrderCreate, 

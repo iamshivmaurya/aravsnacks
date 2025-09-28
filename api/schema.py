@@ -552,3 +552,12 @@ class TrackingResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+
+### rajesh##
+
+
+class AdminDashboard(BaseModel):
+    order_id: int
+    warehouse_id: int
