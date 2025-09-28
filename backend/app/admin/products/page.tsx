@@ -55,11 +55,11 @@ export default function ViewProducts() {
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Products</h2>
         <button
-          onClick={() => router.push('/admin/products')}
+          onClick={() => router.push('/admin/products/add/new')}
           className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
         >
           <PlusCircle size={18} />
-          Add Product
+          Add Product 
         </button>
       </div>
 

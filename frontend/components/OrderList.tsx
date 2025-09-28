@@ -8,7 +8,7 @@ interface Order {
   order_id: number;
   cust_order_num: string;
   customer_id: number;
-  customer_email: string;
+  customer_email: string | null;
   order_date: string;
   sub_total: number;
   shipping_amount: number;
@@ -24,14 +24,14 @@ export default function OrderList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Pagination states
+  // Pagination
   const [page, setPage] = useState(1);
-  const [limit] = useState(10); // records per page
+  const limit = 10; // orders per page
   const [totalOrders, setTotalOrders] = useState(0);
 
   useEffect(() => {
     fetchOrders();
-  }, [page]);
+  }, [page]); // ✅ Re-fetch on page change
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -40,10 +40,17 @@ export default function OrderList() {
     const skip = (page - 1) * limit;
 
     try {
-      const response = await api.get(`/orders?skip=${skip}&limit=${limit}`);
-      // ⚠️ Backend should return total count, adjust if needed
-      setOrders(response.data.orders || response.data || []);
-      setTotalOrders(response.data.total || 100); // fallback
+      // तुम्हारा backend फिलहाल सारे orders भेज रहा है
+      const response = await api.get(`/orders`);
+
+      console.log("API Response:", response.data);
+
+      const allOrders = response.data || [];
+      // अब manually paginate करते हैं (frontend-side pagination)
+      const paginatedOrders = allOrders.slice(skip, skip + limit);
+
+      setOrders(paginatedOrders);
+      setTotalOrders(allOrders.length);
     } catch (err) {
       setError("Failed to fetch orders");
       console.error(err);
@@ -53,14 +60,6 @@ export default function OrderList() {
   };
 
   const totalPages = Math.ceil(totalOrders / limit);
-
-  const handlePrev = () => {
-    if (page > 1) setPage(page - 1);
-  };
-
-  const handleNext = () => {
-    if (page < totalPages) setPage(page + 1);
-  };
 
   if (loading) return <p>Loading orders...</p>;
   if (error) return <p className="text-red-600">{error}</p>;
@@ -112,23 +111,21 @@ export default function OrderList() {
           </table>
 
           {/* ✅ Pagination Controls */}
-          <div className="flex justify-between items-center mt-4">
+          <div className="mt-4 flex justify-between items-center">
             <button
-              onClick={handlePrev}
-              disabled={page === 1}
-              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+              className="bg-gray-200 px-4 py-1 rounded disabled:opacity-50"
             >
-              Previous
+              Prev
             </button>
-
-            <span className="text-sm">
-              Page {page} of {totalPages}
-            </span>
-
+            <p>
+              Page {page} of {totalPages || 1}
+            </p>
             <button
-              onClick={handleNext}
-              disabled={page === totalPages}
-              className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="bg-gray-200 px-4 py-1 rounded disabled:opacity-50"
             >
               Next
             </button>

@@ -4,12 +4,13 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '../../components/CartContext';
 import CartItemsList from '../../components/CartItemsList';
 import { useEffect, useState } from 'react';
- 
+import Loader from '../../components/Loader'; // ✅ import loader
 
 export default function CartPage() {
   const router = useRouter();
   const { cartItems, cartTotal , loading } = useCart();
   const [settingValue, setSettingValue] = useState(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
 
 // API call to FastAPI backend
 useEffect(() => {
@@ -27,7 +28,9 @@ useEffect(() => {
       alert("Your cart is empty!");
       return;
     }
-    router.push('/checkout');
+    setCheckoutLoading(true);
+    setTimeout(() => router.push('/checkout'), 1000);
+    // router.push('/checkout');
   };
 
   return (
@@ -46,9 +49,9 @@ useEffect(() => {
 
             
         {loading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">Loading your cart...</p>
-        </div>
+         <div className="text-center py-12">
+            <Loader text="Loading your cart..." /> {/* ✅ loader use */}
+         </div>
       ) : cartItems.length > 0 ? (
           <div className="grid md:grid-cols-3 gap-6">
             {/* Cart Items */}
@@ -78,9 +81,18 @@ useEffect(() => {
 
               <button
                 onClick={handleCheckout}
-                className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all"
+                disabled={checkoutLoading}
+                className={`w-full mt-6 font-semibold py-3 rounded-xl transition-all ${
+                  checkoutLoading
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
               >
-                Proceed to Checkout →
+                {checkoutLoading ? (
+                  <Loader text="Processing..." /> // ✅ loader component use
+                ) : (
+                  'Proceed to Checkout →'
+                )}
               </button>
             </div>
           </div>
