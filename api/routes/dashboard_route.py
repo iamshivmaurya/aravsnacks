@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, cast, Date,desc,case
 from datetime import date
 from database import get_db
+import admin_auth
 from model import Order,Customer,OrderItem, Product 
 from typing import List
 from pydantic import BaseModel
@@ -14,13 +15,13 @@ router = APIRouter()
 
 
 @router.get("/total/revenue")
-def total_revenue(db: Session = Depends(get_db)):
+def total_revenue(db: Session = Depends(get_db),current_user=Depends(admin_auth.require_role("admin"))):
     total = db.query(func.sum(Order.grand_total).label("total_amount")).scalar()
     return {"total_revenue": total or 0}
 
 
 @router.get("/order/today")
-def get_todays_orders(db: Session = Depends(get_db)):
+def get_todays_orders(db: Session = Depends(get_db),current_user=Depends(admin_auth.require_role("admin"))):
     today = datetime.date.today()
     
     total_orders = (
@@ -33,7 +34,7 @@ def get_todays_orders(db: Session = Depends(get_db)):
 
 
 @router.get("/customer/today")
-def get_todays_customers(db: Session = Depends(get_db)):
+def get_todays_customers(db: Session = Depends(get_db),current_user=Depends(admin_auth.require_role("admin"))):
     today = date.today()
 
     # Count new customer registrations today
@@ -55,7 +56,7 @@ class TopProductResponse(BaseModel):
 
 
 @router.get("/top-selling/products/",response_model=list[TopProductResponse])
-def get_top_selling_products(db: Session = Depends(get_db)):
+def get_top_selling_products(db: Session = Depends(get_db),current_user=Depends(admin_auth.require_role("admin"))):
    
     results = (
         db.query(
@@ -87,7 +88,7 @@ class TopCustomerResponse(BaseModel):
 
 
 @router.get("/top-customers/by-orders", response_model=list[TopCustomerResponse])
-def get_top_customers(db: Session = Depends(get_db)):
+def get_top_customers(db: Session = Depends(get_db),current_user=Depends(admin_auth.require_role("admin"))):
     results = (
         db.query(
             Order.customer_id,
@@ -112,7 +113,7 @@ def get_top_customers(db: Session = Depends(get_db)):
 #------------------------------------------ hourely order --------------------
 
 @router.get("/orders/stats/today-by-hour") 
-def get_today_orders_by_hour(db: Session = Depends(get_db)):
+def get_today_orders_by_hour(db: Session = Depends(get_db),current_user=Depends(admin_auth.require_role("admin"))):
     """
     Get today's orders grouped by hour in AM/PM format
     """
@@ -146,7 +147,7 @@ def get_today_orders_by_hour(db: Session = Depends(get_db)):
 ########################################## mothly order###################
 
 @router.get("/last/7/days")
-def get_last_7_days_orders(db: Session = Depends(get_db)):
+def get_last_7_days_orders(db: Session = Depends(get_db),current_user=Depends(admin_auth.require_role("admin"))):
     """
     Get last 7 days orders aggregated by day name (Mon, Tue, ... Sun)
     """
@@ -174,7 +175,7 @@ def get_last_7_days_orders(db: Session = Depends(get_db)):
 ################################################### monthly   order #####################
 
 @router.get("/current/month/weeks")
-def get_orders_by_week_of_month(db: Session = Depends(get_db)):
+def get_orders_by_week_of_month(db: Session = Depends(get_db),current_user=Depends(admin_auth.require_role("admin"))):
     week_case = case(
         (func.day(Order.order_date).between(1, 7), "Week 1"),
         (func.day(Order.order_date).between(8, 14), "Week 2"),
@@ -205,7 +206,7 @@ def get_orders_by_week_of_month(db: Session = Depends(get_db)):
 
 # @router.get("/yearly")   ##### not work
 @router.get("/orders/stats/yearly")   ### working
-def get_yearly_orders(db: Session = Depends(get_db)):
+def get_yearly_orders(db: Session = Depends(get_db),current_user=Depends(admin_auth.require_role("admin"))):
     """
     Get orders count for each month of the current year
     """
