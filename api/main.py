@@ -2,10 +2,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-# ========== CHANGE 1: Import RBAC middleware ==========
-from rbac_middleware import RBACMiddleware  # <-- ADDED THIS LINE
-
-
 # Import your route modules
 from routes import (
     category_route, coupon_route, customer_route, order_route, 
@@ -19,9 +15,6 @@ app = FastAPI(
     description="API for AravSnacks e-commerce platform",
     version="1.0.0"
 )
-
-# ========== CHANGE 2: Add RBAC middleware FIRST ==========
-app.add_middleware(RBACMiddleware)  # <-- ADDED THIS LINE
 
 # Serve media files
 app.mount("/media", StaticFiles(directory="media"), name="media")
