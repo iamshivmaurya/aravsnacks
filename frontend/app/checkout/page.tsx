@@ -228,13 +228,6 @@ export default function CheckoutPage() {
         <div>
           <h1 className="text-2xl font-bold mb-4">Order Summary</h1>
           <CartItemsList />
-
-          <div className="mt-4 border-t pt-4 space-y-2">
-            <div className="flex justify-between"><span>Subtotal</span><span>${quote?.subtotal || "0.00"}</span></div>
-            <div className="flex justify-between"><span>Shipping</span><span>${shippingMethod === "free" ? "0.00" : shippingMethod === "standard" ? "18.85" : "26.58"}</span></div>
-            <div className="flex justify-between font-semibold"><span>Total</span><span>${quote?.total || "0.00"}</span></div>
-          </div>
-
           <button
             onClick={handlePlaceOrder}
             className="w-full mt-6 bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 shadow-md transition"
