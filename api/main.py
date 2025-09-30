@@ -2,11 +2,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+
+
 # Import your route modules
 from routes import (
     category_route, coupon_route, customer_route, order_route, 
     product_route, quote_route, review_route, taxclass_route, 
-    tracking_route, login, order_invoice, admin_route, settings
+    tracking_route, login, order_invoice, admin_route, settings,dashboard_route
 )
 
 # Create app instance with metadata
@@ -52,6 +54,9 @@ app.include_router(admin_route.router, prefix=f"{API_PREFIX}/admin", tags=["Admi
 app.include_router(settings.router, prefix=API_PREFIX, tags=["Settings"])
 app.include_router(review_route.router, prefix=API_PREFIX, tags=["Reviews"])
 app.include_router(tracking_route.router, prefix=API_PREFIX, tags=["Tracking"])
+app.include_router(dashboard_route.router, prefix=API_PREFIX, tags=["Admin Dashboard"])
+
+
 
 
 # Root route
