@@ -30,9 +30,16 @@ def get_order(db: Session, order_id: int):
     return db.query(Quote).filter(Quote.quote_id == quote_id).first()"""
 
 
+# def get_orders(db: Session, skip: int = 0, limit: int = 100):
+#     return db.query(Order).offset(skip).limit(limit).all()
 def get_orders(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Order).offset(skip).limit(limit).all()
-
+    return (
+        db.query(Order)
+        .order_by(Order.order_id.desc())  # 👈 order by id descending
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 def update_order(db: Session, order_id: int, order_data: dict):
     db_order = db.query(Order).filter(Order.order_id == order_id).first()
