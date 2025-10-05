@@ -1,5 +1,5 @@
 ﻿from datetime import datetime
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr,Field
 from typing import Optional, List
 from datetime import datetime  #########################################
 
@@ -561,3 +561,30 @@ class TrackingResponse(BaseModel):
 class AdminDashboard(BaseModel):
     order_id: int
     warehouse_id: int
+
+
+
+class RoleBaseCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=50, description="Role name")
+    path: str = Field(..., min_length=1, max_length=255, description="API route path")
+    method: str = Field(..., min_length=1, max_length=100, description="HTTP methods")
+    allowed: bool = Field(False, description="Access permission flag")
+
+class RoleUpdate(BaseModel):
+    name: str | None = None
+    path: str | None = None
+    method: str | None = None
+    allowed: bool | None = None
+
+
+
+class RoleResponse(BaseModel):
+    name:str
+    path:str
+    method:str
+    allowed:bool
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
