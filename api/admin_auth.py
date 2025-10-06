@@ -3,11 +3,12 @@ from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials  # ← CHANGE THIS
 from database import get_db
 from sqlalchemy.orm import Session
 import admin_model
 from dotenv import load_dotenv
+from enum import Enum
 
 load_dotenv()
 
@@ -16,8 +17,54 @@ ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")  # not used by NextAuth but ok
 
+# ========== CHANGE TO HTTPBearer ==========
+security = HTTPBearer()  # ← USE THIS INSTEAD OF OAuth2PasswordBearer
+
+# ========== PERMISSION SYSTEM ==========
+class Permission(Enum):
+    VIEW_PRODUCTS = "view_products"
+    CREATE_PRODUCTS = "create_products"
+    UPDATE_PRODUCTS = "update_products"
+    DELETE_PRODUCTS = "delete_products"
+    VIEW_CATEGORIES = "view_categories"
+    MANAGE_CATEGORIES = "manage_categories"
+    MANAGE_USERS = "manage_users"
+
+ROLE_PERMISSIONS = {
+    "admin": [
+        Permission.VIEW_PRODUCTS, Permission.CREATE_PRODUCTS,
+        Permission.UPDATE_PRODUCTS, Permission.DELETE_PRODUCTS,
+        Permission.VIEW_CATEGORIES, Permission.MANAGE_CATEGORIES,
+        Permission.MANAGE_USERS
+    ],
+    "editor": [
+        Permission.VIEW_PRODUCTS, Permission.CREATE_PRODUCTS,
+        Permission.UPDATE_PRODUCTS,
+        Permission.VIEW_CATEGORIES, Permission.MANAGE_CATEGORIES
+    ],
+    "user": [
+        Permission.VIEW_PRODUCTS,
+        Permission.VIEW_CATEGORIES
+    ]
+}
+
+# ========== UPDATE PERMISSION CHECKER ==========
+def require_permission(permission: Permission):
+    def permission_checker(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+        token = credentials.credentials  # ← GET TOKEN FROM BEARER
+        user = get_current_user_from_token(token, db)
+        user_permissions = ROLE_PERMISSIONS.get(user.role.name, [])
+
+        if permission not in user_permissions:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient permissions. Required: {permission.value}"
+            )
+        return user
+    return permission_checker
+
+# ... rest of your functions remain the same ...
 def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password, hashed_password)
 
@@ -48,7 +95,8 @@ def get_current_user_from_token(token: str, db: Session):
     return user
 
 def require_role(required_role: str):
-    def role_dependency(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    def role_dependency(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
+        token = credentials.credentials
         user = get_current_user_from_token(token, db)
         if user.role is None or user.role.name != required_role:
             raise HTTPException(status_code=403, detail="Not enough permissions")

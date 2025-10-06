@@ -21,7 +21,7 @@ def login(data: dict, db: Session = Depends(get_db)):
     return {"access_token": token, "token_type": "bearer", "username": user.username, "role": user.role.name}
 
 @router.get("/users/me")
-def users_me(token: str = Depends(admin_auth.oauth2_scheme), db: Session = Depends(get_db)):
+def users_me(token: str = Depends(admin_auth.security), db: Session = Depends(get_db)):
     user = admin_auth.get_current_user_from_token(token, db)
     return {"username": user.username, "role": user.role.name}
 
