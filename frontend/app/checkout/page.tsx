@@ -94,7 +94,7 @@ export default function CheckoutPage() {
 
     try {
       const quoteUid = localStorage.getItem("quote_uid");
-      const res = await api.post(APPLY_COUPON, { coupon_code: discountCode, quote_uid: quoteUid });
+      const res = await api.post(APPLY_COUPON+`/${quoteUid}`, { coupon_code: discountCode});
 
       if (res.status === 200) {
         setDiscountApplied(true);
@@ -112,7 +112,8 @@ export default function CheckoutPage() {
     try {
       const quoteUid = localStorage.getItem("quote_uid");
       if (!quote?.coupon_code) return;
-      const res = await api.post(CANCEL_COUPON, { coupon_code: quote.coupon_code, quote_uid: quoteUid });
+      const res = await api.post(CANCEL_COUPON+`/${quoteUid}`, { coupon_code: discountCode});
+
 
       if (res.status === 200) {
         setDiscountApplied(false);

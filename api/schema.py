@@ -409,11 +409,9 @@ class CouponResponce(BaseModel):
 
 
 class ApplyCouponRequest(BaseModel):
-    quote_uid: str
     coupon_code: str
 
 class CancelCouponRequest(BaseModel):
-    quote_uid: str
     coupon_code: str
 
 class QuoteItemResponseWithDiscount(BaseModel):
