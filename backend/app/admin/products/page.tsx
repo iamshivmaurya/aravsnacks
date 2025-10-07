@@ -82,6 +82,7 @@ export default function ViewProducts() {
                 <th className="p-2">Qty</th>
                 <th className="p-2">Active</th>
                 <th className="p-2">Created</th>
+                <th className="p-2">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -110,6 +111,39 @@ export default function ViewProducts() {
                     <td className="p-2">
                       {new Date(p.created_at).toLocaleDateString()}
                     </td>
+                    <td className="p-2">
+                      <button
+                        onClick={() => router.push(`/admin/products/edit/${p.id}`)}
+                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      >
+                        Edit
+                      </button>
+                    
+  {/* Delete Button */}
+  <button
+    onClick={async () => {
+      const confirmDelete = confirm(`Are you sure you want to delete "${p.name}"?`);
+      if (!confirmDelete) return;
+      try {
+        await api.delete(`products/${p.id}`);
+        alert('✅ Product deleted successfully!');
+        fetchProducts(); // refresh list
+      } catch (error) {
+        console.error(error);
+        alert('❌ Failed to delete product');
+      }
+    }}
+    className="px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700"
+  >
+    Delete
+  </button>
+
+
+
+
+                    </td>
+
+
                   </tr>
                 ))
               ) : (
