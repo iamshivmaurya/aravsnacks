@@ -10,8 +10,8 @@ export const SINGUP_API = `/signup`;
 export const LOGIN_API = `/login`;
 export const VERIFY_OTP_API = `/verify-otp`;
 export const PLACE_ORDER = `/place-order`;
-export const APPLY_COUPON = `/apply-coupon`;
-export const CANCEL_COUPON = `/cancel-coupon`;
+export const APPLY_COUPON = `/quotes/apply-coupon`;
+export const CANCEL_COUPON = `/quotes/cancel-coupon`;
 export const ORDERS_API_URL = `/orders`;
 
 

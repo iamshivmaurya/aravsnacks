@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from coupon_crud import create_coupon,get_coupan, delete_coupon, apply_coupon_to_quote, remove_coupon_from_quote
 from schema import CouponCreate, CouponResponce, ApplyCouponRequest, CancelCouponRequest
-
+from dependencies import get_customer_id_from_token, resolve_quote_id_by_uid
 
 router = APIRouter()
 
@@ -29,8 +29,8 @@ def delete_coupon_route(coupon_id: int, db: Session = Depends(get_db)):
 
 
 
-@router.post("/quotes/apply-coupon")
-def apply_coupon_route(request: ApplyCouponRequest, db: Session = Depends(get_db)):
+@router.post("/quotes/apply-coupon/{quote_uid}")
+def apply_coupon_route(request: ApplyCouponRequest, db: Session = Depends(get_db), quote_id: int = Depends(resolve_quote_id_by_uid)):
     """
     Apply coupon to quote and calculate discounts
     """
@@ -39,7 +39,7 @@ def apply_coupon_route(request: ApplyCouponRequest, db: Session = Depends(get_db
         "status": ""
     }
     try:
-        if(apply_coupon_to_quote(db, request.quote_id, request.coupon_code)):
+        if(apply_coupon_to_quote(db, quote_id, request.coupon_code)):
           response['message'] = "Discount coupon applied sucessfully!"
           response['status'] = True
         else:
@@ -55,8 +55,10 @@ def apply_coupon_route(request: ApplyCouponRequest, db: Session = Depends(get_db
 
 
 
-@router.post("/quotes/cancel-coupon")
-def cancel_coupon_route(request: CancelCouponRequest, db: Session = Depends(get_db)):
+
+
+@router.post("/quotes/cancel-coupon/{quote_uid}")
+def cancel_coupon_route(request: CancelCouponRequest, quote_id: int = Depends(resolve_quote_id_by_uid), db: Session = Depends(get_db)):
     """
     Cancel coupon to quote and calculate discounts
     """
@@ -65,7 +67,7 @@ def cancel_coupon_route(request: CancelCouponRequest, db: Session = Depends(get_
         "status": ""
     }
     try:
-        if(remove_coupon_from_quote(db, request.quote_id)):
+        if(remove_coupon_from_quote(db, quote_id)):
           response['message'] = "Discount coupon removed sucessfully!"
           response['status'] = True
         else:
@@ -78,5 +80,6 @@ def cancel_coupon_route(request: CancelCouponRequest, db: Session = Depends(get_
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
 
 
