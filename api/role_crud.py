@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from admin_model import Role
-from schema import RoleBaseCreate
-
+# from schema import RoleBaseCreate
+from admin_schema import RoleCreate,RoleResponse
 
 
 
@@ -19,12 +19,13 @@ def get_all_roles(db: Session):
 
 #  ------------------------------create_role --------------
 
-def create_role(db: Session, role_data: RoleBaseCreate):
+def create_role(db: Session, role_data: RoleCreate):
     new_role = Role(
         name=role_data.name,
-        path=role_data.path,
-        method=role_data.method,
-        allowed=role_data.allowed
+        description=role_data.description
+        # path=role_data.path,
+        # method=role_data.method,
+        # allowed=role_data.allowed
     )
     db.add(new_role)
     db.commit()
@@ -33,14 +34,15 @@ def create_role(db: Session, role_data: RoleBaseCreate):
 
 
 #  ------------------------------Update role --------------
-def update_role(db: Session, role_id: int, role_data: RoleBaseCreate):
+def update_role(db: Session, role_id: int, role_data: RoleCreate):
     role = db.query(Role).filter(Role.id == role_id).first()
     if not role:
         return None
     role.name = role_data.name
-    role.path = role_data.path
-    role.method = role_data.method
-    role.allowed = role_data.allowed
+    description=role_data.description
+    # role.path = role_data.path
+    # role.method = role_data.method
+    # role.allowed = role_data.allowed
     db.commit()
     db.refresh(role)
     return role
@@ -59,3 +61,9 @@ def delete_role(db: Session, role_id: int):
     db.delete(role)
     db.commit()
     return role
+
+
+
+
+
+
