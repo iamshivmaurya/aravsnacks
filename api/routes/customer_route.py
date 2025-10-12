@@ -97,6 +97,8 @@ def update_address_route(address_id: int, address: CustomerAddressCreate, db: Se
         raise HTTPException(status_code=404, detail="Address not found")
     return db_address
 
+
+
 @router.delete("/addresses/{address_id}")
 def delete_address_route(address_id: int, db: Session = Depends(get_db)):
     success = delete_address(db, address_id)
