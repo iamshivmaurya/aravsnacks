@@ -1,109 +1,180 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from database import get_db
-import admin_schema, admin_model, admin_crud, admin_auth
-from model import Product 
-
-
+import admin_schema
+# import user_crud
+import admin_crud
+import admin_auth
+from typing import List
 
 router = APIRouter()
 
-@router.post("/login", response_model=dict)
-def login(data: dict, db: Session = Depends(get_db)):
-    username = data.get("username")
-    password = data.get("password")
-    if not username or not password:
-        raise HTTPException(status_code=400, detail="username & password required")
-    user = admin_crud.get_user_by_username(db, username)
-    if not user or not admin_auth.verify_password(password, user.hashed_password):
+@router.post("/login", response_model=admin_schema.LoginResponse)
+def login(login_data: admin_schema.LoginRequest, db: Session = Depends(get_db)):
+    user = admin_crud.get_user_by_username(db, login_data.username)
+    if not user or not admin_auth.verify_password(login_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = admin_auth.create_access_token(data={"sub": user.username, "role": user.role.name})
-    return {"access_token": token, "token_type": "bearer", "username": user.username, "role": user.role.name}
+    
+    if not user.is_active:
+        raise HTTPException(status_code=401, detail="User account is disabled")
+    
+    # FIX: Get role name as string, not Role object
+    role_name = user.role.name if user.role else "user"  # Convert Role object to string
+    
+    # Create access token
+    token_data = {"sub": user.username, "role": role_name}  # Use string role name
+    access_token = admin_auth.create_access_token(data=token_data)
+    
+    # Get accessible routes
+    accessible_routes = admin_auth.get_user_accessible_routes(db, user)
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "username": user.username,
+        "role": role_name,  # FIX: Return string, not Role object
+        "accessible_routes": accessible_routes
+    }
+
+
 
 @router.get("/users/me")
-def users_me(token: str = Depends(admin_auth.security), db: Session = Depends(get_db)):
-    user = admin_auth.get_current_user_from_token(token, db)
-    return {"username": user.username, "role": user.role.name}
-
-
-@router.get("/users")
-def get_users_with_total(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1),
-    db: Session = Depends(get_db),
-    current_user=Depends(admin_auth.require_role("admin"))
-):
-    total = db.query(admin_model.User).count()
-    users = admin_crud.list_users(db, skip=skip, limit=limit)
+def get_current_user_info(current_user=Depends(admin_auth.get_current_user)):
     return {
-        "total": total,
-        "users": [
-            {"id": u.id, "username": u.username, "role": u.role.name, "is_active": u.is_active}
-            for u in users
-        ]
+        "username": current_user.username,
+        "role": current_user.role.name if current_user.role else "user",  # FIX: Convert to string
+        "is_active": current_user.is_active
     }
 
 
-@router.post("/users", response_model=admin_schema.UserOut)
-def create_user(user_in: admin_schema.UserCreate, db: Session = Depends(get_db), current_user=Depends(admin_auth.require_role("admin"))):
+# In user creation response
+@router.post("/users", response_model=admin_schema.UserResponse)
+def create_user(
+    user: admin_schema.UserCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(admin_auth.require_permission("/api/v1/admin/users", "POST"))
+):
     try:
-        user = admin_crud.create_user(db, user_in)
-        return {"id": user.id, "username": user.username, "role": user.role.name}
+        new_user = admin_crud.create_user(db, user)
+        # Convert to response format with role as string
+        return {
+            "id": new_user.id,
+            "username": new_user.username,
+            "role": new_user.role.name if new_user.role else "user",  # FIX
+            "is_active": new_user.is_active,
+            "created_at": new_user.created_at
+        }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    
 
 
-# Protected route for specific product
-@router.get("/products/{product_id}")
-def get_product(
-    product_id: int,
-    request: Request,
+
+
+@router.delete("/users/{user_id}")
+def delete_user(
+    user_id: int,
     db: Session = Depends(get_db),
-    current_user=Depends(admin_auth.require_role("admin"))
+    current_user=Depends(admin_auth.require_permission("/api/v1/admin/users", "DELETE"))
 ):
-    product = db.query(Product).filter(Product.id == product_id).first()
+    success = admin_crud.delete_user(db, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"message": "User deleted successfully"}
+
+
+
+@router.get("/users/{user_id}/permissions")
+def get_user_permissions(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(admin_auth.require_permission("/api/v1/admin/users", "GET"))
+):
+    permissions = admin_crud.get_user_permissions(db, user_id)
+    return {"user_id": user_id, "permissions": permissions}
+
+
+
+@router.get("/users1", response_model=List[admin_schema.UserResponse])
+def get_users(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=100),
+    db: Session = Depends(get_db),
+    current_user=Depends(admin_auth.require_permission("/api/v1/admin/users", "GET"))
+):
+    users = admin_crud.get_users(db, skip=skip, limit=limit)
     
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+    # FIX: Convert Role objects to strings for all users
+    response_users = []
+    for user in users:
+        response_users.append({
+            "id": user.id,
+            "username": user.username,
+            "role": user.role.name if user.role else "user",  # Convert to string
+            "is_active": user.is_active,
+            "created_at": user.created_at
+        })
     
+    return response_users
+
+@router.get("/users/{user_id}", response_model=admin_schema.UserResponse)
+def get_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(admin_auth.require_permission("/api/v1/admin/users", "GET"))
+):
+    user = admin_crud.get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # FIX: Convert Role object to string
     return {
-        "message": f"Product details for ID {product_id}",
-        "admin": current_user.user_name,
-        "product": {
-            "id": product.id,
-            "name": product.name,
-            "price": float(product.product_price),
-            "sku": product.sku,
-            "description": product.description,
-            "quantity": product.quantity,
-            "image_url": product.image_url
+        "id": user.id,
+        "username": user.username,
+        "role": user.role.name if user.role else "user",  # Convert to string
+        "is_active": user.is_active,
+        "created_at": user.created_at
+    }
+
+# @router.post("/users", response_model=admin_schema.UserResponse)
+# def create_user(
+#     user: admin_schema.UserCreate,
+#     db: Session = Depends(get_db),
+#     current_user=Depends(admin_auth.require_permission("/api/v1/admin/users", "POST"))
+# ):
+#     try:
+#         new_user = user_crud.create_user(db, user)
+#         # FIX: Convert Role object to string
+#         return {
+#             "id": new_user.id,
+#             "username": new_user.username,
+#             "role": new_user.role.name if new_user.role else "user",  # Convert to string
+#             "is_active": new_user.is_active,
+#             "created_at": new_user.created_at
+#         }
+#     except ValueError as e:
+#         raise HTTPException(status_code=400, detail=str(e))
+
+
+
+@router.put("/users/{user_id}", response_model=admin_schema.UserResponse)
+def update_user(
+    user_id: int,
+    user_update: admin_schema.UserUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(admin_auth.require_permission("/api/v1/admin/users", "PUT"))
+):
+    try:
+        updated_user = admin_crud.update_user(db, user_id, user_update)
+        if not updated_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # FIX: Convert Role object to string
+        return {
+            "id": updated_user.id,
+            "username": updated_user.username,
+            "role": updated_user.role.name if updated_user.role else "user",  # Convert to string
+            "is_active": updated_user.is_active,
+            "created_at": updated_user.created_at
         }
-    }
-
-
-
-# Example of a protected product route using cookies
-@router.get("/products")
-def get_all_products(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user=Depends(admin_auth.require_role("admin"))
-):
-    """
-    Get all products - Admin access only.
-    
-    Requires admin session cookie.
-    """
-    products = db.query(Product).all()
-    
-    return {
-        "message": f"Welcome {current_user.user_name}",
-        "products": [{
-            "id": product.id,
-            "name": product.name,
-            "price": float(product.product_price),
-            "sku": product.sku,
-            "quantity": product.quantity
-        } for product in products]
-    }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
