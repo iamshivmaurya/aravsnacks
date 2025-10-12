@@ -3,10 +3,10 @@ import admin_model
 from admin_schema import PermissionCreate, PermissionUpdate
 from typing import List, Optional
 
-def get_permission_by_id(db: Session, role_id: int) -> Optional[admin_model.RolePermission]:
-    return db.query(admin_model.RolePermission).filter(admin_model.RolePermission.id == role_id).first()
+def get_permission_by_id(db: Session, permission_id: int) -> Optional[admin_model.RolePermission]:
+    return db.query(admin_model.RolePermission).filter(admin_model.RolePermission.id == permission_id).first()
 
-def get_permissions_by_role(db: Session, role_id: int) -> List[admin_model.RolePermission]:
+def get_permissions_by_role(db: Session, permission_id: int) -> List[admin_model.RolePermission]:
     return db.query(admin_model.RolePermission).filter(admin_model.RolePermission.role_id == role_id).all()
 
 def get_all_permissions(db: Session, skip: int = 0, limit: int = 100) -> List[admin_model.RolePermission]:
@@ -50,8 +50,8 @@ def create_permission(db: Session, permission_in: PermissionCreate) -> admin_mod
     db.refresh(permission)
     return permission
 
-def update_permission(db: Session, role_id: int, permission_update: PermissionUpdate) -> Optional[admin_model.RolePermission]:
-    permission = get_permission_by_id(db, role_id)
+def update_permission(db: Session, permission_id: int, permission_update: PermissionUpdate) -> Optional[admin_model.RolePermission]:
+    permission = get_permission_by_id(db, permission_id)
     if not permission:
         return None
     

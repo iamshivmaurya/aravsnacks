@@ -44,13 +44,13 @@ def get_permissions(
     
     return response_permissions
 
-@router.get("/permissions/{role_id}")#, response_model=admin_schema.PermissionResponse)
+@router.get("/permissions/{permission_id}")#, response_model=admin_schema.PermissionResponse)
 def get_permission(
-    role_id: int,
+    permission_id: int,
     db: Session = Depends(get_db),
     current_user=Depends(admin_auth.require_permission("/api/v1/admin/permissions", "GET"))
 ):
-    permission = permission_crud.get_permission_by_id(db, role_id)
+    permission = permission_crud.get_permission_by_id(db, permission_id)
     if not permission:
         raise HTTPException(status_code=404, detail="Permission not found")
     
