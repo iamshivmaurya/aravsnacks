@@ -19,6 +19,13 @@ def get_coupon_route(coupon_code: str, db: Session = Depends(get_db)):
     if not db_coupon:
         raise HTTPException(status_code=404, detail="coupon not found")
     return db_coupon
+####
+@router.get("/coupon/{coupon_id}", response_model=CouponResponce)
+def get_coupon_id(coupon_id: str, db: Session = Depends(get_db)):
+    db_coupon = get_coupan_by_id(db, coupon_id)
+    if not db_coupon:
+        raise HTTPException(status_code=404, detail="coupon not found")
+    return db_coupon
 
 
   
@@ -42,7 +49,7 @@ def delete_coupon_route(coupon_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="coupon not found")
     return {"message": "coupon deleted successfully"}
 
-
+#
 
 @router.post("/quotes/apply-coupon/{quote_uid}")
 def apply_coupon_route(request: ApplyCouponRequest, db: Session = Depends(get_db), quote_id: int = Depends(resolve_quote_id_by_uid)):

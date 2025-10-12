@@ -54,6 +54,10 @@ def get_coupons(db: Session, skip: int = 0, limit: int = 100):
     )
 
 
+def get_coupan(db: Session, coupon_id: str):
+    return db.query(DiscountCode).filter(DiscountCode.coupon_id == coupon_id).first()
+
+
 def delete_coupon(db: Session, coupon_id: int):
     db_coupon= db.query(DiscountCode).filter(DiscountCode.coupon_id == coupon_id).first()
     if db_coupon:
