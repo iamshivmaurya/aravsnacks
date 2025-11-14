@@ -19,7 +19,7 @@ def create_review_endpoint(review: ReviewCreate, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")"""
 
-@router.post("/", response_model=ReviewResponse)
+@router.post("/reviews", response_model=ReviewResponse)
 def create_review_endpoint(
     review: ReviewCreate,
     db: Session = Depends(get_db),

@@ -26,11 +26,16 @@ export default function ProductDetails({ product }: { product: Product }) {
     (ci) => ci.product_id === product.id && ci.item_qty > 0
   );
 
-  const getImageUrl = (url: string) => {
-    if (!url) return '/placeholder.png';
-    if (url.startsWith('http')) return url;
-    return '/' + url;
-  };
+  // const getImageUrl = (url: string) => {
+  //   if (!url) return '/placeholder.png';
+  //   if (url.startsWith('http')) return url;
+  //   return '/' + url;
+  // };
+
+
+  const imageSrc = product.image_url.startsWith("http")
+  ? product.image_url
+  : `${process.env.NEXT_PUBLIC_MEDIA_URL}/media/${product.image_url}`;
 
   const dummyReviews: Review[] = [
     { id: 1, user: 'Rahul', rating: 5, comment: 'Product quality is amazing!' },
@@ -44,7 +49,7 @@ export default function ProductDetails({ product }: { product: Product }) {
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden md:flex hover:shadow-2xl transition-shadow duration-300">
         <div className="relative md:w-1/2 h-96 md:h-auto">
           <Image
-            src={getImageUrl(product.image_url)}
+            src={imageSrc}
             alt={product.name}
             width={600}
             height={600}

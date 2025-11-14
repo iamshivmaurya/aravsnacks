@@ -25,9 +25,37 @@ def create_coupon(db: Session, coupon: CouponCreate):
     return db_coupon
 
 
+def get_coupon_by_id(db: Session, coupon_id: str):
+    return db.query(DiscountCode).filter(DiscountCode.coupon_id == coupon_id).first()
+
+
 def get_coupan(db: Session, coupon_code: str):
     return db.query(DiscountCode).filter(DiscountCode.coupon_code == coupon_code).first()
 
+
+def update_coupon_db(db: Session, coupon_id: int, coupon_data: dict):
+    db_coupon = db.query(DiscountCode).filter(DiscountCode.coupon_id == coupon_id).first()
+    if db_coupon:
+        for key, value in coupon_data.items():
+            setattr(db_coupon, key, value)
+        db.commit()
+        db.refresh(db_coupon)
+    return db_coupon
+
+
+
+def get_coupons(db: Session, skip: int = 0, limit: int = 100):
+    return (
+        db.query(DiscountCode)
+        .order_by(DiscountCode.coupon_id.desc())  # 👈 coupon by id descending
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+
+def get_coupan(db: Session, coupon_id: str):
+    return db.query(DiscountCode).filter(DiscountCode.coupon_id == coupon_id).first()
 
 
 def get_coupan(db: Session, coupon_id: str):

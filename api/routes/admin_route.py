@@ -94,7 +94,7 @@ def get_user_permissions(
 
 
 
-@router.get("/users1", response_model=List[admin_schema.UserResponse])
+@router.get("/users", response_model=List[admin_schema.UserResponse])
 def get_users(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
