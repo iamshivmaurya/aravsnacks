@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, cast, Date,desc,case
 from datetime import date
 from database import get_db
+from typing import Optional
 import admin_auth
 from model import Order,Customer,OrderItem, Product 
 from typing import List
@@ -83,7 +84,7 @@ def get_top_selling_products(db: Session = Depends(get_db),current_user=Depends(
 
 class TopCustomerResponse(BaseModel):
     customer_id: int
-    customer_name: str
+    customer_name: Optional[str]
     total_orders: int
 
 
@@ -196,7 +197,7 @@ def get_orders_by_week_of_month(db: Session = Depends(get_db),current_user=Depen
     )
 
     return [
-        {"week_of_month": r.week_of_month, "total_orders": r.total_orders}
+        {"name": r.week_of_month, "orders": r.total_orders}
         for r in results
     ]
 

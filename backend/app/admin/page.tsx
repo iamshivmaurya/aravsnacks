@@ -1,5 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import api from "@/utils/axios";
+import { toast } from "react-hot-toast"; // ✅ add toast for user feedback
+
 import {
   BarChart,
   Bar,
@@ -12,61 +15,68 @@ import {
 
 export default function AdminDashboard() {
   const [filter, setFilter] = useState("today");
+  const [ordersToday, setOrdersToday] = useState<number | null>(null);
+  const [revenue, setRevenue] = useState<number | null>(null);
+  const [newCustomers, setNewCustomers] = useState<number | null>(null);
+  const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [topCustomers, setTopCustomers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [ordersTodayData, setOrdersTodayData] = useState<any[]>([]);
+  const [orders7DaysData, setOrders7DaysData] = useState<any[]>([]);
+  const [ordersMonthData, setOrdersMonthData] = useState<any[]>([]);
+  const [ordersYearlyData, setOrdersYearlyData] = useState<any[]>([]);
 
-  // Mock stats
-  const stats = {
-    revenue: 125000,
-    ordersToday: 87,
-    newCustomers: 12,
-    topProducts: [
-      { id: 1, name: "iPhone 15", sales: 320 },
-      { id: 2, name: "MacBook Pro", sales: 280 },
-      { id: 3, name: "AirPods Pro", sales: 210 },
-    ],
-    topCustomers: [
-      { id: 1, name: "John Doe", orders: 45 },
-      { id: 2, name: "Jane Smith", orders: 32 },
-    ],
-  };
+  // 🧠 Fetch all data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        console.log("Fetching dashboard data...");
 
-  // Orders datasets for dropdown
-  const ordersDataset = {
-    today: [
-      { name: "9AM", orders: 12 },
-      { name: "12PM", orders: 18 },
-      { name: "3PM", orders: 22 },
-      { name: "6PM", orders: 15 },
-    ],
-    "last-7-days": [
-      { name: "Mon", orders: 45 },
-      { name: "Tue", orders: 32 },
-      { name: "Wed", orders: 60 },
-      { name: "Thu", orders: 40 },
-      { name: "Fri", orders: 75 },
-      { name: "Sat", orders: 90 },
-      { name: "Sun", orders: 55 },
-    ],
-    month: [
-      { name: "Week 1", orders: 200 },
-      { name: "Week 2", orders: 320 },
-      { name: "Week 3", orders: 280 },
-      { name: "Week 4", orders: 350 },
-    ],
-    year: [
-      { name: "Jan", orders: 800 },
-      { name: "Feb", orders: 950 },
-      { name: "Mar", orders: 1100 },
-      { name: "Apr", orders: 900 },
-      { name: "May", orders: 1250 },
-      { name: "Jun", orders: 1500 },
-      { name: "Jul", orders: 1320 },
-      { name: "Aug", orders: 1400 },
-      { name: "Sep", orders: 1700 },
-      { name: "Oct", orders: 1600 },
-      { name: "Nov", orders: 1750 },
-      { name: "Dec", orders: 1900 },
-    ],
-  };
+        const [revRes, orderRes, custRes, prodRes, topCustRes,todayStatsRes,last7DaysRes,monthStatsRes,yearlyStatsRes] =
+          await Promise.all([
+            api.get("/total/revenue"),
+            api.get("/order/today"),
+            api.get("/customer/today"),
+            api.get("/top-selling/products/"),
+            api.get("/top-customers/by-orders"),
+            api.get("/orders/stats/today-by-hour"), // ✅ today chart
+            api.get("/last/7/days"), // ✅ last 7 days chart
+            api.get("/current/month/weeks"),  
+            api.get("/orders/stats/yearly"),  
+          ]);
+
+        // ✅ Set state from responses
+        setRevenue(revRes.data?.total_revenue ?? 0);
+        setOrdersToday(orderRes.data?.total_orders ?? 0);
+        setNewCustomers(custRes.data?.new_customers ?? 0);
+        setTopProducts(prodRes.data || []);
+        setTopCustomers(topCustRes.data || []);
+        setOrdersTodayData(todayStatsRes.data || []);
+        setOrders7DaysData(last7DaysRes.data || []);
+        setOrdersMonthData(monthStatsRes.data || []);
+        setOrdersYearlyData(yearlyStatsRes.data || []);
+     
+        console.log("Dashboard data loaded ✅");
+      } catch (err: any) {
+        console.error("Dashboard data fetch error:", err);
+        toast.error("Failed to load dashboard data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+   
+  const ordersDataset: Record<string, any[]> = {
+    "today": ordersTodayData,
+    "last-7-days": orders7DaysData,
+    "month": ordersMonthData,
+    "year": ordersYearlyData,
+    };
 
   return (
     <div className="p-6">
@@ -74,15 +84,17 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-4 rounded-xl shadow">
           <h3 className="text-sm text-gray-500">Total Revenue</h3>
-          <p className="text-xl font-bold">₹{stats.revenue.toLocaleString()}</p>
+          <p className="text-xl font-bold">
+            {revenue !== null ? `₹${revenue.toLocaleString()}` : "—"}
+          </p>
         </div>
         <div className="bg-white p-4 rounded-xl shadow">
           <h3 className="text-sm text-gray-500">Orders Today</h3>
-          <p className="text-xl font-bold">{stats.ordersToday}</p>
+          <p className="text-xl font-bold">{ordersToday !== null ? ordersToday : "—"}</p> 
         </div>
         <div className="bg-white p-4 rounded-xl shadow">
           <h3 className="text-sm text-gray-500">New Customers</h3>
-          <p className="text-xl font-bold">{stats.newCustomers}</p>
+           <p className="text-xl font-bold">{newCustomers !== null ? newCustomers : "—"}</p>  
         </div>
       </div>
 
@@ -91,28 +103,36 @@ export default function AdminDashboard() {
         {/* Top Selling Products */}
         <div className="bg-white p-6 rounded-xl shadow">
           <h2 className="text-lg font-semibold mb-4">Top Selling Products</h2>
+          {topProducts.length > 0 ? (
           <ul className="divide-y">
-            {stats.topProducts.map((p) => (
-              <li key={p.id} className="flex justify-between py-2">
-                <span>{p.name}</span>
-                <span className="font-semibold">{p.sales} sold</span>
-              </li>
+           {topProducts.map((p) => (
+              <li key={p.product_id} className="flex justify-between py-2">
+              <span>{p.product_name}</span>
+              <span className="font-semibold">{p.total_ordered} sold</span>
+            </li>
             ))}
-          </ul>
+          </ul>  
+            ) : (
+              <p className="text-gray-500 text-sm">No data</p>
+            )}
         </div>
 
         {/* Top Customers */}
         <div className="bg-white p-6 rounded-xl shadow">
           <h2 className="text-lg font-semibold mb-4">Top Customers by Orders</h2>
-          <ul className="divide-y">
-            {stats.topCustomers.map((c) => (
-              <li key={c.id} className="flex justify-between py-2">
-                <span>{c.name}</span>
-                <span className="font-semibold">{c.orders} orders</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+          {topCustomers.length > 0 ? (
+           <ul className="divide-y">
+              {topCustomers.map((c) => (
+                <li key={c.customer_id} className="flex justify-between py-2">
+                  <span>{c.customer_name}</span>
+                  <span className="font-semibold">{c.total_orders} orders</span>
+                </li>
+              ))}
+            </ul>
+           ) : (
+            <p className="text-gray-500 text-sm">No data</p>
+          )}
+        </div>  
 
         {/* Orders Overview */}
         <div className="bg-white p-6 rounded-xl shadow">
@@ -130,7 +150,7 @@ export default function AdminDashboard() {
             </select>
           </div>
 
-          <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={300}>
             <BarChart data={ordersDataset[filter]}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
@@ -138,7 +158,7 @@ export default function AdminDashboard() {
               <Tooltip />
               <Bar dataKey="orders" fill="#3b82f6" />
             </BarChart>
-          </ResponsiveContainer>
+          </ResponsiveContainer>  
         </div>
       </div>
     </div>

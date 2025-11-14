@@ -5,6 +5,8 @@ import api from "@/utils/axios";
 
 type ShippingAddressProps = {
   onSuccess?: () => void; // Optional callback jab address save ho jaye
+  initialData?: ShippingAddressData & { customer_address_id?: number }; // ✅ yeh optional hai
+  onClose?: () => void; // Optional close handler
 };
 
 export type ShippingAddressData = {
@@ -17,8 +19,13 @@ export type ShippingAddressData = {
   street_address: string;
 };
 
-export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps) {
+export default function ShippingAddressForm({ 
+  onSuccess,
+  initialData,
+  onClose,
+}: ShippingAddressProps) {
   const [form, setForm] = useState<ShippingAddressData>({
+    
     first_name: "",
     last_name: "",
     phone_no: "",
@@ -34,8 +41,20 @@ export default function ShippingAddressForm({ onSuccess }: ShippingAddressProps)
 
   useEffect(() => {
     setQuoteUid(localStorage.getItem("quote_uid"));
-    setCustomerId(localStorage.getItem("customer_id")); // customer ID bhi chahiye
-  }, []);
+    setCustomerId(localStorage.getItem("customer_id"));
+
+    if (initialData) {
+      setForm({
+        first_name: initialData.first_name,
+        last_name: initialData.last_name,
+        phone_no: initialData.phone_no,
+        city: initialData.city,
+        state: initialData.state,
+        postal_code: initialData.postal_code,
+        street_address: initialData.street_address,
+      });
+    }
+  }, [initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });

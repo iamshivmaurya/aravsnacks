@@ -31,12 +31,36 @@ def get_customers_route(skip: int = 0, limit: int = 100, db: Session = Depends(g
     customers = get_customers(db, skip=skip, limit=limit)
     return customers
 
-@router.put("/customers/{customer_id}", response_model=CustomerResponse)
+# @router.put("/customers/{customer_id}", response_model=CustomerResponse)
+# def update_customer_route(customer_id: int, customer: CustomerUpdate, db: Session = Depends(get_db)):
+#     db_customer = update_customer(db, customer_id, customer.dict(exclude_unset=True))
+#     if not db_customer:
+#         raise HTTPException(status_code=404, detail="Customer not found")
+#     return db_customer
+
+
+@router.put("/customers/{customer_id}")
 def update_customer_route(customer_id: int, customer: CustomerUpdate, db: Session = Depends(get_db)):
-    db_customer = update_customer(db, customer_id, customer.dict(exclude_unset=True))
-    if not db_customer:
+    result = update_customer(db, customer_id, customer.dict(exclude_unset=True))
+    if not result:
         raise HTTPException(status_code=404, detail="Customer not found")
-    return db_customer
+
+    db_customer, otp_sent, otp_length, otp = result
+
+    return {
+        "customer_id": db_customer.customer_id,
+        "customer_name": db_customer.customer_name,
+        "email": db_customer.email,
+        "first_name": db_customer.first_name,
+        "last_name": db_customer.last_name,
+        "phone": db_customer.phone,
+        "otp_sent": otp_sent,
+        "otp_length": otp_length,
+        "otp": otp,  # ✅ This is important for frontend
+        "message": "OTP generated (dev mode)" if otp_sent else "Phone updated successfully"
+    }
+
+
 
 @router.delete("/customers/{customer_id}")
 def delete_customer_route(customer_id: int, db: Session = Depends(get_db)):

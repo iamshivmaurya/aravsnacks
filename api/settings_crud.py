@@ -17,3 +17,7 @@ def create_or_update_setting(db: Session, key: str, value: str):
     db.commit()
     db.refresh(setting)
     return setting
+
+
+def get_setting_by_id(db: Session, setting_id: int):
+    return db.query(SiteSetting).filter(SiteSetting.id == setting_id).first()

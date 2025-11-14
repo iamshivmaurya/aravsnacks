@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from model import Customer, CustomerAddress
 from schema import CustomerCreate, CustomerUpdate, CustomerAddressCreate
 from typing import List, Optional
-
+import random
 
 # Customer CRUD Operations
 def create_or_update_customer(db: Session, customer_data: CustomerCreate):
@@ -86,14 +86,44 @@ def get_customers(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Customer).offset(skip).limit(limit).all()
 
 
+# def update_customer(db: Session, customer_id: int, customer_data: dict):
+#     db_customer = db.query(Customer).filter(Customer.customer_id == customer_id).first()
+#     if db_customer:
+#         for key, value in customer_data.items():
+#             setattr(db_customer, key, value)
+#         db.commit()
+#         db.refresh(db_customer)
+#     return db_customer
+
+ 
+ 
+
 def update_customer(db: Session, customer_id: int, customer_data: dict):
     db_customer = db.query(Customer).filter(Customer.customer_id == customer_id).first()
-    if db_customer:
-        for key, value in customer_data.items():
-            setattr(db_customer, key, value)
-        db.commit()
-        db.refresh(db_customer)
-    return db_customer
+    if not db_customer:
+        return None
+
+    new_phone = customer_data.get("phone")
+    otp_sent = False
+    otp_length = 4
+    otp = None
+
+    if new_phone and new_phone != db_customer.phone:
+        # Generate OTP (dev mode)
+        otp = str(random.randint(1000, 9999))
+        db_customer.otp = otp
+        db_customer.otp_verified = False
+        otp_sent = True
+        print(f"[DEV] OTP for {new_phone}: {otp}")  # Just for dev
+
+    # Update other fields
+    for key, value in customer_data.items():
+        setattr(db_customer, key, value)
+
+    db.commit()
+    db.refresh(db_customer)
+
+    return db_customer, otp_sent, otp_length, otp
 
 
 def delete_customer(db: Session, customer_id: int):

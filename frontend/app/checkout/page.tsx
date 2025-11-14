@@ -9,6 +9,7 @@ import CartItemsList from '@/components/CheckoutCartItemsList';
 import AddressList, { Address } from '@/components/AddressList';
 import { APPLY_COUPON, PLACE_ORDER, CANCEL_COUPON } from "@/constants";
 import { useCart } from '@/components/CartContext';
+import Loader from '@/components/Loader'; // ✅ import loader
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -26,6 +27,8 @@ export default function CheckoutPage() {
   const [discountCode, setDiscountCode] = useState("");
   const [discountMessage, setDiscountMessage] = useState("");
   const [discountApplied, setDiscountApplied] = useState(false);
+
+  const [placingOrder, setPlacingOrder] = useState(false); // ✅ new state
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -54,40 +57,44 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
-  if (!isLoggedIn) return alert("Please login before placing order!");
-  if (!selectedAddress) return alert("Please select a delivery address!");
+    if (!isLoggedIn) return alert("Please login before placing order!");
+    if (!selectedAddress) return alert("Please select a delivery address!");
 
-  const quoteUid = localStorage.getItem("quote_uid");
-  if (!quoteUid) return alert("Quote not found!");
+    const quoteUid = localStorage.getItem("quote_uid");
+    if (!quoteUid) return alert("Quote not found!");
 
-  const payload = {
-    customer_id: customerId || 0,
-    quote_uid: quoteUid,
-    payment_method: "cod",
-    shipping_method: shippingMethod,
-    shipping_address: selectedAddress,
-    billing_address: selectedAddress,
-  };
+    const payload = {
+      customer_id: customerId || 0,
+      quote_uid: quoteUid,
+      payment_method: "cod",
+      shipping_method: shippingMethod,
+      shipping_address: selectedAddress,
+      billing_address: selectedAddress,
+    };
 
-  try {
-    const res = await api.post(PLACE_ORDER, payload);
-    if (res.status === 200 || res.status === 201) {
-      const { cust_order_num, order_date } = res.data;
-      if (cust_order_num) sessionStorage.setItem("cust_order_num", cust_order_num);
-      if (order_date) sessionStorage.setItem("order_date", order_date);
+    try {
+      setPlacingOrder(true); // ✅ start loader
+      const res = await api.post(PLACE_ORDER, payload);
+      if (res.status === 200 || res.status === 201) {
+        const { cust_order_num, order_date } = res.data;
+        if (cust_order_num) sessionStorage.setItem("cust_order_num", cust_order_num);
+        if (order_date) sessionStorage.setItem("order_date", order_date);
 
-      // ✅ Clear the cart after successful order
-      clearCart();
+        // ✅ Clear the cart after successful order
+        clearCart();
 
-      router.push("/order-success");
-    } else {
-      alert("Failed to place order.");
+        router.push("/order-success");
+      } else {
+        alert("Failed to place order.");
+      }
+    } catch (err: any) {
+      console.error("Order error:", err.response || err.message);
+      alert("Something went wrong while placing the order.");
     }
-  } catch (err: any) {
-    console.error("Order error:", err.response || err.message);
-    alert("Something went wrong while placing the order.");
-  }
-};
+    finally {
+      setPlacingOrder(false); // ✅ stop loader
+    }
+  };
 
   const handleApplyDiscount = async () => {
     if (!discountCode.trim()) return setDiscountMessage("Please enter a code.");
@@ -132,7 +139,7 @@ export default function CheckoutPage() {
     <div className="max-w-6xl mx-auto my-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* --- Left Column --- */}
       <div className="space-y-6">
-      
+
 
         {!isLoggedIn && <SignInForm onSubmit={handleLoginSuccess} />}
 
@@ -231,9 +238,13 @@ export default function CheckoutPage() {
           <CartItemsList />
           <button
             onClick={handlePlaceOrder}
-            className="w-full mt-6 bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 shadow-md transition"
+            disabled={placingOrder}
+            className={`w-full mt-6 px-6 py-3 rounded-xl font-semibold shadow-md transition ${placingOrder
+                ? 'bg-gray-400 cursor-not-allowed text-white'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
           >
-            Place Order
+            {placingOrder ? <Loader text="Placing your order..." /> : 'Place Order'}
           </button>
         </div>
       </div>
