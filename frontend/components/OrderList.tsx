@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "@/utils/axios";
+import { Star, MessageSquare } from "lucide-react";
 
 interface Order {
   order_id: number;
@@ -83,6 +84,7 @@ export default function OrderList() {
                 <th className="border p-2">Shipping</th>
                 <th className="border p-2">Order Date</th>
                 <th className="border p-2">View</th>
+                <th className="border p-2">Review</th>
               </tr>
             </thead>
             <tbody>
@@ -104,6 +106,26 @@ export default function OrderList() {
                     >
                       View
                     </Link>
+                  </td>
+                  <td className="border p-2">
+
+                  <div className="flex items-center space-x-2 text-yellow-500">
+                    <Star className="w-4 h-4 fill-yellow-400" />
+                    <Star className="w-4 h-4 fill-yellow-400" />
+                    <Star className="w-4 h-4 fill-yellow-400" />
+                    <Star className="w-4 h-4 fill-yellow-400" />
+                    <Star className="w-4 h-4 fill-yellow-400" />
+                 
+                    
+                  </div>
+
+                  <Link
+                    href={`/review-form?orderId=${order.order_id}`}
+                    className="text-blue-700 hover:underline"
+                  >
+                    Write a Review
+                  </Link>
+
                   </td>
                 </tr>
               ))}

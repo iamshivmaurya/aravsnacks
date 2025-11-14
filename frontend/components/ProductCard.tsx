@@ -49,7 +49,7 @@ export default function ProductCard({ product }: { product: Product }) {
       {!item ? (
         <button
           onClick={() => addToCart(product)}
-          className="bg-green-600 text-white px-4 py-1 rounded mt-2 hover:bg-green-700"
+          className="bg-orange-600 text-white px-4 py-1 rounded mt-2 hover:bg-orange-700"
         >
           Add to Cart
         </button>

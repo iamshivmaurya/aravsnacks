@@ -28,11 +28,11 @@ export default function Navbar() {
     logout();
     router.push('/');
   };
-
+  
   return (
-    <nav className="bg-green-600 text-white px-6 py-3 flex justify-between items-center shadow-md relative">
+    <nav className="bg-gradient-to-b from-gray-900 to-black text-white px-6 py-3 flex justify-between items-center shadow-md relative">
       {/* Brand */}
-      <Link href="/" className="font-bold text-xl flex items-center gap-2">
+      <Link href="/" className="font-bold text-orange-500 text-xl flex items-center gap-2">
         🛒 <span>Arav Snacks</span>
       </Link>
 
@@ -56,7 +56,7 @@ export default function Navbar() {
         <div className="relative">
           <button
             onClick={() => setShowProfile(!showProfile)}
-            className="flex items-center gap-2 bg-green-700 px-3 py-1 rounded hover:bg-green-800"
+            className="flex items-center gap-2 bg-orange-500 px-3 py-1 rounded hover:bg-orange-800"
           >
             <User size={18} /> {isLoggedIn ? username : "Account"}
           </button>

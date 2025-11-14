@@ -2,7 +2,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import {jwtDecode} from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
 
 import {
   LayoutDashboard,
@@ -20,6 +20,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [showProductsSubmenu, setShowProductsSubmenu] = useState(false);
   const [showCustomersSubmenu, setShowCustomersSubmenu] = useState(false);
+  const [showRolesSubmenu, setShowRolesSubmenu] = useState(false);
+  const [showPermissionsSubmenu, setShowPermissionsSubmenu] = useState(false);
+  const [showCouponsSubmenu, setShowCouponsSubmenu] = useState(false);
+  const [showTaxSubmenu, setShowTaxSubmenu] = useState(false);
+
   const [showOrdersSubmenu, setShowOrdersSubmenu] = useState(false);
 
   const { data: session, status } = useSession();
@@ -46,17 +51,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
 
-     // Redirect if not logged in
+    // Redirect if not logged in
     if (status === "unauthenticated") {
       router.push("/login");
     }
-    
+
     if (status === "authenticated" && session?.user.accessToken) {
       if (!isTokenValid(session?.user.accessToken)) {
         signOut(); // token expired → logout
       }
     }
-   
+
 
     // Check session expiry (extra safeguard)
     if (session?.expires) {
@@ -65,14 +70,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         signOut(); // session expired → log out
       }
     }
-    
+
   }, [status, session, router]);
 
   if (status === "loading") return <p>Loading...</p>;
 
   // Role check
   if (session?.user?.role !== "admin") {
-    return  <p>Loading...</p>;
+    return <p>Loading...</p>;
   }
 
   return (
@@ -92,6 +97,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <LayoutDashboard size={18} />
             <span>Dashboard</span>
           </button>
+
 
           {/* Products */}
           <div>
@@ -162,7 +168,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Eye size={16} />
                   <span>All Customer</span>
                 </button>
-                 <button
+                <button
                   className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md hover:bg-blue-50 transition"
                   onClick={() => router.push('/admin/customers/customers-group')}
                 >
@@ -172,6 +178,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             )}
           </div>
+
 
           {/* ✅ Orders */}
           <div>
@@ -195,14 +202,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <Eye size={16} />
                   <span>Orders</span>
                 </button>
-                  <button
+                <button
                   className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md hover:bg-blue-50 transition"
                   onClick={() => router.push('/admin/orders/invoices')}
                 >
                   <Eye size={16} />
                   <span>Invoices</span>
                 </button>
-                  <button
+                <button
                   className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md hover:bg-blue-50 transition"
                   onClick={() => router.push('/admin/orders/shipments')}
                 >
@@ -213,6 +220,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             )}
           </div>
 
+
           {/* Users */}
           <button
             className="flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-blue-50 transition"
@@ -222,6 +230,72 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span>Users</span>
           </button>
 
+
+  {/* permissions */}
+  <div>
+            <button
+              className="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-blue-50 transition"
+              onClick={() => setShowPermissionsSubmenu(!showPermissionsSubmenu)}
+            >
+              <span className="flex items-center gap-2">
+                <UserCircle size={18} />
+                <span>permissions</span>
+              </span>
+              {showPermissionsSubmenu ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </button>
+
+            {showPermissionsSubmenu && (
+              <div className="ml-6 mt-1 space-y-1">
+
+                <button
+                  className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md hover:bg-blue-50 transition"
+                  onClick={() => router.push('/admin/permissions/add')}
+                >
+                  <Eye size={16} />
+                  <span>add permissions</span> 
+                </button>
+                 
+              </div>
+            )}
+          </div>
+
+
+
+
+
+
+          {/* roles */}
+          <div>
+            <button
+              className="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-blue-50 transition"
+              onClick={() => setShowRolesSubmenu(!showRolesSubmenu)}
+            >
+              <span className="flex items-center gap-2">
+                <UserCircle size={18} />
+                <span>Roles</span>
+              </span>
+              {showRolesSubmenu ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </button>
+
+            {showRolesSubmenu && (
+              <div className="ml-6 mt-1 space-y-1">
+
+                <button
+                  className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md hover:bg-blue-50 transition"
+                  onClick={() => router.push('/admin/roles')}
+                >
+                  <Eye size={16} />
+                  <span>View Roles</span>
+                </button>
+                 
+              </div>
+            )}
+          </div>
+
+
+
+
+
           {/* Settings */}
           <button
             className="flex items-center gap-2 w-full px-3 py-2 rounded-md hover:bg-blue-50 transition"
@@ -230,12 +304,83 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Settings size={18} />
             <span>Settings</span>
           </button>
+
+
+          {/* coupons */}
+          <div>
+            <button
+              className="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-blue-50 transition"
+              onClick={() => setShowCouponsSubmenu(!showCouponsSubmenu)}
+            >
+              <span className="flex items-center gap-2">
+                <UserCircle size={18} />
+                <span>Coupons</span>
+              </span>
+              {showCouponsSubmenu ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </button>
+
+            {showCouponsSubmenu && (
+              <div className="ml-6 mt-1 space-y-1">
+                <button
+                  className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md hover:bg-blue-50 transition"
+                  onClick={() => router.push('/admin/coupons')}
+                >
+                  <Eye size={16} />
+                  <span>All Coupons</span>
+                </button>
+                {/* <button
+                  className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md hover:bg-blue-50 transition"
+                  onClick={() => router.push('/admin/customers/customers-group')}
+                >
+                  <Eye size={16} />
+                  <span>Coupons Groups</span>
+                </button> */}
+              </div>
+            )}
+          </div>
+
+
+          {/* Tax */}
+          <div>
+            <button
+              className="flex items-center justify-between w-full px-3 py-2 rounded-md hover:bg-blue-50 transition"
+              onClick={() => setShowTaxSubmenu(!showTaxSubmenu)}
+            >
+              <span className="flex items-center gap-2">
+                <UserCircle size={18} />
+                <span>Tax</span>
+              </span>
+              {showTaxSubmenu ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </button>
+
+            {showTaxSubmenu && (
+              <div className="ml-6 mt-1 space-y-1">
+                <button
+                  className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md hover:bg-blue-50 transition"
+                  onClick={() => router.push('/admin/tax')}
+                >
+                  <Eye size={16} />
+                  <span>All Tax</span>
+                </button>
+                {/* <button
+                  className="flex items-center gap-2 w-full px-3 py-1.5 rounded-md hover:bg-blue-50 transition"
+                  onClick={() => router.push('/admin/customers/customers-group')}
+                >
+                  <Eye size={16} />
+                  <span>Coupons Groups</span>
+                </button> */}
+              </div>
+            )}
+          </div>
+
+
+
         </nav>
       </aside>
 
       {/* Right Side */}
-     {/* Right Side */}
-     <main className="flex-1 flex flex-col ml-56">
+      {/* Right Side */}
+      <main className="flex-1 flex flex-col ml-56">
         {/* ✅ Fixed Header */}
         <header className="flex justify-between items-center bg-white border-b shadow-sm px-6 py-3 fixed top-0 left-56 right-0 z-10">
           <h1 className="text-xl font-semibold text-gray-800"></h1>
@@ -243,7 +388,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <span className="text-gray-600">
               <p>Welcome, {session.user.username} (Role: {session.user.role})</p>
             </span>
-              <button
+            <button
               className="bg-red-500 text-white p-2 mt-4"
               onClick={() => signOut()}
             >
