@@ -33,6 +33,10 @@ def get_coupon_id(coupon_id: str, db: Session = Depends(get_db)):
 def get_coupon_route(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     coupon = get_coupons(db, skip=skip, limit=limit)
     return coupon
+    db_coupon = get_coupan_by_id(db, coupon_id)
+    if not db_coupon:
+        raise HTTPException(status_code=404, detail="coupon not found")
+    return db_coupon
 
 
 @router.put("/coupon/{coupon_id}", response_model=CouponResponce)
