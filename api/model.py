@@ -327,5 +327,56 @@ WAREHOUSE_COORDINATES = {
 }
 
 
+# Add to model.py after existing classes
+
+class Warehouse(Base):
+    __tablename__ = "warehouses"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name = Column(String(100), nullable=False)
+    location = Column(String(255), nullable=False)
+    pincode = Column(String(20), nullable=False)
+    manager_name = Column(String(100), nullable=True)
+    manager_contact = Column(String(20), nullable=True)
+    status = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
 
+class DeliveryAgent(Base):
+    __tablename__ = "delivery_agents"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name = Column(String(100), nullable=False)
+    phone_number = Column(String(20), unique=True, nullable=False)
+    email = Column(String(100), unique=True, nullable=True)
+    password_hash = Column(String(255), nullable=True)
+    vehicle_type = Column(String(50), nullable=False)
+    vehicle_number = Column(String(50), nullable=False)
+    current_order_id = Column(Integer, ForeignKey('orders.order_id'), nullable=True)
+    total_deliveries = Column(Integer, default=0)
+    is_active = Column(Boolean, default=True)
+    available = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    # Relationship
+    current_order = relationship("Order", foreign_keys=[current_order_id])
+
+
+class DeliveryOTP(Base):
+    __tablename__ = "delivery_otps"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    order_id = Column(Integer, ForeignKey('orders.order_id'), nullable=False)
+    agent_id = Column(Integer, ForeignKey('delivery_agents.id'), nullable=False)
+    otp_code = Column(String(6), nullable=False)
+    customer_phone = Column(String(20), nullable=False)
+    customer_email = Column(String(100), nullable=True)
+    expires_at = Column(DateTime, nullable=False)
+    verified = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.now)
+
+    # Relationships
+    order = relationship("Order")
+    agent = relationship("DeliveryAgent")

@@ -587,3 +587,113 @@ class RoleResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+
+
+
+#######################    Whare house Agent OTP     #################################################################
+
+# Add to schema.py
+
+# Warehouse Schemas
+class WarehouseCreate(BaseModel):
+    name: str
+    location: str
+    pincode: str
+    manager_name: Optional[str] = None
+    manager_contact: Optional[str] = None
+    status: Optional[bool] = True
+
+
+class WarehouseUpdate(BaseModel):
+    name: Optional[str] = None
+    location: Optional[str] = None
+    pincode: Optional[str] = None
+    manager_name: Optional[str] = None
+    manager_contact: Optional[str] = None
+    status: Optional[bool] = None
+
+
+class WarehouseResponse(BaseModel):
+    id: int
+    name: str
+    location: str
+    pincode: str
+    manager_name: Optional[str]
+    manager_contact: Optional[str]
+    status: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Delivery Agent Schemas
+class DeliveryAgentCreate(BaseModel):
+    name: str
+    phone_number: str
+    email: Optional[str] = None
+    password: str
+    vehicle_type: str
+    vehicle_number: str
+    is_active: Optional[bool] = True
+    available: Optional[bool] = True
+
+
+class DeliveryAgentUpdate(BaseModel):
+    name: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
+    vehicle_type: Optional[str] = None
+    vehicle_number: Optional[str] = None
+    is_active: Optional[bool] = None
+    available: Optional[bool] = None
+
+
+class DeliveryAgentResponse(BaseModel):
+    id: int
+    name: str
+    phone_number: str
+    email: Optional[str]
+    vehicle_type: str
+    vehicle_number: str
+    current_order_id: Optional[int]
+    total_deliveries: int
+    is_active: bool
+    available: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# OTP Schemas
+class GenerateOTPRequest(BaseModel):
+    customer_phone: str
+
+
+class VerifyOTPRequest(BaseModel):
+    otp_code: str
+    customer_phone: str
+
+
+class OTPResponse(BaseModel):
+    otp_code: str
+    message: str
+    expires_at: datetime
+
+
+class OrderAssignmentResponse(BaseModel):
+    order_id: int
+    warehouse_id: int
+    warehouse_name: str
+    agent_id: int
+    agent_name: str
+    message: str
+
+
+######################################################################################################
