@@ -216,13 +216,41 @@ def remove_quote_item(db: Session, quote_id: int, item_id: int):
 
 
 
+# def add_quote_address(db: Session, quote_id: int, address: QuoteAddressCreate):
+#     new_address = QuoteAddress(quote_id=quote_id, **address.dict())
+#     db.add(new_address)
+#     db.commit()
+#     db.refresh(new_address)
+#     return new_address
+###################################
 def add_quote_address(db: Session, quote_id: int, address: QuoteAddressCreate):
-    new_address = QuoteAddress(quote_id=quote_id, **address.dict())
+
+    # 1️⃣ Check if address already exists
+    existing_address = db.query(QuoteAddress).filter(
+        QuoteAddress.quote_id == quote_id
+    ).first()
+
+    # 2️⃣ If exists → UPDATE instead of creating new
+    if existing_address:
+        for key, value in address.dict().items():
+            setattr(existing_address, key, value)
+
+        db.commit()
+        db.refresh(existing_address)
+        return existing_address
+
+    # 3️⃣ If not exists → CREATE new address
+    new_address = QuoteAddress(
+        quote_id=quote_id,
+        **address.dict()
+    )
+
     db.add(new_address)
     db.commit()
     db.refresh(new_address)
     return new_address
 
+#################################
 
 def get_quote_addresses(db: Session, quote_id: int):
     return db.query(QuoteAddress).filter(QuoteAddress.quote_id == quote_id).all()

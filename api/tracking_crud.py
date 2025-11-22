@@ -23,16 +23,25 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     return distance
 
 
-def get_order_postal_code(db: Session, order_id: int):
-    """Get destination postal code from order address"""
-    order_address = db.query(OrderAddress).filter(
-        OrderAddress.order_id == order_id,
-        OrderAddress.address_type == "shipping"
-    ).first()
+# def get_order_postal_code(db: Session, order_id: int):
+#     """Get destination postal code from order address"""
+#     order_address = db.query(OrderAddress).filter(
+#         OrderAddress.order_id == order_id,
+#         OrderAddress.address_type == "shipping"
+#     ).first()
 
-    if order_address:
-        return order_address.postal_code
-    return None
+#     if order_address:
+#         return order_address.postal_code
+#     return None
+
+
+def get_order_postal_code(db: Session, order_id: int):
+    return db.query(OrderAddress).filter(
+        OrderAddress.order_id == order_id,
+        OrderAddress.address_type.in_(["shipping", "permanent"])
+    ).first().postal_code
+
+
 
 
 def calculate_delivery_time(warehouse_id, destination_postal_code):

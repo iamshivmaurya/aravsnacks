@@ -322,7 +322,7 @@ class OrderAddressResponse(BaseModel):
 class OrderResponse(BaseModel):
     
     order_id: int
-    cust_order_num:str
+    cust_order_num: Optional[str]= None
     customer_id: Optional[int]
     customer_email: Optional[str]
     order_date: datetime

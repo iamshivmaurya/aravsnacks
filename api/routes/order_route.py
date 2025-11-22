@@ -27,12 +27,13 @@ router = APIRouter()
 
 
 # Order CRUD Operations
-@router.post("/orders", response_model=OrderResponse)
+@router.post("/orders")
 def create_order_route(order: OrderCreate, db: Session = Depends(get_db)):
     """Create a new order manually"""
     try:
         db_order = create_order(db, order)
         return db_order
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 

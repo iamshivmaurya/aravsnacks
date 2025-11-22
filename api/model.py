@@ -2,6 +2,7 @@ from database import Base
 from sqlalchemy import Column, Integer, Text, Float, String, Boolean, DateTime, ForeignKey, DECIMAL, func
 from datetime import datetime
 from sqlalchemy.orm import relationship
+from typing import Optional
 
 class Customer(Base):
     __tablename__ = "customers"
@@ -17,7 +18,6 @@ class Customer(Base):
     last_login = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
-
     #addresses = relationship("CustomerAddress", back_populates="customer")
     quotes = relationship("Quote", back_populates="customer")
     #orders = relationship("Order", back_populates="customer")
@@ -99,7 +99,8 @@ class Product(Base):
     image_url = Column(String(250), nullable=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
- 
+
+    quote_items = relationship("QuoteItem", back_populates="product")
 
 
 class Quote(Base):
@@ -108,7 +109,7 @@ class Quote(Base):
     quote_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     quote_uid = Column(String, unique=True, index=True, nullable=False)  # public UID
     customer_id = Column(Integer, ForeignKey('customers.customer_id'), nullable=True)
-    coupon_code = Column(String(50), nullable=True)   # 👈 extra column for readability
+    coupon_code = Column(String(50), nullable=True)   # 👈 extra column for readabilityOrderResponse
     email_id = Column(String(50), nullable=True)
     phone_no = Column(String(12), nullable=True)
     is_active = Column(Boolean, default=True)
@@ -145,7 +146,7 @@ class QuoteItem(Base):
     row_total = Column(Float, default=0.0)  # ← NEW: Row total (quantity * price - discount)
 
     quote = relationship("Quote", back_populates="items")
-    #product = relationship("Product", back_populates="quote_items")
+    product = relationship("Product", back_populates="quote_items")
 
 
 
@@ -183,6 +184,7 @@ class Order(Base):
     payment_method = Column(String(50),nullable=True)
     shipping_method = Column(String(50),nullable=True)
     cust_order_num = Column(String(50),nullable=True)
+    # cust_order_num: Optional[str] = None
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
