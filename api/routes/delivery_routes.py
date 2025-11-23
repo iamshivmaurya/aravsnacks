@@ -25,9 +25,16 @@ def create_warehouse_route(warehouse: WarehouseCreate, db: Session = Depends(get
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/warehouses", response_model=List[WarehouseResponse])
-def get_warehouses_route(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return get_all_warehouses(db, skip=skip, limit=limit)
+# @router.get("/warehouses2", response_model=WarehouseResponse)
+# def get_warehouses_route(db: Session = Depends(get_db)):
+#     return get_all_warehouses(db)
+
+
+
+@router.get("/allwarehouses", response_model=List[WarehouseResponse])
+def get_warehouses_route(db: Session = Depends(get_db)):
+    return get_all_warehouses(db)
+
 
 
 @router.get("/warehouses/{warehouse_id}", response_model=WarehouseResponse)

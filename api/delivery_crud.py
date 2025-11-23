@@ -21,8 +21,8 @@ def get_warehouse(db: Session, warehouse_id: int):
     return db.query(Warehouse).filter(Warehouse.id == warehouse_id).first()
 
 
-def get_all_warehouses(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Warehouse).offset(skip).limit(limit).all()
+def get_all_warehouses(db: Session):
+    return db.query(Warehouse).all()
 
 
 def update_warehouse(db: Session, warehouse_id: int, warehouse_data: WarehouseUpdate):
