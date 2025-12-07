@@ -60,17 +60,16 @@ def delete_order(db: Session, order_id: int):
     return False
 
 
-
 def place_order(db: Session, order_data: PlaceOrderRequest):
     """
     Create a complete order from customer ID and quote ID with all required details
     """
-    
+
     # 1. Validate Customer
     customer = db.query(Customer).filter(Customer.customer_id == order_data.customer_id).first()
     if not customer:
         raise ValueError("Customer not found. Please sign up first.")
-    
+
     # 2. Validate Quote
     quote = db.query(Quote).filter(Quote.quote_id == order_data.quote_id).first()
     if not quote:
@@ -149,6 +148,9 @@ def place_order(db: Session, order_data: PlaceOrderRequest):
             )
             db.add(order_address)
 
+    # ✅ ADD THIS LINE (define addresses_count)
+    addresses_count = len(quote_addresses)
+
     # 8. Mark Quote as inactive (closed)
     quote.is_active = False
 
@@ -159,7 +161,10 @@ def place_order(db: Session, order_data: PlaceOrderRequest):
     return {
         "order_id": new_order.order_id,
         "cust_order_num": new_order.cust_order_num,
-        "grand_total": str(new_order.grand_total)
+        "grand_total": str(new_order.grand_total),
+        "addresses_transferred": addresses_count > 0,
+        "addresses_count": addresses_count,
+        "message": f"Order placed successfully with {addresses_count} address(es)"
     }
 
 def add_order_item(db: Session, order_id: int, item: OrderItemCreate):

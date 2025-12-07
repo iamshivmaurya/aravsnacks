@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from model import ProductTracking, POSTAL_CODE_COORDINATES, WAREHOUSE_COORDINATES, Order, OrderAddress
+from model import ProductTracking, Warehouse, PostalCode, Order, OrderAddress
 from schema import TrackingCreate, TrackingStatusUpdate
 from datetime import datetime, timedelta
 import math
@@ -23,18 +23,6 @@ def calculate_distance(lat1, lon1, lat2, lon2):
     return distance
 
 
-# def get_order_postal_code(db: Session, order_id: int):
-#     """Get destination postal code from order address"""
-#     order_address = db.query(OrderAddress).filter(
-#         OrderAddress.order_id == order_id,
-#         OrderAddress.address_type == "shipping"
-#     ).first()
-
-#     if order_address:
-#         return order_address.postal_code
-#     return None
-
-
 def get_order_postal_code(db: Session, order_id: int):
     return db.query(OrderAddress).filter(
         OrderAddress.order_id == order_id,
@@ -42,20 +30,21 @@ def get_order_postal_code(db: Session, order_id: int):
     ).first().postal_code
 
 
-
-
-def calculate_delivery_time(warehouse_id, destination_postal_code):
+def calculate_delivery_time(db: Session, warehouse_id, destination_postal_code):
     """Calculate delivery time based on distance (5 minutes per km)"""
-    if (warehouse_id not in WAREHOUSE_COORDINATES or
-            destination_postal_code not in POSTAL_CODE_COORDINATES):
+    # Get warehouse coordinates from database
+    warehouse = db.query(Warehouse).filter(Warehouse.id == warehouse_id).first()
+    if not warehouse or not warehouse.latitude or not warehouse.longitude:
         return None, None, None
 
-    warehouse = WAREHOUSE_COORDINATES[warehouse_id]
-    destination = POSTAL_CODE_COORDINATES[destination_postal_code]
+    # Get destination coordinates from postal code table
+    destination = db.query(PostalCode).filter(PostalCode.postal_code == destination_postal_code).first()
+    if not destination:
+        return None, None, None
 
     distance = calculate_distance(
-        warehouse["lat"], warehouse["lon"],
-        destination["lat"], destination["lon"]
+        warehouse.latitude, warehouse.longitude,
+        destination.latitude, destination.longitude
     )
 
     # 5 minutes per kilometer
@@ -73,7 +62,7 @@ def create_tracking(db: Session, tracking: TrackingCreate):
 
     # Calculate estimated delivery time
     estimated_time, distance, minutes = calculate_delivery_time(
-        tracking.warehouse_id, destination_postal_code
+        db, tracking.warehouse_id, destination_postal_code
     )
 
     db_tracking = ProductTracking(
@@ -162,25 +151,29 @@ def get_tracking_with_stages(db: Session, order_id: int):
             minutes = remainder // 60
             time_remaining = f"{int(hours)}h {int(minutes)}m"
 
-    # Calculate distance
+    # Calculate distance using database tables
     distance_km = None
-    if (db_tracking.warehouse_id in WAREHOUSE_COORDINATES and
-            db_tracking.destination_postal_code in POSTAL_CODE_COORDINATES):
-        warehouse = WAREHOUSE_COORDINATES[db_tracking.warehouse_id]
-        destination = POSTAL_CODE_COORDINATES[db_tracking.destination_postal_code]
+    warehouse = db.query(Warehouse).filter(Warehouse.id == db_tracking.warehouse_id).first()
+    destination = db.query(PostalCode).filter(PostalCode.postal_code == db_tracking.destination_postal_code).first()
+
+    if warehouse and destination and warehouse.latitude and warehouse.longitude:
         distance_km = calculate_distance(
-            warehouse["lat"], warehouse["lon"],
-            destination["lat"], destination["lon"]
+            warehouse.latitude, warehouse.longitude,
+            destination.latitude, destination.longitude
         )
+
+    # Get warehouse and city names
+    warehouse_name = warehouse.name if warehouse else "Unknown"
+    destination_city = destination.city if destination else "Unknown"
 
     return {
         "tracking_id": db_tracking.tracking_id,
         "order_id": db_tracking.order_id,
         "customer_id": db_tracking.customer_id,
         "warehouse_id": db_tracking.warehouse_id,
-        "warehouse_name": WAREHOUSE_COORDINATES.get(db_tracking.warehouse_id, {}).get("name", "Unknown"),
+        "warehouse_name": warehouse_name,
         "destination_postal_code": db_tracking.destination_postal_code,
-        "destination_city": POSTAL_CODE_COORDINATES.get(db_tracking.destination_postal_code, {}).get("city", "Unknown"),
+        "destination_city": destination_city,
         "current_status": db_tracking.current_status,
         "estimated_delivery_time": db_tracking.estimated_delivery_time,
         "stages": stage_data,

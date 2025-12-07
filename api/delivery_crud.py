@@ -2,13 +2,45 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 import random
 from datetime import datetime, timedelta
-from model import Warehouse, DeliveryAgent, DeliveryOTP, Order, ProductTracking, OrderAddress
+from model import Warehouse, DeliveryAgent, DeliveryOTP, Order, ProductTracking, OrderAddress, PostalCode
 from schema import WarehouseCreate, WarehouseUpdate, DeliveryAgentCreate, DeliveryAgentUpdate
 from typing import List, Optional
 import admin_auth
 
 
 # Warehouse CRUD
+
+def _get_delivery_agent(db: Session, agent_id: int):
+    """Safe way to get delivery agent"""
+    from model import DeliveryAgent
+    return db.query(DeliveryAgent).filter(DeliveryAgent.id == agent_id).first()
+
+def _query_agents_by_order(db: Session, order_id: int):
+    """Safe way to query agents by order"""
+    from model import DeliveryAgent
+    return db.query(DeliveryAgent).filter(DeliveryAgent.current_order_id == order_id).first()
+
+def get_order_assignment_status(db: Session, order_id: int):
+    """Check if order is already assigned to warehouse and agent"""
+    tracking = db.query(ProductTracking).filter(ProductTracking.order_id == order_id).first()
+    assigned_agent = db.query(DeliveryAgent).filter(DeliveryAgent.current_order_id == order_id).first()
+
+    return {
+        "is_assigned": bool(tracking and tracking.warehouse_id and assigned_agent),
+        "warehouse_id": tracking.warehouse_id if tracking else None,
+        "agent_id": assigned_agent.id if assigned_agent else None,
+        "agent_name": assigned_agent.name if assigned_agent else None
+    }
+
+
+def is_agent_assigned_to_order(db: Session, agent_id: int, order_id: int):
+    """Check if specific agent is assigned to this order"""
+    return db.query(DeliveryAgent).filter(
+        and_(
+            DeliveryAgent.id == agent_id,
+            DeliveryAgent.current_order_id == order_id
+        )
+    ).first() is not None
 def create_warehouse(db: Session, warehouse: WarehouseCreate):
     db_warehouse = Warehouse(**warehouse.dict())
     db.add(db_warehouse)
@@ -124,6 +156,12 @@ def delete_delivery_agent(db: Session, agent_id: int):
 
 # Order Assignment Logic
 def assign_order_to_warehouse_and_agent(db: Session, order_id: int):
+    # Check if order is already assigned
+    assignment_status = get_order_assignment_status(db, order_id)
+    if assignment_status["is_assigned"]:
+        raise ValueError(
+            f"Order already assigned to agent {assignment_status['agent_name']} and warehouse {assignment_status['warehouse_id']}")
+
     # Get order
     order = db.query(Order).filter(Order.order_id == order_id).first()
     if not order:
@@ -135,7 +173,7 @@ def assign_order_to_warehouse_and_agent(db: Session, order_id: int):
         raise ValueError("No available delivery agents at the moment")
 
     # Select random warehouse from existing 3
-    warehouse_ids = [1, 2, 3]  # From your existing WAREHOUSE_COORDINATES
+    warehouse_ids = [1, 2, 3]
     selected_warehouse_id = random.choice(warehouse_ids)
 
     # Select first available agent
@@ -151,7 +189,7 @@ def assign_order_to_warehouse_and_agent(db: Session, order_id: int):
         # Create new tracking record
         shipping_address = db.query(OrderAddress).filter(
             OrderAddress.order_id == order_id,
-            OrderAddress.address_type == 'shipping'
+            OrderAddress.address_type.in_(["shipping", "permanent"])
         ).first()
 
         tracking = ProductTracking(
@@ -159,7 +197,7 @@ def assign_order_to_warehouse_and_agent(db: Session, order_id: int):
             customer_id=order.customer_id,
             warehouse_id=selected_warehouse_id,
             destination_postal_code=shipping_address.postal_code if shipping_address else "",
-            current_status="Order Packed",  # Move to next status
+            current_status="Order Packed",
             order_packed_time=datetime.now()
         )
         db.add(tracking)
@@ -179,8 +217,10 @@ def assign_order_to_warehouse_and_agent(db: Session, order_id: int):
     }
 
 
-# OTP Management
-def generate_delivery_otp(db: Session, order_id: int, agent_id: int, customer_phone: str):
+def generate_delivery_otp(db: Session, order_id: int, agent_id: int):
+    # LAZY IMPORT inside function
+    from model import DeliveryAgent, DeliveryOTP, OrderAddress, ProductTracking
+
     # Verify agent is assigned to this order
     agent = db.query(DeliveryAgent).filter(
         and_(
@@ -192,15 +232,17 @@ def generate_delivery_otp(db: Session, order_id: int, agent_id: int, customer_ph
     if not agent:
         raise ValueError("Agent not assigned to this order")
 
-    # Verify customer phone matches order
-    order = db.query(Order).filter(Order.order_id == order_id).first()
+    # Rest of your function remains the same...
+    # Get customer phone from order shipping address automatically
     shipping_address = db.query(OrderAddress).filter(
         OrderAddress.order_id == order_id,
         OrderAddress.address_type == 'shipping'
     ).first()
 
-    if not shipping_address or shipping_address.phone_no != customer_phone:
-        raise ValueError("Customer phone does not match order details")
+    if not shipping_address:
+        raise ValueError("Shipping address not found for this order")
+
+    customer_phone = shipping_address.phone_no
 
     # Generate 4-digit OTP
     otp_code = str(random.randint(1000, 9999))
@@ -212,7 +254,7 @@ def generate_delivery_otp(db: Session, order_id: int, agent_id: int, customer_ph
         agent_id=agent_id,
         otp_code=otp_code,
         customer_phone=customer_phone,
-        customer_email=order.customer_email,
+        customer_email=db.query(Order).filter(Order.order_id == order_id).first().customer_email,
         expires_at=expires_at
     )
 
@@ -228,25 +270,25 @@ def generate_delivery_otp(db: Session, order_id: int, agent_id: int, customer_ph
 
     return {
         "otp_code": otp_code,
+        "customer_phone": customer_phone,
         "expires_at": expires_at,
-        "message": "OTP generated successfully"
+        "message": "OTP generated successfully and sent to customer"
     }
 
 
-def verify_delivery_otp(db: Session, order_id: int, otp_code: str, customer_phone: str):
-    # Find valid OTP record
+def verify_delivery_otp(db: Session, order_id: int, otp_code: str):
+    # Find valid OTP record for this specific order
     otp_record = db.query(DeliveryOTP).filter(
         and_(
-            DeliveryOTP.order_id == order_id,
+            DeliveryOTP.order_id == order_id,  # Specific to this order
             DeliveryOTP.otp_code == otp_code,
-            DeliveryOTP.customer_phone == customer_phone,
             DeliveryOTP.expires_at > datetime.now(),
             DeliveryOTP.verified == False
         )
     ).first()
 
     if not otp_record:
-        raise ValueError("Invalid or expired OTP")
+        raise ValueError("Invalid or expired OTP for this order")
 
     # Mark OTP as verified
     otp_record.verified = True
@@ -281,3 +323,68 @@ def update_agent_status(db: Session, agent_id: int, available: bool):
     agent.available = available
     db.commit()
     return agent
+
+
+def reassign_order_agent(db: Session, order_id: int, current_agent_id: int = None, initiated_by: str = "agent"):
+    """
+    Reassign order to a new available agent
+    initiated_by: "agent" or "admin"
+    """
+
+    # Check if order exists and is assigned
+    assignment_status = get_order_assignment_status(db, order_id)
+    if not assignment_status["is_assigned"]:
+        raise ValueError("Order is not assigned to any agent")
+
+    # If initiated by agent, verify they are currently assigned
+    if initiated_by == "agent" and current_agent_id:
+        if not is_agent_assigned_to_order(db, current_agent_id, order_id):
+            raise ValueError("You are not assigned to this order")
+
+    # Get available agents (excluding current agent if any)
+    available_agents = db.query(DeliveryAgent).filter(
+        and_(
+            DeliveryAgent.available == True,
+            DeliveryAgent.is_active == True,
+            DeliveryAgent.id != assignment_status["agent_id"]  # Exclude current agent
+        )
+    ).all()
+
+    if not available_agents:
+        raise ValueError("No other available delivery agents at the moment")
+
+    # Get current agent
+    current_agent = db.query(DeliveryAgent).filter(DeliveryAgent.id == assignment_status["agent_id"]).first()
+
+    # Select new agent
+    new_agent = available_agents[0]
+
+    # Update tracking status to indicate reassignment
+    tracking = db.query(ProductTracking).filter(ProductTracking.order_id == order_id).first()
+    if tracking:
+        tracking.current_status = "Reassigning Agent"
+
+    # Free current agent
+    if current_agent:
+        current_agent.current_order_id = None
+        current_agent.available = True
+
+    # Assign to new agent
+    new_agent.current_order_id = order_id
+    new_agent.available = False
+
+    # Update tracking status back to packed (ready for delivery)
+    if tracking:
+        tracking.current_status = "Order Packed"
+
+    db.commit()
+
+    return {
+        "order_id": order_id,
+        "previous_agent_id": assignment_status["agent_id"],
+        "previous_agent_name": assignment_status["agent_name"],
+        "new_agent_id": new_agent.id,
+        "new_agent_name": new_agent.name,
+        "warehouse_id": assignment_status["warehouse_id"],
+        "initiated_by": initiated_by
+    }

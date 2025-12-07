@@ -1,7 +1,8 @@
 ﻿from datetime import datetime
 from pydantic import BaseModel, EmailStr,Field
-from typing import Optional, List
+from typing import Optional, List , Dict
 from datetime import datetime  #########################################
+from typing import Literal
 
 class AdminLoginResponse(BaseModel):
     message: str
@@ -181,8 +182,7 @@ class QuoteItemCreate(BaseModel):
     product_id: int
     item_qty: int = 1
 
-class QuoteAddressCreate(BaseModel):
-    address_type: str
+class QuoteAddressBase(BaseModel):
     street_address: str
     postal_code: str
     city: str
@@ -190,6 +190,25 @@ class QuoteAddressCreate(BaseModel):
     phone_no: str
     first_name: str
     last_name: str
+
+class QuoteAddressCreate(QuoteAddressBase):
+    address_type: Literal['shipping', 'billing']  # Explicit type only
+
+# 3. ADD THIS NEW SCHEMA for dual addresses:
+class QuoteAddressesCreate(BaseModel):
+    shipping_address: Optional[QuoteAddressBase] = None
+    billing_address: Optional[QuoteAddressBase] = None
+    use_same_for_billing: bool = True  # Auto-copy shipping to billing
+
+
+# 4. OPTIONAL: Add response schema for structured address response
+class QuoteAddressesResponse(BaseModel):
+    shipping: Optional[QuoteAddressCreate] = None
+    billing: Optional[QuoteAddressCreate] = None
+
+    class Config:
+        from_attributes = True
+
 
 class QuoteCreateResponse(BaseModel):
     quote_uid: str
@@ -226,6 +245,7 @@ class QuoteItemResponse(BaseModel):   ###this response add
     class Config:
         from_attributes = True  # Allows ORM mode (formerly orm_mode)
 
+
 class QuoteResponse(BaseModel):
     quote_id: int
     customer_id: Optional[int]
@@ -241,8 +261,9 @@ class QuoteResponse(BaseModel):
     total_tax: int
     items_count: int
     items_quantity: int
-    items: List[QuoteItemResponse] = []  # Add this line to item detail response
-                                        #along with quote detail
+    items: List[QuoteItemResponse] = []
+    addresses: Optional[Dict[str, Optional[QuoteAddressCreate]]] = None  # NEW
+
     class Config:
         from_attributes = True
 
@@ -346,17 +367,15 @@ class PlaceOrderRequest(BaseModel):
     quote_uid: str
     payment_method: str
     shipping_method: str
-    shipping_address: OrderAddressCreate
-    billing_address: Optional[OrderAddressCreate] = None
+
 
 class PlaceOrderResponse(BaseModel):
     order_id: int
-    cust_order_num:str
-    message: str = "Order placed successfully"
-    grand_total: float
+    cust_order_num: str
+    grand_total: str
     addresses_transferred: bool
     addresses_count: int
-    additional_message: Optional[str] = None
+    message: str = "Order placed successfully"
 
     class Config:
         from_attributes = True
@@ -673,8 +692,7 @@ class DeliveryAgentResponse(BaseModel):
 
 # OTP Schemas
 class GenerateOTPRequest(BaseModel):
-    customer_phone: str
-
+    pass
 
 class VerifyOTPRequest(BaseModel):
     otp_code: str
@@ -685,7 +703,7 @@ class OTPResponse(BaseModel):
     otp_code: str
     message: str
     expires_at: datetime
-
+    customer_phone : str
 
 class OrderAssignmentResponse(BaseModel):
     order_id: int
@@ -697,3 +715,23 @@ class OrderAssignmentResponse(BaseModel):
 
 
 ######################################################################################################
+
+class OrderAssignmentStatus(BaseModel):
+    is_assigned: bool
+    warehouse_id: Optional[int] = None
+    agent_id: Optional[int] = None
+    agent_name: Optional[str] = None
+
+class ReassignOrderRequest(BaseModel):
+    current_agent_id: Optional[int] = None  # Required if initiated by agent
+
+class ReassignOrderResponse(BaseModel):
+    order_id: int
+    previous_agent_id: int
+    previous_agent_name: str
+    new_agent_id: int
+    new_agent_name: str
+    warehouse_id: int
+    initiated_by: str
+    message: str
+
