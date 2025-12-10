@@ -20,6 +20,7 @@ export type ShippingAddressData = {
 };
 
 export default function ShippingAddressForm({ 
+  
   onSuccess,
   initialData,
   onClose,
@@ -38,6 +39,20 @@ export default function ShippingAddressForm({
   const [quoteUid, setQuoteUid] = useState<string | null>(null);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [saveToCustomer, setSaveToCustomer] = useState(false); // New state
+
+  const [infoMsg, setInfoMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const showError = (msg: string) => {
+    setErrorMsg(msg);
+    setInfoMsg("");
+  };
+
+  const showInfo = (msg: string) => {
+    setInfoMsg(msg);
+    setErrorMsg("");
+  };
+
 
   useEffect(() => {
     setQuoteUid(localStorage.getItem("quote_uid"));
@@ -64,13 +79,13 @@ export default function ShippingAddressForm({
     e.preventDefault();
 
     if (!quoteUid) {
-      alert("Quote ID not found in local storage!");
+      showError("Quote ID not found in local storage!");
       return;
     }
 
     // Required field validation
     if (!form.first_name || !form.phone_no || !form.city) {
-      alert("Please fill required fields");
+      showError("Please fill required fields");
       return;
     }
 
@@ -93,16 +108,29 @@ export default function ShippingAddressForm({
           });
         }
 
-        alert("Address saved successfully!");
-        if (onSuccess) onSuccess();
+        showInfo("Address saved successfully!");
+        setTimeout(() => {
+          if (onSuccess) onSuccess();
+        }, 1000);
       }
     } catch (error: any) {
       console.error("Error saving address:", error);
-      alert(error.response?.data?.message || "Failed to save address");
+      showError(error.response?.data?.message || "Failed to save address");
     }
   };
 
   return (
+
+    <div className="">
+    {errorMsg && (
+      <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">{errorMsg}</div>
+    )}
+
+    {infoMsg && (
+      <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md text-sm">
+        ✅ {infoMsg}
+      </div>
+    )}
     <form
       onSubmit={handleSubmit}
       className="space-y-4 p-4 bg-white shadow rounded"
@@ -189,5 +217,6 @@ export default function ShippingAddressForm({
         Save Address
       </button>
     </form>
+    </div>
   );
 }

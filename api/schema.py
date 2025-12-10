@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 from pydantic import BaseModel, EmailStr,Field
 from typing import Optional, List , Dict
 from datetime import datetime  #########################################
@@ -734,4 +734,43 @@ class ReassignOrderResponse(BaseModel):
     warehouse_id: int
     initiated_by: str
     message: str
+###################################wallet schemas ###############################################
+
+
+class WalletResponse(BaseModel):
+    wallet_id: int
+    customer_id: int
+    balance: float
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class WalletCreate(BaseModel):
+    customer_id: int
+
+
+class TransactionCreate(BaseModel):
+    customer_id: int
+    amount: float
+    type: str  # credit / debit
+    reference_id: Optional[str] = None
+    description: Optional[str] = None
+    transaction_mode: Optional[str] = "online"
+
+
+class TransactionResponse(BaseModel):
+    transaction_id: int
+    wallet_id: int
+    customer_id: int
+    type: str
+    amount: float
+    balance_before: float
+    balance_after: float
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
 

@@ -6,8 +6,8 @@ from fastapi.staticfiles import StaticFiles
 from routes import (
     category_route, coupon_route, customer_route, order_route, 
     product_route, quote_route, review_route, taxclass_route, 
-    tracking_route, login, order_invoice, admin_route, settings, 
-    dashboard_route, role_routes
+    tracking_route, login, order_invoice, admin_route, settings,
+    dashboard_route, role_routes,phonepe_routes, delivery_routes ,wallet_route
 )
 
 # Import NEW RBAC route modules
@@ -69,9 +69,12 @@ app.include_router(settings.router, prefix=API_PREFIX, tags=["Settings"])
 app.include_router(review_route.router, prefix=API_PREFIX, tags=["Reviews"])
 app.include_router(tracking_route.router, prefix=API_PREFIX, tags=["Tracking"])
 app.include_router(dashboard_route.router, prefix=API_PREFIX, tags=["Admin Dashboard"])
+app.include_router(phonepe_routes.router, prefix=API_PREFIX, tags=["Phonepe Routes"])
+
+
 # app.include_router(role_route.router, prefix=API_PREFIX, tags=["Role Route"])
 app.include_router(delivery_routes.router, prefix=API_PREFIX, tags=["Delivery Management"])
-
+app.include_router(wallet_route.router,prefix=API_PREFIX, tags=["Wallet Management"])
 # Root route
 @app.get("/")
 def read_root():

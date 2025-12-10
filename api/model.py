@@ -1,8 +1,13 @@
 from database import Base
-from sqlalchemy import Column, Integer, Text, Float, String, Boolean, DateTime, ForeignKey, DECIMAL, func
+from sqlalchemy import Column, Integer, Text, Float, String, Boolean, DateTime, ForeignKey, DECIMAL, func,Enum
 from datetime import datetime
 from sqlalchemy.orm import relationship
 from typing import Optional
+import uuid
+
+
+
+########
 
 class Customer(Base):
     __tablename__ = "customers"
@@ -24,6 +29,8 @@ class Customer(Base):
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
+    wallet = relationship("Wallet", back_populates="customer", uselist=False)
+    
 
 class CustomerAddress(Base):
     __tablename__ = "customer_address"
@@ -373,3 +380,42 @@ class DeliveryOTP(Base):
     # Relationships
     order = relationship("Order")
     agent = relationship("DeliveryAgent")
+
+
+
+
+#  delivery boy modal----
+class Wallet(Base):
+    __tablename__ = "wallets"
+
+    wallet_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    customer_id = Column(Integer, ForeignKey("customers.customer_id"), unique=True, nullable=False)
+    balance = Column(Float, default=0.0)
+
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    customer = relationship("Customer", back_populates="wallet")
+    transactions = relationship("WalletTransaction", back_populates="wallet")
+
+
+class WalletTransaction(Base):
+    __tablename__ = "wallet_transactions"
+
+    transaction_id = Column(Integer, primary_key=True, index=True)
+    wallet_id = Column(Integer, ForeignKey("wallets.wallet_id"))
+    customer_id = Column(Integer, ForeignKey("customers.customer_id"))
+    type = Column(Enum("credit", "debit", name="transaction_type"))
+    amount = Column(DECIMAL(10, 2))
+    balance_before = Column(DECIMAL(10, 2))
+    balance_after = Column(DECIMAL(10, 2))
+    #reference_id = Column(String(50))
+    reference_id = str(uuid.uuid4())
+    description = Column(String(255))
+    transaction_mode = Column(
+        Enum("online", "reward", "refund", "manual", name="transaction_mode")
+    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    wallet = relationship("Wallet", back_populates="transactions")  
+ 
