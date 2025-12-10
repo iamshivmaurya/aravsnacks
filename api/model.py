@@ -311,30 +311,21 @@ class ProductTracking(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
 
-# Fixed postal code coordinates (Add to model.py)
-POSTAL_CODE_COORDINATES = {
-    "110001": {"lat": 28.6139, "lon": 77.2090, "city": "New Delhi"},
-    "110002": {"lat": 28.6358, "lon": 77.2245, "city": "New Delhi"},
-    "110003": {"lat": 28.6345, "lon": 77.2145, "city": "New Delhi"},
-    "110004": {"lat": 28.6325, "lon": 77.2045, "city": "New Delhi"},
-    "110005": {"lat": 28.6305, "lon": 77.1945, "city": "New Delhi"},
-    "110006": {"lat": 28.6285, "lon": 77.1845, "city": "New Delhi"},
-    "110007": {"lat": 28.6265, "lon": 77.1745, "city": "New Delhi"},
-    "110008": {"lat": 28.6245, "lon": 77.1645, "city": "New Delhi"},
-    "110009": {"lat": 28.6225, "lon": 77.1545, "city": "New Delhi"},
-    "110010": {"lat": 28.6205, "lon": 77.1445, "city": "New Delhi"},
-    # Add more postal codes as needed
-}
-
-# Warehouse coordinates (Add to model.py)
-WAREHOUSE_COORDINATES = {
-    1: {"lat": 28.7041, "lon": 77.1025, "postal_code": "110034", "name": "North Warehouse"},
-    2: {"lat": 28.4595, "lon": 77.0266, "postal_code": "110044", "name": "South Warehouse"},
-    3: {"lat": 28.5355, "lon": 77.3910, "postal_code": "110092", "name": "East Warehouse"}
-}
-
-
 # Add to model.py after existing classes
+
+# Add to model.py
+class PostalCode(Base):
+    __tablename__ = "postal_codes"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    postal_code = Column(String(20), unique=True, nullable=False, index=True)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    city = Column(String(100), nullable=False)
+    created_at = Column(DateTime, default=datetime.now)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+
 
 class Warehouse(Base):
     __tablename__ = "warehouses"
@@ -348,6 +339,8 @@ class Warehouse(Base):
     status = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
 
 
 class DeliveryAgent(Base):
@@ -368,8 +361,8 @@ class DeliveryAgent(Base):
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     # Relationship
-    current_order = relationship("Order", foreign_keys=[current_order_id])
-
+    """##current_order = relationship("Order", foreign_keys=[current_order_id])##"""
+    current_order = relationship("Order", foreign_keys=[current_order_id], remote_side="Order.order_id")
 
 class DeliveryOTP(Base):
     __tablename__ = "delivery_otps"

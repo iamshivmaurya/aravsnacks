@@ -14,6 +14,7 @@ from routes import (
 from routes.admin_route import router as user_rbac_router
 from routes.role_routes import router as role_rbac_router  
 from routes.permission_routes import router as permission_rbac_router
+from routes import delivery_routes
 
 # Create app instance with metadata
 app = FastAPI(

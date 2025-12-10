@@ -1,8 +1,262 @@
 from sqlalchemy.orm import Session
-from model import Quote, QuoteItem, QuoteAddress, Product,TaxClass ,DiscountCode
-from schema import  QuoteItemCreate, QuoteAddressCreate
+from model import Quote, QuoteItem, QuoteAddress, Product, TaxClass, DiscountCode, CustomerAddress, Customer
+from schema import QuoteItemCreate, QuoteAddressCreate, QuoteAddressesCreate, QuoteAddressBase
 from sqlalchemy.orm import joinedload
 import uuid
+from typing import Optional, Dict, Any
+
+
+# ============ ADD THESE NEW HELPER FUNCTIONS ============
+def get_customer_addresses(db: Session, customer_id: int) -> Dict[str, Optional[CustomerAddress]]:
+    """Get customer's saved addresses, prefer shipping then billing then any"""
+    addresses = db.query(CustomerAddress).filter(
+        CustomerAddress.customer_id == customer_id
+    ).all()
+
+    result = {'shipping': None, 'billing': None}
+
+    # First, look for specific address types
+    for addr in addresses:
+        if addr.address_type == 'shipping' and not result['shipping']:
+            result['shipping'] = addr
+        elif addr.address_type == 'billing' and not result['billing']:
+            result['billing'] = addr
+
+    # If no specific types found, use any address as fallback
+    if addresses:
+        if not result['shipping']:
+            result['shipping'] = addresses[0]
+        if not result['billing']:
+            result['billing'] = addresses[0]
+
+    return result
+
+
+def save_address_to_customer_profile(db: Session, customer_id: int, address_data: Dict[str, Any], address_type: str):
+    """Save address to customer_address table"""
+    # Check if similar address already exists
+    existing = db.query(CustomerAddress).filter(
+        CustomerAddress.customer_id == customer_id,
+        CustomerAddress.address_type == address_type,
+        CustomerAddress.street_address == address_data.get('street_address'),
+        CustomerAddress.postal_code == address_data.get('postal_code'),
+        CustomerAddress.city == address_data.get('city')
+    ).first()
+
+    if existing:
+        # Update existing address
+        for key, value in address_data.items():
+            setattr(existing, key, value)
+        existing.address_type = address_type
+    else:
+        # Create new address
+        new_customer_addr = CustomerAddress(
+            customer_id=customer_id,
+            address_type=address_type,
+            **address_data
+        )
+        db.add(new_customer_addr)
+
+    db.commit()
+
+
+def create_or_update_quote_address(
+        db: Session,
+        quote_id: int,
+        address_data: Dict[str, Any],
+        address_type: str,
+        update_existing: bool = True
+) -> QuoteAddress:
+    """Create or update address in quote_address table"""
+
+    if update_existing:
+        # Check if address of this type already exists for the quote
+        existing = db.query(QuoteAddress).filter(
+            QuoteAddress.quote_id == quote_id,
+            QuoteAddress.address_type == address_type
+        ).first()
+
+        if existing:
+            # Update existing address
+            for key, value in address_data.items():
+                setattr(existing, key, value)
+            db.commit()
+            db.refresh(existing)
+            return existing
+
+    # Create new address
+    new_address = QuoteAddress(
+        quote_id=quote_id,
+        address_type=address_type,
+        **address_data
+    )
+    db.add(new_address)
+    db.commit()
+    db.refresh(new_address)
+    return new_address
+
+
+# ============ REPLACE THIS FUNCTION COMPLETELY ============
+# DELETE your old add_quote_address function and replace with this:
+
+def add_quote_addresses(
+        db: Session,
+        quote_id: int,
+        addresses: QuoteAddressesCreate,
+        customer_id: Optional[int] = None
+):
+    """
+    Add/update both shipping and billing addresses for a quote
+    """
+    try:
+        # Prepare address dictionaries
+        shipping_data = None
+        billing_data = None
+
+        # Step 1: Get customer's saved addresses as defaults
+        customer_defaults = {'shipping': None, 'billing': None}
+        if customer_id:
+            customer_defaults = get_customer_addresses(db, customer_id)
+
+        # Step 2: Process shipping address
+        if addresses.shipping_address:
+            shipping_data = addresses.shipping_address.dict()
+            # Save to customer profile if customer exists
+            if customer_id:
+                save_address_to_customer_profile(db, customer_id, shipping_data, 'shipping')
+        elif customer_defaults['shipping']:
+            # Use customer's saved shipping address
+            shipping_data = {
+                'street_address': customer_defaults['shipping'].street_address,
+                'postal_code': customer_defaults['shipping'].postal_code,
+                'city': customer_defaults['shipping'].city,
+                'state': customer_defaults['shipping'].state,
+                'phone_no': customer_defaults['shipping'].phone_no,
+                'first_name': customer_defaults['shipping'].first_name,
+                'last_name': customer_defaults['shipping'].last_name
+            }
+
+        # Step 3: Process billing address
+        if addresses.billing_address:
+            billing_data = addresses.billing_address.dict()
+            # Save to customer profile if customer exists
+            if customer_id:
+                save_address_to_customer_profile(db, customer_id, billing_data, 'billing')
+        elif customer_defaults['billing']:
+            # Use customer's saved billing address
+            billing_data = {
+                'street_address': customer_defaults['billing'].street_address,
+                'postal_code': customer_defaults['billing'].postal_code,
+                'city': customer_defaults['billing'].city,
+                'state': customer_defaults['billing'].state,
+                'phone_no': customer_defaults['billing'].phone_no,
+                'first_name': customer_defaults['billing'].first_name,
+                'last_name': customer_defaults['billing'].last_name
+            }
+        elif shipping_data and addresses.use_same_for_billing:
+            # Auto-populate billing from shipping
+            billing_data = shipping_data.copy()
+            # Save as billing address to customer profile
+            if customer_id:
+                save_address_to_customer_profile(db, customer_id, billing_data, 'billing')
+
+        # Step 4: Validate we have at least shipping address
+        if not shipping_data:
+            raise ValueError("Shipping address is required")
+
+        # If still no billing, use shipping as billing
+        if not billing_data:
+            billing_data = shipping_data.copy()
+
+        # Step 5: Create/update addresses in quote_address table
+        shipping_addr = create_or_update_quote_address(
+            db, quote_id, shipping_data, 'shipping'
+        )
+
+        billing_addr = create_or_update_quote_address(
+            db, quote_id, billing_data, 'billing'
+        )
+
+        return {
+            'shipping_address': shipping_addr,
+            'billing_address': billing_addr
+        }
+    except ValueError as e:
+        raise ValueError(str(e))
+    except Exception as e:
+        raise Exception(f"Error managing quote addresses: {str(e)}")
+
+
+# ============ UPDATE THIS FUNCTION ============
+# Change from list to structured dict
+
+def get_quote_addresses(db: Session, quote_id: int):
+    """Get both shipping and billing addresses for a quote (structured)"""
+    addresses = db.query(QuoteAddress).filter(
+        QuoteAddress.quote_id == quote_id
+    ).all()
+
+    result = {'shipping': None, 'billing': None}
+
+    for addr in addresses:
+        if addr.address_type == 'shipping':
+            result['shipping'] = addr
+        elif addr.address_type == 'billing':
+            result['billing'] = addr
+
+    return result
+
+
+# ============ OPTIONAL: AUTO-POPULATE ON QUOTE CREATION ============
+# You can add this to your create_quote function if you want
+
+def create_quote_with_addresses(db: Session, customer_id: int | None = None):
+    """Create quote with auto-populated addresses"""
+    quote = create_quote(db, customer_id)
+
+    # Auto-populate addresses if customer exists
+    if customer_id:
+        # Get customer's default addresses
+        customer_defaults = get_customer_addresses(db, customer_id)
+
+        if customer_defaults['shipping']:
+            shipping_data = {
+                'street_address': customer_defaults['shipping'].street_address,
+                'postal_code': customer_defaults['shipping'].postal_code,
+                'city': customer_defaults['shipping'].city,
+                'state': customer_defaults['shipping'].state,
+                'phone_no': customer_defaults['shipping'].phone_no,
+                'first_name': customer_defaults['shipping'].first_name,
+                'last_name': customer_defaults['shipping'].last_name
+            }
+
+            create_or_update_quote_address(
+                db, quote.quote_id, shipping_data, 'shipping', False
+            )
+
+            # Use same for billing or get billing address
+            if customer_defaults['billing'] and customer_defaults['billing'] != customer_defaults['shipping']:
+                billing_data = {
+                    'street_address': customer_defaults['billing'].street_address,
+                    'postal_code': customer_defaults['billing'].postal_code,
+                    'city': customer_defaults['billing'].city,
+                    'state': customer_defaults['billing'].state,
+                    'phone_no': customer_defaults['billing'].phone_no,
+                    'first_name': customer_defaults['billing'].first_name,
+                    'last_name': customer_defaults['billing'].last_name
+                }
+            else:
+                billing_data = shipping_data.copy()
+
+            create_or_update_quote_address(
+                db, quote.quote_id, billing_data, 'billing', False
+            )
+
+    return quote
+
+
+# ============ KEEP EVERYTHING BELOW THIS LINE UNCHANGED ============
+# All your existing functions remain exactly the same:
 
 def create_quote(db: Session, customer_id: int | None = None):
     # Create a new quote instance
@@ -23,22 +277,26 @@ def create_quote(db: Session, customer_id: int | None = None):
 def get_quote(db: Session, quote_id: int):
     return db.query(Quote).filter(Quote.quote_uid == quote_id).first()
 
+
 # ✅ CORRECT: Get single quote with items eager loaded
 def get_quote_with_items(db: Session, quote_id: int):
-    return db.query(Quote).options(joinedload(Quote.items)).filter(Quote.quote_id == quote_id).first()
+    quote = db.query(Quote).options(joinedload(Quote.items)).filter(Quote.quote_id == quote_id).first()
+    if quote:
+        # Get addresses for this quote
+        addresses = get_quote_addresses(db, quote_id)
+        # Add addresses to quote object
+        quote.addresses = addresses
+    return quote
 
 # ✅ CORRECT: Get all quotes (for listing)
 def get_all_quotes(db: Session, skip: int = 0, limit: int = 100):
     return db.query(Quote).offset(skip).limit(limit).all()
 
 
-
 def calculate_item_totals(product: Product, item_qty: int) -> dict:
     """Calculate price, discount, and tax for a single item"""
     # Calculate item price with discount
     item_price = product.product_price
- 
-
     return {
         'item_price': item_price,
         'item_tax': 0,
@@ -143,7 +401,6 @@ def add_quote_item(db: Session, quote_id: int, item: QuoteItemCreate):
     db.refresh(new_item)
 
     # Update quote totals
-    # Update quote totals
     quote = db.query(Quote).filter(Quote.quote_id == quote_id).first()
     if quote:
         quote.subtotal += item_subtotal
@@ -215,55 +472,13 @@ def remove_quote_item(db: Session, quote_id: int, item_id: int):
         return False
 
 
-
-# def add_quote_address(db: Session, quote_id: int, address: QuoteAddressCreate):
-#     new_address = QuoteAddress(quote_id=quote_id, **address.dict())
-#     db.add(new_address)
-#     db.commit()
-#     db.refresh(new_address)
-#     return new_address
-###################################
-def add_quote_address(db: Session, quote_id: int, address: QuoteAddressCreate):
-
-    # 1️⃣ Check if address already exists
-    existing_address = db.query(QuoteAddress).filter(
-        QuoteAddress.quote_id == quote_id
-    ).first()
-
-    # 2️⃣ If exists → UPDATE instead of creating new
-    if existing_address:
-        for key, value in address.dict().items():
-            setattr(existing_address, key, value)
-
-        db.commit()
-        db.refresh(existing_address)
-        return existing_address
-
-    # 3️⃣ If not exists → CREATE new address
-    new_address = QuoteAddress(
-        quote_id=quote_id,
-        **address.dict()
-    )
-
-    db.add(new_address)
-    db.commit()
-    db.refresh(new_address)
-    return new_address
-
-#################################
-
-def get_quote_addresses(db: Session, quote_id: int):
-    return db.query(QuoteAddress).filter(QuoteAddress.quote_id == quote_id).all()
-
-
 def update_quote_item_quantity(db: Session, quote_id: int, item_id: int, new_qty: int):
     item = db.query(QuoteItem).filter(QuoteItem.item_id == item_id, QuoteItem.quote_id == quote_id).first()
     if not item:
         return None
-    # remove item from cart if 0 qty 
+    # remove item from cart if 0 qty
     if new_qty <= 0 and remove_quote_item(db, quote_id, item_id):
-        return {"message":"Item removed from cart."}
-        
+        return {"message": "Item removed from cart."}
 
     # Store old values
     old_qty = item.item_qty
