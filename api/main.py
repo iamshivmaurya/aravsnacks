@@ -7,7 +7,7 @@ from routes import (
     category_route, coupon_route, customer_route, order_route, 
     product_route, quote_route, review_route, taxclass_route, 
     tracking_route, login, order_invoice, admin_route, settings, 
-    dashboard_route, role_routes,phonepe_routes
+    dashboard_route, role_routes,phonepe_routes, delivery_routes
 )
 
 # Import NEW RBAC route modules
@@ -72,6 +72,7 @@ app.include_router(phonepe_routes.router, prefix=API_PREFIX, tags=["Phonepe Rout
 
 
 # app.include_router(role_route.router, prefix=API_PREFIX, tags=["Role Route"])
+app.include_router(delivery_routes.router, prefix=API_PREFIX, tags=["Delivery Management"])
 
 # Root route
 @app.get("/")

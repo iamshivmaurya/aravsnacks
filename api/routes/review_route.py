@@ -33,7 +33,7 @@ def create_review_endpoint(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.get("/{review_id}", response_model=ReviewResponse)
+@router.get("/review/{review_id}", response_model=ReviewResponse)
 def get_review_endpoint(review_id: int, db: Session = Depends(get_db)):
     db_review = get_review(db, review_id)
     if not db_review:
@@ -48,14 +48,14 @@ def get_product_reviews_endpoint(product_id: int, skip: int = 0, limit: int = 10
 def get_review_stats_endpoint(product_id: int, db: Session = Depends(get_db)):
     return get_review_stats(db, product_id)
 
-@router.put("/{review_id}", response_model=ReviewResponse)
+@router.put("/review/{review_id}", response_model=ReviewResponse)
 def update_review_endpoint(review_id: int, review_update: ReviewUpdate, db: Session = Depends(get_db)):
     db_review = update_review(db, review_id, review_update)
     if not db_review:
         raise HTTPException(status_code=404, detail="Review not found")
     return db_review
 
-@router.delete("/{review_id}")
+@router.delete("/review/{review_id}")
 def delete_review_endpoint(review_id: int, db: Session = Depends(get_db)):
     success = delete_review(db, review_id)
     if not success:
