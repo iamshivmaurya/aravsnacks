@@ -25,16 +25,29 @@ export default function Login() {
 
     setLoading(false);
 
-    if (res?.ok) {
-      router.push("/admin");
-    } else {
+    if (!res?.ok) {
       setError("Invalid username or password");
+      return;
+    }
+
+    // ⭐ Fetch logged-in user session
+    const session = await fetch("/api/auth/session").then((res) => res.json());
+    const role = session?.user?.role;
+
+    // ⭐ Redirect based on Role
+    if (role === "admin") {
+      router.push("/admin");
+    } else if (role === "agent") {
+      router.push("/agent");
+    } else {
+      router.push("/");
     }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
       <div className="w-full max-w-sm bg-white p-8 rounded-2xl shadow-xl">
+
         {/* Logo */}
         <div className="flex justify-center">
           <Image
@@ -57,6 +70,7 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+
           {/* Username */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
