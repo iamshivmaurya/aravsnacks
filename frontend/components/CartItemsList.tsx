@@ -25,7 +25,7 @@ export default function CartItemsList() {
       {cartItems.map(item => (
         <div
           key={item.item_id}
-          className="bg-white p-4 rounded shadow flex justify-between items-center"
+          className="p-4 rounded shadow flex justify-between items-center"
         >
           
           <div>

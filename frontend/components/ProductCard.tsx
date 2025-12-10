@@ -42,9 +42,16 @@ export default function ProductCard({ product }: { product: Product }) {
         </h2>
       </Link>
 
-      <p className="text-sm text-gray-600">{product.description}</p>
-      <p className="font-semibold mt-1">₹{product.product_price}</p>
+      {/* <p className="text-sm text-gray-600">{product.description}</p> */}
+      <div className="mt-1 flex items-center gap-3">
+        <span className="text-xl text-orange-600 font-bold">
+          ₹ {product.product_price}
+        </span>
 
+        <del className="text-gray-500 text-sm opacity-70">
+          ₹ {(product.product_price * 1.2).toFixed(0)}
+        </del>
+      </div>
       {/* ✅ If item is already in cart, show qty inline */}
       {!item ? (
         <button
