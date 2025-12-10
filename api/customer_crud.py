@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from model import Customer, CustomerAddress
+from model import Customer, CustomerAddress,Wallet  
 from schema import CustomerCreate, CustomerUpdate, CustomerAddressCreate
 from typing import List, Optional
 import random
@@ -39,8 +39,38 @@ def create_or_update_customer(db: Session, customer_data: CustomerCreate):
             return create_new_customer(db, customer_data)
 
 
+# def create_new_customer(db: Session, customer: CustomerCreate):
+#     """Create a completely new customer"""
+#     # Check if customer already exists
+#     existing_customer = db.query(Customer).filter(
+#         (Customer.email == customer.email) | (Customer.phone == customer.phone)
+#     ).first()
+
+#     if existing_customer:
+#         raise ValueError("Customer with this email or phone already exists")
+
+#     # Create new customer
+#     new_customer = Customer(
+#         customer_name=customer.customer_name,
+#         email=customer.email,
+#         password_hash=customer.password,  # In production, hash the password
+#         first_name=customer.first_name,
+#         last_name=customer.last_name,
+#         phone=customer.phone
+#     )
+
+#     db.add(new_customer)
+#     db.commit()
+#     db.refresh(new_customer)
+#     return new_customer
+
+#############
+
+
+
 def create_new_customer(db: Session, customer: CustomerCreate):
     """Create a completely new customer"""
+
     # Check if customer already exists
     existing_customer = db.query(Customer).filter(
         (Customer.email == customer.email) | (Customer.phone == customer.phone)
@@ -49,11 +79,11 @@ def create_new_customer(db: Session, customer: CustomerCreate):
     if existing_customer:
         raise ValueError("Customer with this email or phone already exists")
 
-    # Create new customer
+    # 1️⃣ Create new customer
     new_customer = Customer(
         customer_name=customer.customer_name,
         email=customer.email,
-        password_hash=customer.password,  # In production, hash the password
+        password_hash=customer.password,
         first_name=customer.first_name,
         last_name=customer.last_name,
         phone=customer.phone
@@ -62,9 +92,21 @@ def create_new_customer(db: Session, customer: CustomerCreate):
     db.add(new_customer)
     db.commit()
     db.refresh(new_customer)
+
+    # 2️⃣ Create wallet automatically for this customer
+    new_wallet = Wallet(
+        customer_id=new_customer.customer_id,
+        balance=0
+    )
+
+    db.add(new_wallet)
+    db.commit()
+    db.refresh(new_wallet)
+
     return new_customer
 
 
+################
 def update_existing_customer(db: Session, customer: Customer, customer_data: CustomerCreate):
     """Update existing customer with new details"""
     update_data = customer_data.dict(exclude_unset=True, exclude={'customer_id'})
