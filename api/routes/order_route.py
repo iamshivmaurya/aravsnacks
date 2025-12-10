@@ -8,7 +8,8 @@ from schema import (OrderCreate,
                     OrderItemCreate, 
                     OrderAddressCreate, 
                     OrderResponse, 
-                    PlaceOrderRequest)
+                    PlaceOrderRequest,
+                    PlaceOrderResponse  )
 
 from order_crud import (
     create_order, 
@@ -78,7 +79,7 @@ def inject_quote_id(order_data: PlaceOrderRequest, db: Session = Depends(get_db)
     )
     return NewOrderModel(**order_data.dict())
 
-@router.post("/place-order")
+@router.post("/place-order", response_model=PlaceOrderResponse)
 def place_order_route(
         order_data: PlaceOrderRequest = Depends(inject_quote_id),
         db: Session = Depends(get_db)
@@ -92,16 +93,9 @@ def place_order_route(
         result = place_order(db, order_data)
 
         if result['order_id']:
-            return {
-                "order_id": result['order_id'],
-                "cust_order_num": result['cust_order_num'],
-                "message": "Order placed successfully",
-
-            }
+            return PlaceOrderResponse(**result)
         else:
-            return {
-                "message": "Something went wrong!"
-            }
+            raise HTTPException(status_code=500, detail="Order creation failed")
 
     except ValueError as e:
         if "Customer not found" in str(e):
@@ -149,6 +143,7 @@ def get_order_addresses_route(order_id: int, db: Session = Depends(get_db)):
     """Get all addresses for an order"""
     addresses = get_order_addresses(db, order_id)
     return addresses
+
 
 
 

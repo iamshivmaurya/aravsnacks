@@ -6,14 +6,15 @@ from fastapi.staticfiles import StaticFiles
 from routes import (
     category_route, coupon_route, customer_route, order_route, 
     product_route, quote_route, review_route, taxclass_route, 
-    tracking_route, login, order_invoice, settings, 
-    dashboard_route,phonepe_routes , delivery_routes,wallet_route
+    tracking_route, login, order_invoice, admin_route, settings,
+    dashboard_route, role_routes,phonepe_routes, delivery_routes ,wallet_route
 )
 
 # Import NEW RBAC route modules
 from routes.admin_route import router as user_rbac_router
 from routes.role_routes import router as role_rbac_router  
 from routes.permission_routes import router as permission_rbac_router
+from routes import delivery_routes
 
 # Create app instance with metadata
 app = FastAPI(

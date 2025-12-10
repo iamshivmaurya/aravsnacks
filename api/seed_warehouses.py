@@ -18,7 +18,9 @@ def seed_warehouses():
                 "location": "North Delhi",
                 "pincode": "110034",
                 "manager_name": "North Manager",
-                "manager_contact": "9876543210"
+                "manager_contact": "9876543210",
+                "latitude": 28.7041,
+                "longitude": 77.1025
             },
             {
                 "id": 2,
@@ -26,7 +28,9 @@ def seed_warehouses():
                 "location": "South Delhi",
                 "pincode": "110044",
                 "manager_name": "South Manager",
-                "manager_contact": "9876543211"
+                "manager_contact": "9876543211",
+                "latitude": 28.4595,
+                "longitude": 77.0266
             },
             {
                 "id": 3,
@@ -34,7 +38,9 @@ def seed_warehouses():
                 "location": "East Delhi",
                 "pincode": "110092",
                 "manager_name": "East Manager",
-                "manager_contact": "9876543212"
+                "manager_contact": "9876543212",
+                "latitude": 28.5355,
+                "longitude": 77.3910
             }
         ]
 
@@ -46,7 +52,10 @@ def seed_warehouses():
                 db.add(warehouse)
                 print(f"✅ Created warehouse: {warehouse_data['name']}")
             else:
-                print(f"⚠️ Warehouse already exists: {warehouse_data['name']}")
+                # Update existing warehouse with coordinates
+                existing.latitude = warehouse_data["latitude"]
+                existing.longitude = warehouse_data["longitude"]
+                print(f"🔄 Updated warehouse coordinates: {warehouse_data['name']}")
 
         db.commit()
         print("🎉 Warehouse seeding completed successfully!")
