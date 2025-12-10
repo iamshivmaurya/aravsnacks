@@ -28,6 +28,8 @@ export type Quote = {
   quote_uid: string;
   coupon_code?: string;
   subtotal: number;
+  grand_total: number;   // ← ADD THIS LINE
+  
 };
 
 type CartContextType = {
@@ -68,9 +70,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       if (res.data?.is_active && Array.isArray(res.data.items)) {
         setCartItems(res.data.items);
+        // setQuote({
+        //   quote_uid: qid,
+        //   subtotal: res.data.items.reduce((acc, item: CartItem) => acc + item.item_price * item.item_qty, 0),
+        //   coupon_code: res.data.coupon_code
+        // });
         setQuote({
           quote_uid: qid,
-          subtotal: res.data.items.reduce((acc, item: CartItem) => acc + item.item_price * item.item_qty, 0),
+          subtotal: res.data.subtotal || 0,
+          grand_total: res.data.grand_total || 0,
           coupon_code: res.data.coupon_code
         });
       } else {

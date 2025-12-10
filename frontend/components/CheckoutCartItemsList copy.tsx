@@ -95,75 +95,63 @@ export default function CartItemsList() {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {itemsToShow.map(item => (
         <div
           key={item.id}
-          className="p-3 rounded-lg border border-gray-200 shadow-sm flex justify-between items-center bg-white"
+          className="p-4 rounded shadow flex justify-between items-center"
         >
-          <div className="w-full">
-            <div className="flex justify-between items-center">
-              <h2 className="font-semibold text-gray-800">{item.name}</h2>
-              <p className="font-bold text-gray-900">
-                ₹{item.price * item.quantity}
-              </p>
-            </div>
-  
+          <div>
+            <h2 className="font-semibold">{item.name}</h2>
+            {/* <p>₹{item.price} × {item.quantity}</p> */}
+
             <div className="flex items-center gap-2 mt-2">
-              <button
-                onClick={() => decreaseQty(item.id, item.quantity - 1)}
-                className="p-1.5 bg-gray-100 rounded hover:bg-gray-200 transition"
-              >
-                <Minus size={16} />
-              </button>
-  
-              <span className="px-2 font-medium">{item.quantity}</span>
-  
-              <button
-                onClick={() => increaseQty(item.id, item.quantity + 1)}
-                className="p-1.5 bg-gray-100 rounded hover:bg-gray-200 transition"
-              >
-                <Plus size={16} />
-              </button>
-  
+             
+                <>
+                  <button
+                    onClick={() => decreaseQty(item.id,item.quantity-1)}
+                    className="p-1 bg-gray-200 rounded hover:bg-gray-300">
+                    <Minus size={16} />
+                  </button>
+                  <span className="px-2">{item.quantity}</span>
+                  <button
+                    onClick={() => increaseQty(item.id,item.quantity+1)}
+                    className="p-1 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </>
+               
               <button
                 onClick={() =>
                   item.isQuote
                     ? handleDeleteQuoteItem(item.id)
                     : removeFromCart(item.id)
                 }
-                className="ml-auto p-1.5 bg-red-50 text-red-600 rounded hover:bg-red-100 transition"
+                className="ml-4 p-1 bg-red-100 text-red-600 rounded hover:bg-red-200"
               >
                 <Trash2 size={16} />
               </button>
             </div>
           </div>
+          <p className="font-bold text-right">
+            ₹{item.price * item.quantity}
+          </p>
         </div>
       ))}
-  
-      {/* Summary Box */}
-      <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg shadow-sm">
-        <div className="flex justify-between text-gray-700 mb-1">
-          <span>Subtotal:</span>
-          <span>₹{subtotal}</span>
-        </div>
-  
-        <div className="flex justify-between text-gray-700 mb-1">
-          <span>Discount:</span>
-          <span>- ₹{totalDiscount}</span>
-        </div>
-  
-        <div className="flex justify-between text-gray-700 mb-1">
-          <span>Tax:</span>
-          <span>₹{totalTax}</span>
-        </div>
-  
-        <div className="border-t mt-2 pt-2 flex justify-between font-bold text-gray-900 text-lg">
-          <span>Grand Total:</span>
-          <span>₹{grandTotal}</span>
-        </div>
+
+      <div className="text-right font-bold text-x mt-4">
+        Subtotal: ₹{subtotal}
+      </div>
+      <div className="text-right font-bold text-x mt-4">
+        Discount: ₹{totalDiscount}
+      </div>
+      <div className="text-right font-bold text-x mt-4">
+       Total Tax: ₹{totalTax}
+      </div>
+      <div className="text-right font-bold text-x mt-4">
+        Grand Total: ₹{grandTotal}
       </div>
     </div>
   );
-  
 }

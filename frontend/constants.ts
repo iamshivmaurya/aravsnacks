@@ -13,6 +13,8 @@ export const PLACE_ORDER = `/place-order`;
 export const APPLY_COUPON = `/quotes/apply-coupon`;
 export const CANCEL_COUPON = `/quotes/cancel-coupon`;
 export const ORDERS_API_URL = `/orders`;
+export const PAYMENT_STATUS_URL = `/payment-status`;
+export const CREATE_PAYMENT_URL = `/create-payment`;
 
 
 

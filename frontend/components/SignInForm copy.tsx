@@ -144,14 +144,14 @@ export default function SignInForm() {
   );
 
   return (
-    <div className="from-blue-50 to-green-50 p-4">
+    <div className=" from-blue-50 to-green-50 p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className="w-full max-w-md"
       >
-        <div className="">
+        <Card className="">
           <CardHeader className="text-center space-y-2">
             <CardTitle className="text-3xl font-bold text-gray-800 flex items-center justify-center gap-2">
               {step === "phone" ? (
@@ -234,7 +234,7 @@ export default function SignInForm() {
               </form>
             )}
           </CardContent>
-        </div>
+        </Card>
       </motion.div>
     </div>
   );

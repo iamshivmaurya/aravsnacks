@@ -73,12 +73,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   }, [status, session, router]);
 
-  if (status === "loading") return <p>Loading...</p>;
+  if (status === "loading") return <p>Loading11...</p>;
 
   // Role check
   if (session?.user?.role !== "admin") {
     return <p>Loading...</p>;
   }
+
+ 
 
   return (
     <div className="min-h-screen flex bg-gray-100">

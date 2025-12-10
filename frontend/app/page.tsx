@@ -4,7 +4,7 @@ import Banner from "@/components/Banner";
 import ProductCard from "@/components/ProductCard";
 import api from "@/utils/axios";
 import { useEffect, useState } from "react";
-
+import CategoriesSection from "@/components/CategoriesSection";
 type Product = {
   id: number;
   name: string;
@@ -64,23 +64,28 @@ export default function Home() {
       </section>
 
 
+   
+              <>
+                {/* other sections */}
+                <CategoriesSection />
+              </>
+          
 
 
+    {/* PRODUCT GRID */}
+          <section className="mt-16 max-w-7xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-gray-800 text-center">Our Products</h2>
 
-      {/* PRODUCT GRID */}
-      <section className="mt-16 max-w-7xl mx-auto px-4">
-        <h2 className="text-3xl font-bold text-gray-800 text-center">Our Products</h2>
-
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {loading ? (
-            <p className="text-center col-span-full">Loading products...</p>
-          ) : (
-            products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))
-          )}
-        </div>
-      </section>
+            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+              {loading ? (
+                <p className="text-center col-span-full">Loading products...</p>
+              ) : (
+                products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))
+              )}
+            </div>
+          </section>
 
 
             {/* WHY CHOOSE US Section */}
