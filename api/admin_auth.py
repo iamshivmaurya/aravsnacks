@@ -52,13 +52,43 @@ def get_current_user_from_token(token: str, db: Session):
         raise HTTPException(status_code=401, detail="User not found")
     return user
 
+# def require_role(required_role: str):
+#     def role_dependency(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+#         user = get_current_user_from_token(token, db)
+#         if user.role is None or user.role.name != required_role:
+#             raise HTTPException(status_code=403, detail="Not enough permissions")
+#         return user
+#     return role_dependency
+
+################## update required role  16-12-25
+
+
+
 def require_role(required_role: str):
-    def role_dependency(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    def role_dependency(
+        credentials: HTTPAuthorizationCredentials = Depends(security),
+        db: Session = Depends(get_db)
+    ):
+        if not credentials:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated"
+            )
+
+        token = credentials.credentials
+        
         user = get_current_user_from_token(token, db)
-        if user.role is None or user.role.name != required_role:
-            raise HTTPException(status_code=403, detail="Not enough permissions")
+
+        if not user.role or user.role.name != required_role:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not enough permissions"
+            )
+
         return user
     return role_dependency
+
+
 
 # NEW: Permission checking dependency using HTTPBearer
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
